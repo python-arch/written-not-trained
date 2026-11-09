@@ -254,6 +254,8 @@
 
 <main class="wrap">
 
+<div class="todo">To come: the results at a glance, accuracy bars with one panel per benchmark, each labelled with its test set and source.</div>
+
 <div class="tldr">
   <div class="label">TL;DR</div>
   <p class="lead"><strong>Claude Opus 5.5 wrote a tiny transformer from scratch, setting every weight by hand, and it solves mazes Claude can't.</strong> It reads the maze as text, the way you would give it to Claude, and writes back the solved maze. The key is the loop: one small layer runs again and again, so the written part stays small while the run grows with the task. The networks beat frontier LLMs and trained models far bigger, and we look at why Claude can write a network for a problem it can't solve. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
@@ -264,6 +266,8 @@
 <p><a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026) showed that a frontier LLM can work on a network's weights directly, with no training. It fixed a flaw in a small Qwen language model by editing its weights, and wrote small game-playing networks from scratch.</p>
 
 <p><strong>Our step is the loop.</strong> A bigger job would otherwise need a bigger network, and every extra weight is one more thing to write exactly right. So Claude writes one small layer that does one step, setting every weight by hand, and a loop runs it for as long as the task needs. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Without the loop, every step would need its own copy of the layer, so the maze network would need 306 layers and 3,259,341 weights for the longest test maze (163 times the looped network), and 834 layers and 8,867,229 weights for the largest 100×100 maze. Looped transformers are an active research area, and trained ones <em>overthink</em>: run them for more loops than they were trained with, and their answers get worse. A written loop can be built so that once the answer is ready, extra loops leave it exactly as it is. Trained looped models have the same kind of loop, but in our tests training didn't find these solutions. Writing the weights did. We call this looped weight-space programming.</p>
+
+<div class="todo">To come: a figure of maze accuracy against the number of loops.</div>
 
 <p>We asked five questions:</p>
 <ol class="questions">
@@ -291,6 +295,8 @@
 <p>A separate check re-ran the network on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly. We run 1,800 loops, and 3,600 or 7,200 give exactly the same answers.</p>
 
 <p>An extra test used bigger mazes, generated in the Maze-Hard style. The same 19,936 weights, run for more loops, also solved all 50 mazes at 60×60 and all 40 at 100×100.</p>
+
+<div class="todo">To come: a figure of maze accuracy against model size.</div>
 
 <div class="table-wrap">
 <table>
@@ -384,7 +390,7 @@
 
 <h2 id="q3"><span class="qn">3.</span> Does it beat trained models, even much larger ones?</h2>
 
-<div class="todo">To come: a written-vs-trained figure for the maze, with the same network trained by gradient descent.</div>
+<div class="todo">To come: a figure of accuracy against training compute, with the written network as a level line marked "no training".</div>
 
 <p>Could ordinary training find networks like these? While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>
 
