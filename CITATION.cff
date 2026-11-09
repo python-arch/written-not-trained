@@ -8,6 +8,9 @@ authors:
   - family-names: Heakl
     given-names: Ahmed
     affiliation: MBZUAI
+  - family-names: Khan
+    given-names: Salman
+    affiliation: MBZUAI
 date-released: 2026-11-09
 url: "https://python-arch.github.io/written-not-trained/"
 repository-code: "https://github.com/python-arch/written-not-trained"
@@ -23,6 +26,9 @@ preferred-citation:
       affiliation: MBZUAI
     - family-names: Heakl
       given-names: Ahmed
+      affiliation: MBZUAI
+    - family-names: Khan
+      given-names: Salman
       affiliation: MBZUAI
   year: 2026
   month: 11

@@ -2,7 +2,7 @@
 
 **Claude hand-wrote a tiny transformer that beats Claude at mazes.**
 
-Abdelrahman Elsayed\*, Ahmed Heakl\* · MBZUAI
+Abdelrahman Elsayed\*, Ahmed Heakl\*, Salman Khan · MBZUAI
 
 **[Read the post](https://python-arch.github.io/written-not-trained/)** · Run it in your browser: [mazes](https://python-arch.github.io/written-not-trained/demo/maze.html) · [Tower of Hanoi](https://python-arch.github.io/written-not-trained/demo/index.html)
 
@@ -47,7 +47,7 @@ If you use this work, please cite it:
 ```bibtex
 @misc{elsayed2026written,
   title        = {{Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes}},
-  author       = {Elsayed, Abdelrahman and Heakl, Ahmed},
+  author       = {Elsayed, Abdelrahman and Heakl, Ahmed and Khan, Salman},
   year         = {2026},
   month        = nov,
   howpublished = {\url{https://python-arch.github.io/written-not-trained/}},
