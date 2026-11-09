@@ -8,13 +8,13 @@ Abdelrahman Elsayed\*, Ahmed Heakl\* · MBZUAI
 
 ## What this is
 
-We asked Claude Opus 5.5 to write neural networks by hand: code that sets every weight with a formula, with no training. On Maze-Hard, Claude solves 13 of the first 50 test mazes on its own. The tiny transformer it wrote solves all 1,000. Its single layer runs again and again, until the whole path is found.
+We asked Claude Opus 5.5 to write neural networks by hand: code that sets every weight with a formula, with no training. On Maze-Hard, Claude solves 13 of 50 test mazes on its own. The tiny transformer it wrote solves all 1,000. Its single layer runs again and again, until the whole path is found.
 
 ## Results
 
 | Task | Hand-written network | Compared with |
 |---|---|---|
-| **Maze-Hard** (30×30 mazes) | **All 1,000 test mazes**, with 19,936 weights | Claude Opus 5.5: 13 of the first 50 (Davis et al., NeurIPS 2026) |
+| **Maze-Hard** (30×30 mazes) | **All 1,000 test mazes**, with 19,936 weights | Claude Opus 5.5: 13 of 50 test mazes (Davis et al., NeurIPS 2026) |
 | **Shortest routes**, longer than any it was checked on | **100%**, with 6,966 weights | **0%** for trained models up to 99× bigger |
 | **Parity** (odd or even number of 1s) | **Right at every length tested, up to 4,095 bits**, checked only up to 20 | Trained models: chance beyond 21 bits |
 | **Reasoning chains** (`x1 = x0 + 3`, …) | **100% at 12 to 32 steps**, checked only up to 8 | Best trained model: 93.7% on its training lengths, 3.5% beyond |
