@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run the maze network · Written, Not Trained</title>
+<meta name="description" content="Run the hand-written Maze-Hard network in your browser: its real weights, one generic loop, on real test mazes.">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root { --fg: #1d1d1f; --muted: #5f6368; --faint: #969aa0; --line: #d7d9dd; --soft: #f6f6f7; --accent: #154677;
+          --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --serif: "Source Serif 4", Georgia, serif; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; color: var(--fg); font: 17px/1.6 var(--serif); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 56px; }
+  a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--fg); }
+  .top { font: 500 0.82rem/1 var(--sans); padding: 18px 0 0; }
+  .mark { width: 1.35em; height: 1.35em; vertical-align: -0.38em; margin-right: 0.55em; }
+  .kicker { font: 600 0.72rem/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 28px 0 10px; }
+  h1 { font: 700 1.9rem/1.15 var(--sans); letter-spacing: -0.02em; margin: 0 0 12px; }
+  p { margin: 0 0 14px; }
+  .lede { color: #3c4043; }
+  .panel { border: 1px solid var(--line); margin: 20px 0 0; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; padding: 14px 16px; border-bottom: 1px solid var(--line); font-family: var(--sans); }
+  .controls label { display: grid; gap: 4px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .controls .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 0.85rem; font-weight: 500; color: var(--fg); padding-bottom: 8px; }
+  select, button { font: 500 0.92rem/1 var(--sans); color: var(--fg); background: #fff; border: 1px solid var(--line); border-radius: 0; padding: 8px 10px; }
+  select { padding-right: 26px; }
+  button { cursor: pointer; }
+  button.go { background: var(--fg); color: #fff; border-color: var(--fg); min-width: 92px; }
+  button:disabled { opacity: 0.45; cursor: default; }
+  .btns { display: flex; gap: 8px; margin-left: auto; }
+  .board { padding: 16px; display: flex; justify-content: center; }
+  canvas { display: block; width: 100%; max-width: 560px; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0 16px 12px; font: 0.8rem/1.4 var(--sans); color: var(--muted); justify-content: center; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 7px; vertical-align: -1px; background: var(--sw); }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); font-family: var(--sans); }
+  .stat { padding: 10px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stat:nth-child(2n) { border-right: 0; }
+  .stat .k { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .stat .v { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .v small { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+  .status { padding: 12px 16px; font: 500 0.92rem/1.5 var(--sans); min-height: 46px; }
+  .status.done { color: var(--accent); font-weight: 600; }
+  .note { font: 0.8rem/1.5 var(--sans); color: var(--muted); margin: 8px 0 0; }
+  h2 { font: 700 1.15rem/1.3 var(--sans); margin: 36px 0 10px; }
+  details { border: 1px solid var(--line); margin: 14px 0 0; font-family: var(--sans); }
+  summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 0.9rem; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "+"; display: inline-block; width: 1.1em; color: var(--muted); }
+  details[open] summary::before { content: "−"; }
+  details pre { margin: 0; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--soft); font: 0.74rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow: auto; max-height: 460px; }
+  ol { padding-left: 1.2em; }
+  li { margin: 0 0 6px; }
+  @media (min-width: 640px) {
+    h1 { font-size: 2.3rem; }
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stat:nth-child(2n) { border-right: 1px solid var(--line); }
+    .stat:nth-child(4n) { border-right: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="index.html">Tower of Hanoi demo</a></div>
+  <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
+  <h1>Run the maze network</h1>
+  <p class="lede">This page runs the Maze-Hard network from the post, in your browser, on real test mazes. It loads the network's weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each cell, run the same transformer layer again and again, and read off every cell. The loop knows nothing about mazes. The grid shows the network's own state after each loop.</p>
+
+  <div class="panel">
+    <div class="controls">
+      <label>Maze
+        <select id="maze"></select>
+      </label>
+      <label>Speed
+        <select id="speed">
+          <option value="12">Slow</option>
+          <option value="40" selected>Normal</option>
+          <option value="0">As fast as it runs</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="all"> Run all 1,800 loops</label>
+      <div class="btns">
+        <button class="go" id="run" type="button">Run</button>
+        <button id="pause" type="button" disabled>Pause</button>
+      </div>
+    </div>
+    <div class="board"><canvas id="grid" width="1200" height="1200" aria-label="The maze, coloured by the network's state after each loop."></canvas></div>
+    <div class="legend"><span style="--sw:#dbe6f1">knows its distance from the goal</span><span style="--sw:#154677">the path the network writes</span><span style="--sw:#34383f">wall</span></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Loop</div><div class="v" id="s-loop">0</div></div>
+      <div class="stat"><div class="k">Path cells</div><div class="v" id="s-path">0</div></div>
+      <div class="stat"><div class="k">Matches the answer</div><div class="v" id="s-match">–</div></div>
+      <div class="stat"><div class="k">Network time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
+    </div>
+    <div class="status" id="status">Pick a maze and press Run.</div>
+  </div>
+
+  <h2>What happens when you press Run</h2>
+  <ol>
+    <li>Each of the 900 cells becomes one token: its row, its column, and what is there (wall, open, start or goal).</li>
+    <li>In every loop, the same transformer layer runs over all the cells. Each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal.</li>
+    <li>After every loop, the network reads off a character for every cell. The cells it marks as path are drawn in blue.</li>
+    <li>When it stops, the page compares the network's grid with the dataset's answer, character by character.</li>
+  </ol>
+  <p>The network's rule is to run 1,800 loops on a 30×30 maze. Long before that, its whole internal state stops changing: every number is the same as after the loop before. From then on, every loop gives exactly the same state, so the page stops there by default. Tick "Run all 1,800 loops" to run them anyway, which takes about a minute on a laptop.</p>
+
+  <details>
+    <summary>The whole runner: the loop that runs the network</summary>
+    <pre id="runner-src"></pre>
+  </details>
+  <p class="note">The mazes are the first 50 of the Maze-Hard test set (the HRM paper's release), the same 50 on which Claude Opus 5.5 solves 13 on its own. The same network and loop in Python are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>.</p>
+</div>
+
+<script src="maze_network.js"></script>
+<script src="maze_tests.js"></script>
+<script id="runner">
+// The generic loop, the same computation as weights/run.py. It knows nothing about mazes:
+// it only reads the config and the weights. Numbers are 64-bit.
+
+function dense(t) { const a = new Float64Array(t.shape.reduce((x, y) => x * y, 1)); t.idx.forEach((i, j) => { a[i] = t.val[j]; }); return a; }
+function sparse(t) {                            // a weight matrix kept as its nonzero entries
+  const cols = t.shape[1];
+  const o = t.idx.map((_, j) => j).sort((a, b) => (t.idx[a] % cols) - (t.idx[b] % cols) || t.idx[a] - t.idx[b]);
+  return { rows: t.shape[0], cols, r: Int32Array.from(o, j => Math.floor(t.idx[j] / cols)),
+           c: Int32Array.from(o, j => t.idx[j] % cols), v: Float64Array.from(o, j => t.val[j]) };
+}
+function usedCols(W) { const s = new Set(W.c); return Int32Array.from([...s].sort((a, b) => a - b)); }
+
+function loadNetwork(net) {
+  const N = { cfg: net.config, d: net.config.d_model, emb: net.embed.map(t => ({ shape: t.shape, w: dense(t) })),
+              W_out: sparse(net.W_out), b_out: dense(net.b_out), layers: [] };
+  for (const L of net.layers) {
+    N.layers.push({ heads: L.heads.map(h => {
+                      const Wq = sparse(h.Wq), Wk = sparse(h.Wk);
+                      const qk = usedCols(Wq).filter(c => usedCols(Wk).includes(c));   // q.k sums only these dims;
+                      return { Wq, Wk, Wv: sparse(h.Wv), Wo: sparse(h.Wo), dk: h.Wq.shape[1], qk };   // the rest are 0
+                    }),
+                    W1: sparse(L.W1), b1: dense(L.b1), W2: sparse(L.W2), b2: dense(L.b2) });
+  }
+  const all = [...net.embed, net.W_out, net.b_out, ...net.layers.flatMap(L => [...L.heads.flatMap(h => [h.Wq, h.Wk, h.Wv, h.Wo]), L.W1, L.b1, L.W2, L.b2])];
+  N.total = all.reduce((s, t) => s + t.shape.reduce((x, y) => x * y, 1), 0);
+  N.nonzero = all.reduce((s, t) => s + t.idx.length, 0);
+  return N;
+}
+
+function rowTimes(x, xo, W, out, oo) {           // out[oo..] += x[xo..] W, using only the nonzero entries of W
+  for (let j = 0; j < W.v.length; j++) out[oo + W.c[j]] += x[xo + W.r[j]] * W.v[j];
+}
+
+function embed(N, tokens) {                      // h = sum over fields of that field's table row
+  const n = tokens.length, d = N.d, H = new Float64Array(n * d);
+  tokens.forEach((tok, i) => tok.forEach((v, f) => { const E = N.emb[f].w; for (let c = 0; c < d; c++) H[i * d + c] += E[v * d + c]; }));
+  return H;
+}
+
+let S = new Float64Array(1024), E = new Float64Array(1024);
+function loop(N, H, n) {                         // one pass of the shared block over every token (no mask)
+  const d = N.d;
+  for (const L of N.layers) {
+    const att = new Float64Array(n * d);
+    for (const h of L.heads) {
+      const dk = h.dk, dv = h.Wv.cols, Q = new Float64Array(n * dk), K = new Float64Array(n * dk), V = new Float64Array(n * dv);
+      for (let i = 0; i < n; i++) { rowTimes(H, i * d, h.Wq, Q, i * dk); rowTimes(H, i * d, h.Wk, K, i * dk); rowTimes(H, i * d, h.Wv, V, i * dv); }
+      if (S.length < n) { S = new Float64Array(n); E = new Float64Array(n); }
+      const scale = Math.sqrt(dk), qk = h.qk, o = new Float64Array(dv), nz = new Int32Array(n);
+      for (let i = 0; i < n; i++) {
+        let m = -Infinity;
+        for (let j = 0; j < n; j++) {
+          let x = 0; for (let t = 0; t < qk.length; t++) x += Q[i * dk + qk[t]] * K[j * dk + qk[t]];
+          x /= scale; S[j] = x; if (x > m) m = x;
+        }
+        let sum = 0, cnt = 0;                    // exact softmax: exp(s - max) / sum. exp of anything below -746
+        for (let j = 0; j < n; j++) {            // is exactly 0 in 64-bit numbers, so those terms are skipped
+          const x = S[j] - m; if (x < -746) continue;
+          const e = Math.exp(x); E[j] = e; sum += e; nz[cnt++] = j;
+        }
+        o.fill(0);
+        for (let t = 0; t < cnt; t++) { const j = nz[t], p = E[j] / sum; for (let c = 0; c < dv; c++) o[c] += p * V[j * dv + c]; }
+        rowTimes(o, 0, h.Wo, att, i * d);
+      }
+    }
+    for (let x = 0; x < n * d; x++) H[x] += att[x];
+    const a = new Float64Array(L.W1.cols);
+    for (let i = 0; i < n; i++) {                 // ReLU MLP on every token
+      a.fill(0); rowTimes(H, i * d, L.W1, a, 0);
+      for (let u = 0; u < a.length; u++) a[u] = Math.max(a[u] + L.b1[u], 0);
+      const b = new Float64Array(d); rowTimes(a, 0, L.W2, b, 0);
+      for (let c = 0; c < d; c++) H[i * d + c] += b[c] + L.b2[c];
+    }
+  }
+}
+
+function readout(N, H, n) {                      // the argmax character at every token
+  const d = N.d, V = N.W_out.cols, out = new Int32Array(n), lg = new Float64Array(V);
+  for (let i = 0; i < n; i++) {
+    for (let c = 0; c < V; c++) lg[c] = N.b_out[c];
+    rowTimes(H, i * d, N.W_out, lg, 0);
+    let k = 0; for (let c = 1; c < V; c++) if (lg[c] > lg[k]) k = c; out[i] = k;
+  }
+  return out;
+}
+</script>
+<script>
+(function () {
+  const net = loadNetwork(window.MAZE_NETWORK), tests = window.MAZE_TESTS;
+  const cs = net.cfg.charset, side = 30, n = side * side, R = 2 * n;
+  const fmt = (x) => x.toLocaleString("en-US"), el = (id) => document.getElementById(id);
+  el("w-total").textContent = fmt(net.total); el("w-nonzero").textContent = fmt(net.nonzero);
+  el("runner-src").textContent = el("runner").textContent.trim();
+  tests.forEach((t, i) => el("maze").add(new Option(`Test maze ${i + 1}`, i)));
+
+  // ---------------- task-specific input and output: maze <-> tokens (row, column, character)
+  const tokensOf = (q) => [...q].map((ch, i) => [Math.floor(i / side), i % side, cs.indexOf(ch)]);
+  const wave = net.cfg.view.wave_dims, PATH = cs.indexOf(net.cfg.view.path_char);
+
+  // ---------------- drawing
+  const cv = el("grid"), cx = cv.getContext("2d"), W = cv.width, cell = W / side;
+  const WALL = "#34383f", OLD = [219, 230, 241], NEW = [122, 160, 199], BLUE = "#154677";
+  let q = tests[0].q, reach = new Int32Array(n).fill(-1), out = null, L = 0;
+  function tint(age) { const a = Math.min(1, age / 10); return `rgb(${NEW.map((x, k) => Math.round(x + (OLD[k] - x) * a)).join(",")})`; }
+  function draw() {
+    cx.fillStyle = "#fff"; cx.fillRect(0, 0, W, W);
+    for (let i = 0; i < n; i++) {
+      const x = (i % side) * cell, y = Math.floor(i / side) * cell, ch = q[i];
+      if (ch === "#") { cx.fillStyle = WALL; cx.fillRect(x, y, cell, cell); continue; }
+      if (out && out[i] === PATH) { cx.fillStyle = BLUE; cx.fillRect(x, y, cell, cell); }
+      else if (reach[i] >= 0) { cx.fillStyle = tint(L - reach[i]); cx.fillRect(x, y, cell, cell); }
+    }
+    cx.strokeStyle = "#eceef1"; cx.lineWidth = 1;
+    for (let k = 0; k <= side; k++) { cx.beginPath(); cx.moveTo(k * cell, 0); cx.lineTo(k * cell, W); cx.moveTo(0, k * cell); cx.lineTo(W, k * cell); cx.stroke(); }
+    cx.font = `700 ${Math.round(cell * 0.62)}px Inter, system-ui, sans-serif`; cx.textAlign = "center"; cx.textBaseline = "middle";
+    for (const [ch, lab] of [["S", "S"], ["G", "G"]]) {
+      const i = q.indexOf(ch), x = (i % side) * cell, y = Math.floor(i / side) * cell;
+      cx.fillStyle = "#1d1d1f"; cx.fillRect(x, y, cell, cell); cx.fillStyle = "#fff"; cx.fillText(lab, x + cell / 2, y + cell / 2 + 1);
+    }
+    cx.strokeStyle = "#1d1d1f"; cx.lineWidth = 3; cx.strokeRect(1.5, 1.5, W - 3, W - 3);
+  }
+
+  // ---------------- run: the network loops; the page draws its state and checks the final grid
+  let H = null, prev = null, running = false, done = false, tSpent = 0, fixedAt = null;
+  function show() {
+    el("s-loop").innerHTML = `${fmt(L)} <small>of ${fmt(R)}</small>`;
+    el("s-path").textContent = out ? fmt([...out].filter(c => c === PATH).length) : "0";
+    el("s-time").innerHTML = `${(tSpent / 1000).toFixed(1)} <small>s</small>`;
+  }
+  function reset() {
+    q = tests[+el("maze").value].q; H = embed(net, tokensOf(q)); prev = H.slice();
+    reach = new Int32Array(n).fill(-1); L = 0; fixedAt = null; done = false; tSpent = 0;
+    for (let i = 0; i < n; i++) if (wave.some(c => H[i * net.d + c] > 0.5)) reach[i] = 0;
+    out = readout(net, H, n); el("s-match").textContent = "–"; el("status").className = "status"; el("status").textContent = "Running…";
+    draw(); show();
+  }
+  function step() {
+    const t0 = performance.now();
+    loop(net, H, n); L++;
+    for (let i = 0; i < n; i++) if (reach[i] < 0 && wave.some(c => H[i * net.d + c] > 0.5)) reach[i] = L;
+    out = readout(net, H, n);
+    let same = true; for (let x = 0; x < H.length; x++) if (H[x] !== prev[x]) { same = false; break; }
+    if (same && fixedAt === null) fixedAt = L - 1;
+    if (!same) fixedAt = null;
+    prev.set(H);
+    tSpent += performance.now() - t0;
+  }
+  function finish() {
+    running = false; done = true; draw(); show();
+    const grid = [...out].map(k => cs[k]).join(""), ok = grid === tests[+el("maze").value].a;
+    el("s-match").textContent = ok ? "Yes" : "No";
+    el("status").className = "status" + (ok ? " done" : "");
+    const tail = L < R ? ` The whole state stopped changing at loop ${fmt(fixedAt)}, so loops ${fmt(fixedAt + 1)} to ${fmt(R)} give exactly the same grid.`
+                       : ` The whole state stopped changing at loop ${fmt(fixedAt)}, and the remaining loops changed nothing.`;
+    el("status").textContent = (ok ? "Solved. The network's grid matches the dataset's answer exactly, character by character." : "The grid differs from the dataset's answer.") + tail;
+    el("run").textContent = "Run again"; el("pause").disabled = true;
+  }
+  let lastT = 0, carry = 0;
+  function frame(now) {
+    if (!running) return;
+    const speed = +el("speed").value, runAll = el("all").checked;
+    let todo = 1;
+    if (speed > 0) { carry += Math.min(0.1, (now - (lastT || now)) / 1000) * speed; todo = Math.floor(carry); carry -= todo; }
+    lastT = now;
+    const start = performance.now();
+    while ((speed === 0 ? performance.now() - start < 14 : todo-- > 0)) {
+      if (L >= R || (!runAll && fixedAt !== null)) break;
+      step();
+    }
+    draw(); show();
+    if (L >= R || (!runAll && fixedAt !== null)) { finish(); return; }
+    requestAnimationFrame(frame);
+  }
+  el("run").addEventListener("click", () => {
+    reset(); running = true; lastT = 0; carry = 0; el("run").textContent = "Restart"; el("pause").disabled = false; el("pause").textContent = "Pause";
+    requestAnimationFrame(frame);
+  });
+  el("pause").addEventListener("click", () => {
+    if (done) return;
+    running = !running; el("pause").textContent = running ? "Pause" : "Resume"; el("status").textContent = running ? "Running…" : "Paused.";
+    if (running) { lastT = 0; requestAnimationFrame(frame); }
+  });
+  el("maze").addEventListener("change", () => { if (!running) { q = tests[+el("maze").value].q; reach.fill(-1); out = null; L = 0; draw(); show(); el("s-match").textContent = "–"; } });
+  draw(); show();
+})();
+</script>
+</body>
+</html>

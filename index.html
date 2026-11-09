@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes</title>
+<meta name="description" content="Claude solves 13 of the first 50 test mazes on its own. The tiny transformer it wrote, with 19,936 weights, solves all 1,000.">
+<meta name="author" content="Abdelrahman Elsayed, Ahmed Heakl">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://python-arch.github.io/written-not-trained/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Written, Not Trained">
+<meta property="og:title" content="Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes">
+<meta property="og:description" content="Claude solves 13 of the first 50 test mazes on its own. The tiny transformer it wrote, with 19,936 weights, solves all 1,000.">
+<meta property="og:url" content="https://python-arch.github.io/written-not-trained/">
+<meta property="og:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi, 20 disks: 1,048,575 moves, zero mistakes.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes">
+<meta name="twitter:description" content="Claude solves 13 of the first 50 test mazes on its own. The tiny transformer it wrote, with 19,936 weights, solves all 1,000.">
+<meta name="twitter:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
+<meta name="twitter:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi, 20 disks: 1,048,575 moves, zero mistakes.">
+
+<script>
+  /* Charts draw their data in when scrolled into view, unless the reader prefers less motion. */
+  if ("IntersectionObserver" in window && !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+    document.documentElement.className += " anim";
+  }
+</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1d1d1f;
+    --muted: #5f6368;
+    --line: #d7d9dd;
+    --soft: #f6f6f7;
+    /* Data colours, the same in text, tables and figures. */
+    --written: #154677;   /* hand-written networks */
+    --trained: #868e96;   /* trained models */
+    --llm: #8a6a1f;       /* frontier / pretrained LLMs */
+    --maxw: 700px;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: var(--serif); font-size: 18px; line-height: 1.65;
+    overflow-wrap: break-word;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 16px; }
+  main { padding: 0 0 96px; }
+  h1, h2, h3, table, figcaption, .setup, .card, .meta, .label, .note, .fine, details, .q { font-family: var(--sans); }
+  .label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- First screen ---------- */
+  .hero { padding: 18px 0 8px; }
+  .hero h1 { font-size: 2rem; line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 10px; font-weight: 700; }
+  .hero h1 .claim a { color: inherit; text-decoration-thickness: 2px; }
+  .hero h1 .claim { display: block; margin-top: 8px; font-size: 1.1rem; line-height: 1.38; letter-spacing: -0.005em; font-weight: 500; color: var(--muted); }
+  .meta { font-size: 0.78rem; line-height: 1.4; color: var(--muted); display: flex; gap: 2px 14px; flex-wrap: wrap; padding: 7px 0; margin: 0 0 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .meta b { display: none; }
+  .meta > div:not(:last-child)::after { content: "·"; margin-left: 14px; }
+  .cards { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .card { border: 1px solid var(--line); padding: 10px 14px; font-size: 0.86rem; line-height: 1.4; display: flex; flex-direction: column; gap: 4px; }
+  .card .big { font-size: 1.5rem; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em; color: var(--written); margin: 2px 0; }
+  .card .who { font-weight: 600; line-height: 1.38; }
+  .card .ctx { color: var(--muted); font-size: 0.78rem; }
+  .hero-video { margin: 16px 0 18px; }
+  .video-fig { margin: 18px 0 26px; }
+  .mark { width: 1.35em; height: 1.35em; vertical-align: -0.38em; margin-right: 0.55em; }
+  .kicker { font-family: var(--sans); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  .hero-video .player, .video-fig .player { position: relative; }
+  .hero-video video, .video-fig video { display: block; width: 100%; height: auto; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  .hero-video figcaption, .video-fig figcaption { margin-top: 8px; max-width: none; }
+
+  /* ---------- Body ---------- */
+  .tldr { border: 1px solid var(--line); padding: 18px 20px; margin: 32px 0; }
+  .tldr .label { margin-bottom: 10px; }
+  .tldr p:last-child { margin-bottom: 0; }
+  .tldr ul { list-style: none; padding: 0; margin: 0 0 16px; }
+  .tldr li { position: relative; padding-left: 18px; margin-bottom: 12px; }
+  .tldr li::before { content: ""; position: absolute; left: 2px; top: 0.66em; width: 6px; height: 6px; background: var(--fg); }
+  h2 { font-size: 1.38rem; line-height: 1.3; margin: 68px 0 14px; letter-spacing: -0.01em; scroll-margin-top: 16px; font-weight: 700; }
+  h2 .qn { color: var(--muted); font-weight: 400; }
+  h3 { font-size: 1.1rem; margin: 4px 0 10px; font-weight: 700; }
+  .eyebrow { margin: 44px 0 0; }
+  p { margin: 0 0 16px; }
+  a { color: inherit; text-decoration: underline; text-decoration-color: #9aa0a6; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--fg); }
+  strong { font-weight: 600; }
+  code { font-size: 0.88em; background: var(--soft); padding: 1px 4px; }
+  .q { font-weight: 700; margin: 22px 0 4px; }
+  .a { margin: 0 0 16px; }
+  .a strong { color: var(--written); font-weight: 700; }
+  .questions { padding-left: 24px; }
+  .questions li { margin-bottom: 10px; }
+  .setup { border: 1px solid var(--line); padding: 14px 16px; font-size: 0.84rem; line-height: 1.5; margin: 0 0 22px; }
+  .setup .label { margin-bottom: 8px; }
+  .setup dl { margin: 0; }
+  .setup dt { font-weight: 600; }
+  .setup dd { margin: 0 0 8px; }
+  .table-wrap {
+    overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 0 10px;
+    background:
+      linear-gradient(to right, #fff 30%, rgba(255,255,255,0)),
+      linear-gradient(to right, rgba(255,255,255,0), #fff 70%) 100% 0,
+      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,0.14), rgba(0,0,0,0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,0.14), rgba(0,0,0,0)) 100% 0;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 12px 100%, 12px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; line-height: 1.4; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--fg); font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }
+  th { font-weight: 600; color: var(--muted); font-size: 0.74rem; }
+  td.num, th.num { text-align: right; }
+  tr.written td { color: var(--written); font-weight: 600; }
+  tr.llm td:first-child { color: var(--llm); font-weight: 600; }
+  .note { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
+  .fine { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
+  .fine b { color: var(--fg); font-weight: 600; }
+  details { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 0 22px; font-size: 0.8rem; line-height: 1.55; color: var(--muted); }
+  details summary { cursor: pointer; padding: 8px 0; color: var(--fg); font-weight: 600; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "+ "; color: var(--muted); }
+  details[open] summary::before { content: "− "; }
+  details p { margin: 0 0 10px; }
+  figure { margin: 10px 0 30px; }
+  figure img { display: block; width: 100%; max-width: 540px; height: auto; margin: 0 auto; border: 1px solid var(--line); }
+  /* Charts in two layers: the frame, and the data on top. Stacked, they are the full chart. */
+  .layers { position: relative; max-width: 540px; margin: 0 auto; }
+  .layers img { margin: 0; }
+  .layers img.data { position: absolute; top: 0; left: 0; border-color: transparent; }
+  .anim .reveal img.data { clip-path: inset(0 var(--hide, 50%) 0 0); }
+  .anim .reveal.play img.data { clip-path: inset(0 0 0 0); transition: clip-path 2.2s cubic-bezier(0.45, 0, 0.2, 1); }
+  figcaption { font-size: 0.78rem; color: var(--muted); margin: 8px auto 0; max-width: 540px; line-height: 1.45; }
+  ol, ul { padding-left: 22px; margin: 0 0 16px; }
+  li { margin-bottom: 8px; }
+  .credit { border: 1px solid var(--line); padding: 14px 18px; font-size: 0.97rem; margin: 0 0 28px; }
+  pre { border: 1px solid var(--line); background: var(--soft); padding: 14px 16px; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; white-space: pre-wrap; }
+  .related p { font-size: 0.97rem; }
+
+  @media (min-width: 640px) {
+    body { font-size: 19px; }
+    .hero { padding: 56px 0 8px; }
+    .hero h1 { font-size: 2.6rem; }
+    .hero h1 .claim { font-size: 1.3rem; }
+    .meta { font-size: 0.84rem; gap: 6px 28px; margin-bottom: 24px; }
+    .meta b { display: block; color: var(--fg); }
+    .meta > div:not(:last-child)::after { content: none; }
+    .cards { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { padding: 16px; gap: 6px; }
+    .card .label { font-size: 0.64rem; letter-spacing: 0.05em; }
+    .card .big { font-size: 1.28rem; }
+    .setup { padding: 16px 20px; }
+    .setup dt { float: left; clear: left; width: 112px; }
+    .setup dd { margin: 0 0 6px 124px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming</div>
+    <h1>Written, Not Trained<span class="claim">Claude hand-wrote a tiny transformer that beats Claude at <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">mazes</a></span></h1>
+    <div class="meta">
+      <div><b class="label">Authors</b>Abdelrahman Elsayed*, Ahmed Heakl*</div>
+      <div><b class="label">Affiliation</b>MBZUAI</div>
+      <div><b class="label">Published</b>9 November 2026</div>
+    </div>
+
+    <figure class="hero-video">
+      <div class="player">
+        <video class="loop-video" autoplay muted loop playsinline preload="auto" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. The network Claude wrote solves the first Maze-Hard test maze, loop by loop. In every loop, each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: cells one step farther away learn how far they are from the goal. It reaches the start at loop 111. Then the path grows from the start, always to the neighbour one step closer to the goal, and is complete at loop 222. After that nothing changes, all the way to loop 1,800. The network's grid matches the dataset's answer exactly.">
+          <source src="figures/maze_hero.mp4" type="video/mp4">
+          <source src="figures/maze_hero.webm" type="video/webm">
+        </video>
+      </div>
+      <figcaption>The network Claude wrote, solving the first test maze of <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a well-known benchmark. Each frame is its real state, loop by loop (sped up). <a href="demo/maze.html">Run it yourself.</a></figcaption>
+    </figure>
+
+    <div class="cards">
+      <div class="card">
+        <div class="label"><a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, 30×30 mazes</div>
+        <div class="big">50&nbsp;of&nbsp;50 vs 13&nbsp;of&nbsp;50</div>
+        <div class="who">Claude solves 13 of the first 50 test mazes on its own. The tiny transformer it wrote, with 19,936 weights, solves all 1,000.</div>
+        <div class="ctx">Claude's score is from <a href="https://arxiv.org/abs/2605.08605">Davis et al. (NeurIPS 2026)</a>, Table 25, tested in October 2026.</div>
+      </div>
+      <div class="card">
+        <div class="label">Tower of Hanoi, 20 disks</div>
+        <div class="big">1,048,575 moves.<br>Zero mistakes.</div>
+        <div class="who">Claude Opus 5.5 wrote it by hand: a single transformer layer, nothing trained.</div>
+        <div class="ctx">Every move legal, the fewest possible.</div>
+      </div>
+      <div class="card">
+        <div class="label">Graph search, paths 2–4× longer</div>
+        <div class="big">100% vs 0%</div>
+        <div class="who">Claude Opus 5.5 wrote 6,966 weights by hand. Trained models up to 99× bigger score 0%.</div>
+        <div class="ctx">The paths are longer than any it was checked on. The trained models were trained on the same short paths.</div>
+      </div>
+    </div>
+
+  </div>
+</header>
+<script>
+  (function () {
+    var mm = window.matchMedia ? function (q) { return window.matchMedia(q).matches; } : function () { return false; };
+    var small = mm("(max-width: 639px)"), still = mm("(prefers-reduced-motion: reduce)");
+    var watch = "IntersectionObserver" in window ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.play(); } else { e.target.pause(); } });
+    }, { threshold: 0.35 }) : null;
+    function setup(v) {
+      if (v.getAttribute("data-ready")) { return; }
+      v.setAttribute("data-ready", "1");
+      if (small && v.getAttribute("data-tall")) {      /* the stacked version on phones */
+        var base = v.getAttribute("data-tall"), s = v.querySelectorAll("source");
+        var wh = (v.getAttribute("data-tall-size") || "720x900").split("x");
+        v.poster = base + "_poster.png"; v.width = +wh[0]; v.height = +wh[1];
+        s[0].src = base + ".mp4"; s[1].src = base + ".webm"; v.load();
+      }
+      v.addEventListener("click", function () { if (v.paused) { v.play(); } else { v.pause(); } });
+      if (still) { v.removeAttribute("autoplay"); v.pause(); v.controls = true; return; }
+      if (!v.hasAttribute("autoplay") && watch) { watch.observe(v); }   /* plays only while on screen */
+    }
+    document.querySelectorAll("video.loop-video").forEach(setup);
+    document.addEventListener("DOMContentLoaded", function () { document.querySelectorAll("video.loop-video").forEach(setup); });
+  })();
+</script>
+
+<main class="wrap">
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p class="lead"><strong>Claude Opus 5.5 hand-wrote a tiny transformer, and it solves mazes that Claude can't solve on its own.</strong> You give it the maze as text, the way you would give it to Claude, and it writes back the solved maze. Only 922 of its weights aren't zero. Its single layer runs again and again: in every run, each cell of the maze reads its four neighbours, until the whole path is found. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL), which showed that LLMs can read and write neural network weights directly. We take it one step further: we let the networks loop. We call it looped weight-space programming. Nothing about these networks was trained.</p>
+  <ul>
+    <li><strong>It beats the model that wrote it.</strong> On Maze-Hard, a well-known benchmark, Claude Opus 5.5 solves 13 of the first 50 test mazes on its own (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>, Table 25). The network it wrote, with 19,936 weights, solves all 1,000. Run for more loops, the same weights also solve bigger mazes, at 60×60 and 100×100.</li>
+    <li><strong>One small layer, 1,048,575 moves, zero mistakes.</strong> Claude's Tower of Hanoi network is a single transformer layer that runs over and over, writing one move at a time. It solves 20 disks: 1,048,575 moves, every one legal, the fewest possible. MAKER (Meyerson et al., 2025) was the first to solve it with an LLM, by asking for every move at least three times and taking a vote: over 3 million LLM calls in all. Here it is one network with 427,654 weights, and only 3,686 of them aren't zero.</li>
+    <li><strong>100% vs 0%, against models 99× bigger.</strong> On graph paths longer than any it was checked on, Claude's 6,966-weight network gets every one right. Trained models up to 99× bigger get none.</li>
+  </ul>
+</div>
+
+<p>Claude Opus 5.5 solves 13 of the first 50 Maze-Hard test mazes on its own (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>, Table 25). A small network that Claude wrote by hand solves all 1,000. How can a network beat the model that wrote it? Long tasks that have to be exactly right are hard for AI models, and trained networks often fail as soon as a problem is longer than the ones they learned from. A network written by hand can solve these tasks exactly, for as many steps as they need.</p>
+
+<h2 id="concept">Looped weight-space programming</h2>
+
+<p><strong>LLMs can now write weights.</strong> Earlier this month, researchers at MIT CSAIL showed that a frontier LLM can work on a network's weights directly, with no training (Weight-Space Programming, credited below). It fixed a flaw in a small Qwen language model by editing its weights, and wrote small game-playing networks from scratch. But a written network stays small, because the LLM has to know the job of every weight it sets.</p>
+
+<p><strong>Our step: scale them with loops.</strong> To do a bigger job, you could write a bigger network, but every extra weight is one more thing to get exactly right. Instead, we keep the network small and loop it. A looped transformer runs the same layer again and again, feeding its output back in, so it gets more steps of work without getting any bigger. Each run is called a pass. Claude writes one small layer that does one step well, and the loop repeats it as often as the task needs. Nothing is trained: Claude sets every weight itself, and no weight is fitted to data. Compiling programs into weights has been done before (see Related work). Using loops to scale LLM-written networks is the step we add. We call it looped weight-space programming.</p>
+
+<p><strong>Loops take a small network a long way.</strong> The Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Looped transformers are already an active research area, and they have a known weakness. Trained ones <em>overthink</em>: run them for more loops than they were trained with, and their answers get worse. A written loop can be built so that once the answer is ready, extra passes leave it exactly as it is.</p>
+
+<p><strong>They beat much bigger models.</strong> The 19,936-weight maze network solves all 1,000 Maze-Hard test mazes, where Claude itself solves 13 of the first 50. A 6,966-weight network finds the length of every shortest route, where trained models 99× its size get none right. Trained looped models have the same kind of loop, but in our tests training didn't find these solutions. Writing the weights did.</p>
+
+<p><strong>They carry over to bigger problems.</strong> While building a network, Claude could check it only on small inputs, which we call its checking range. Most of our tests use much bigger inputs it never saw. The Hanoi network was checked on up to 6 disks and solves 20. A network that tells whether a string of 0s and 1s has an odd or even number of 1s was checked on strings of up to 20 and is right at every length we tested, up to 4,095. The same maze weights, run for more loops, also solve mazes at 100×100.</p>
+
+<p class="q">Is this just a program in disguise?</p>
+<p class="a">In a way, yes. The program lives in the network's weights, and the code that runs it knows nothing about the task. From the outside, it works like any transformer: it reads tokens and writes its answer as tokens. Some of these networks read the same English question an LLM gets, and answer in text.</p>
+
+<p class="q">Then why not just write a program?</p>
+<p class="a"><strong>Because the network is the point.</strong> A small network that loops, written by an LLM, can solve problems that the LLM itself, and trained networks far bigger, get wrong.</p>
+
+<div class="credit">
+  <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, November 2026) showed that a frontier LLM can read a network's weights, fix them, and write new ones from a plain-language goal, without an optimizer. This post builds directly on that idea. At the same time, <a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a> had Claude hand-write the weights of small transformers for ten algorithmic tasks.
+</div>
+
+<p>So we asked five questions:</p>
+<ol class="questions">
+  <li><a href="#q1"><strong>Can it beat the model that wrote it?</strong></a> (Maze-Hard)</li>
+  <li><a href="#q2"><strong>Does it beat trained models, even much larger ones?</strong></a> (graph search, parity, reasoning chains, BIG-Bench Hard)</li>
+  <li><a href="#q3"><strong>Can it solve the puzzles that broke reasoning models?</strong></a> (Tower of Hanoi, Checker Jumping)</li>
+  <li><a href="#q4"><strong>Does it hold up on problems built to stump strong LLMs?</strong></a> (BIG-Bench Extra Hard)</li>
+  <li><a href="#q5"><strong>Can the same approach help a real pretrained looped model?</strong></a> (Ouro-1.4B, a looped language model trained by others)</li>
+</ol>
+
+<h2 id="q1"><span class="qn">1.</span> Can it beat the model that wrote it?</h2>
+
+<p class="eyebrow label">Experiment 1</p>
+<h3>Maze-Hard</h3>
+
+<p>Maze-Hard is the 30×30 maze benchmark from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model), also used by <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and others. Both are small models trained to solve puzzles like this by repeating a step many times. The task is to find the shortest path, which is over 110 steps long. Most mazes have many equally short paths, and the dataset marks one of them as the answer.</p>
+
+<p>Frontier LLMs find it hard. In tests reported for the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT, Davis et al., NeurIPS 2026), a small model trained on mazes, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200 test mazes in April 2026. In October 2026, Claude Opus 5.5 and GPT-6 Astra each solved 26% of the first 50 test mazes, and GPT-6.1 Sol 12%.</p>
+
+<p><strong>How the network solves it.</strong> The network reads the maze as text, one token per cell, and writes back the same grid with the path marked, in the format the dataset uses. In every loop, each cell of the maze looks at its four neighbours. First, distance from the goal spreads out: in loop 1 the goal's neighbours learn they are 1 step away, in loop 2 the cells 2 steps away, and so on. Each cell keeps its distance counted in threes (0, 1, 2, 0, 1, 2, …), which is all it needs to tell which neighbour is one step closer. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal. On the test mazes, the answer stops changing after 218 to 306 loops. We run 1,800 loops, and 3,600 or 7,200 give exactly the same answer.</p>
+
+<p class="q">Can it solve mazes that stump the model that wrote it?</p>
+<p class="a"><strong>Yes. It solves all 1,000 test mazes.</strong> Every answer is a shortest path, and it is also the exact path the dataset expects. On the first 50, where Claude Opus 5.5 solves 13 on its own, the network it wrote solves all 50.</p>
+
+<p>A separate check re-ran the network on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly.</p>
+
+<p>An extra test used bigger mazes, generated in the Maze-Hard style. The same 19,936 weights, run for more loops, also solved all 50 mazes at 60×60 and all 40 at 100×100.</p>
+
+<p>A short program can solve these mazes too, and Claude can write one. The difference here is that the solver is itself a neural network, 19,936 weights with no training.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th>Training</th><th class="num">Solved (%)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (19,936 weights, only 922 not zero)</td><td>None</td><td class="num">100.0</td></tr>
+    <tr><td>LDT (1.8M weights)</td><td>1K mazes, plus search when solving</td><td class="num">99.8</td></tr>
+    <tr><td>TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
+    <tr><td>HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
+    <tr class="llm"><td>Claude Opus 5.5</td><td>No maze training, tested on the first 50 mazes</td><td class="num">26</td></tr>
+    <tr class="llm"><td>GPT-6 Astra</td><td>No maze training, tested on the first 50 mazes</td><td class="num">26</td></tr>
+    <tr class="llm"><td>GPT-6.1 Sol</td><td>No maze training, tested on the first 50 mazes</td><td class="num">12</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">A maze counts as solved when the answer is any shortest path from start to goal. The hand-written network also matches the dataset's exact path in all 1,000, the stricter measure HRM and TRM use. Scores for LDT, TRM and HRM are from Table 3 of Davis et al. (NeurIPS 2026). Scores for the LLMs are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</p>
+
+<p>The network carries out a known step-by-step procedure for finding the shortest path, so the trained models and LLMs are listed for reference, not as a like-for-like race.</p>
+
+<details>
+  <summary>Details: other scoring, and how the comparison models were picked</summary>
+  <p>HRM and TRM count a maze as solved only when the answer matches the dataset's reference path exactly (per Davis et al.). Scored that way, their own papers report 74.5 for HRM and 85.3 for TRM. <a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze. It follows TRM's training protocol and reports its number next to HRM's 74.5 and TRM's 85.3.</p>
+  <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. Trained on one path per maze, it scores 99.0. Both are averages over 3 runs.</p>
+</details>
+
+<p class="fine"><b>Good to know.</b> Most mazes have many shortest paths. To give the dataset's exact path, the network breaks ties with a fixed order of moves (down, left, right, up). This order was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. It matters only for matching the dataset's exact path.</p>
+
+<h2 id="q2"><span class="qn">2.</span> Does it beat trained models, even much larger ones?</h2>
+
+<p>The maze network was written, not trained. Could ordinary training have found networks like it? To find out, we trained standard networks on graph search, parity and reasoning chains, using exactly the sizes the hand-written networks were checked on. Then we gave both kinds the same test on bigger problems.</p>
+
+<p class="eyebrow label">Experiment 2</p>
+<h3>Graph search</h3>
+
+<p>The first task is finding a shortest route. The input is a map of one-way links between points, with dead ends and decoys. The question is how many steps the shortest route from A to B takes, or whether B can't be reached at all. Longer routes need more steps of work, so the hand-written network runs its loop more times on bigger maps.</p>
+
+<p><strong>How the network solves it.</strong> The network keeps track of which points it can already reach from A. In each loop, every reached point passes that on along its outgoing links, so the reached area grows by one step per loop. The number of loops it takes to reach B is the length of the route.</p>
+
+<div class="setup">
+  <div class="label">Setup</div>
+  <dl>
+    <dt>Task</dt><dd>Given a map of one-way links with dead ends and decoys, give the length of the shortest route from A to B, or say that B is unreachable</dd>
+    <dt>Network</dt><dd>Three transformer layers, looped: 6,966 weights, and only 642 of them aren't zero</dd>
+    <dt>Checked on</dt><dd>Maps of up to about 12 points, routes of up to 4 steps</dd>
+    <dt>Tested on</dt><dd>Maps of up to about 48 points, routes of 8–16 steps, run once</dd>
+    <dt>Trained models</dt><dd>Trained on the same sizes, with their settings tuned and their best version kept</dd>
+  </dl>
+</div>
+
+<p class="q">Can a trained network learn the same thing from examples?</p>
+<p class="a"><strong>Not beyond the examples it saw.</strong> On shortest paths 8–16 steps long, the hand-written network scores 100%. Trained models up to 99× larger score 0% at every distance, even the largest, which learns the checking range almost perfectly.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range</th><th class="num">Test, paths 8–16</th><th class="num">Test, "unreachable"</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (looped)</td><td class="num">6,966</td><td class="num">100</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>Trained, looped</td><td class="num">26,561</td><td class="num">25.6</td><td class="num">0</td><td class="num">98.3</td></tr>
+    <tr><td>Trained, ~10× the hand-written size</td><td class="num">69,905</td><td class="num">46.2</td><td class="num">0</td><td class="num">76.7</td></tr>
+    <tr><td>Trained, ~99× the hand-written size</td><td class="num">690,197</td><td class="num">97.4</td><td class="num">0</td><td class="num">98.3</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. The largest trained model learns the checking range almost perfectly, then scores zero at every longer distance. The two smaller ones don't learn even the checking range well. We checked that the puzzles have no shortcut. No single clue in the input beats always guessing the most common answer by more than 1 point.</p>
+
+<p class="eyebrow label">Experiment 3</p>
+<h3>Parity and reasoning chains</h3>
+
+<p>Two more tasks test the same thing. <strong>Parity</strong> asks whether a string of 0s and 1s has an odd or even number of 1s. <strong>Reasoning chains</strong> are shuffled statements like <code>x2 = x1 + 5. x0 = 7. x1 = x0 + 3.</code>, followed by a question about one variable. Extra chains that lead nowhere are mixed in, so adding up all the numbers doesn't give the answer.</p>
+
+<p><strong>How the networks solve them.</strong> The parity network keeps a running answer, odd or even so far, at every position. In each loop, every position looks one place back and updates its answer from the one before. The chains network works the same way along a chain: each statement looks up the statement that defines the variable it depends on, and one more link of the chain gets its value in each loop.</p>
+
+<p class="q">Is graph search a lucky case?</p>
+<p class="a"><strong>No. Parity and reasoning chains tell the same story.</strong> Checked on strings up to 20 bits, the parity network is correct at every length we tested, up to 4,095. Checked on up to 8 steps, the chains network is correct on 12, 16, 24 and 32, and up to 63 in an extra, harder test.</p>
+
+<p>The hand-written parity network has a looped part of about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 20 bits)</th><th class="num">Test (21–128 bits)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (looped)</td><td class="num">~190 + table</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>Trained, looped</td><td class="num">50,434</td><td class="num">100</td><td class="num">53.8</td></tr>
+    <tr><td>Trained, 1 layer</td><td class="num">50,434</td><td class="num">100</td><td class="num">52.6</td></tr>
+    <tr><td>Trained, 4 layers</td><td class="num">13,234</td><td class="num">100</td><td class="num">49.2</td></tr>
+    <tr><td>Trained, 8 layers</td><td class="num">101,858</td><td class="num">100</td><td class="num">49.5</td></tr>
+    <tr><td>Trained, 12 layers</td><td class="num">600,258</td><td class="num">100</td><td class="num">45.5</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. Chance is 50%. The hand-written network gets every tested length right, all the way to 128 bits. Only two trained models stay at 99% or above even at 21 bits, and none beyond.</p>
+
+<details>
+  <summary>Details: can trained models ever handle longer parity strings?</summary>
+  <p>With standard training, none of these models handles strings longer than the ones it saw. Beyond 20 bits they are at about chance. Special training recipes do go further, to over 40 bits (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) and to 256 bits (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). This network reaches 4,095 bits with no training. In an extra test on lengths from 256 to 4,095 bits, it got every input right.</p>
+</details>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (looped)</td><td class="num">4,763</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>Trained, looped</td><td class="num">77,924</td><td class="num">69.1</td><td class="num">2.2 – 9.2</td></tr>
+    <tr><td>Trained, 1 layer</td><td class="num">77,924</td><td class="num">7.0</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 4 layers</td><td class="num">51,368</td><td class="num">43.4</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 8 layers (~90× the hand-written size)</td><td class="num">427,812</td><td class="num">93.7</td><td class="num">3.5</td></tr>
+    <tr><td>Trained, 12 layers</td><td class="num">627,748</td><td class="num">49.6</td><td class="num">4.0</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model: 93.7% on the checking range, 3.5% beyond it.</p>
+
+<figure class="reveal" style="--hide: 82%">
+  <div class="layers">
+  <img class="data" src="figures/written_vs_trained_data.svg" width="518" height="749" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/written_vs_trained_base.svg" width="518" height="749" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. Graph search: the hand-written network scores 100% on both, and three trained models score 0% on paths 8–16. Parity: the hand-written network scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. Reasoning chains: the hand-written network scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
+  </div>
+  <figcaption>The same story for graph search, parity and reasoning chains. The shaded column is the range each network was checked on. Nothing between the two columns was tested.</figcaption>
+</figure>
+
+<p class="eyebrow label">Experiment 4</p>
+<h3>BIG-Bench Hard: Boolean Expressions and Dyck Languages</h3>
+
+<p>In graph search, parity and chains, the trained models were ones we trained ourselves. The next comparison uses public language models on a public benchmark. <a href="https://arxiv.org/abs/2210.09261">BIG-Bench Hard</a> (Suzgun et al.) collects the tasks from the BIG-Bench benchmark that language models found hardest at the time. We took two pure rule-following tasks from it. One, Boolean Expressions, asks for the value of a logic expression like <code>not ( True and False ) or False</code>. The other, Dyck Languages, asks to close a bracket sequence like <code>[ { ( ) &lt;</code> → <code>&gt; } ]</code>.</p>
+
+<p><strong>How the networks solve them.</strong> The Boolean network simplifies the expression one step per loop, the way you would by hand: <code>not True</code> becomes <code>False</code>, brackets around a single value disappear, and so on, until one value is left. The Dyck network first works out how deep each bracket sits, by adding up the openers and closers before it. Then it finds the most recent bracket that is still open and writes the bracket that closes it, one at a time.</p>
+
+<p class="q">Can a tiny network beat small language models?</p>
+<p class="a"><strong>On these two tasks, yes. Both networks score 100% on the official 250 test items.</strong> Among four well-known small open models, the best scores are 69.6% and 33.2%.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Boolean Expressions</th><th class="num">Dyck Languages</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (one network per task)</td><td class="num">183,856 / 58,695</td><td class="num">100.0</td><td class="num">100.0</td></tr>
+    <tr class="llm"><td>SmolLM2-360M</td><td class="num">361.8M</td><td class="num">69.6</td><td class="num">23.6</td></tr>
+    <tr class="llm"><td>SmolLM2-135M</td><td class="num">134.5M</td><td class="num">66.8</td><td class="num">19.2</td></tr>
+    <tr class="llm"><td>Pythia-410M</td><td class="num">405.3M</td><td class="num">52.0</td><td class="num">33.2</td></tr>
+    <tr class="llm"><td>Pythia-160M</td><td class="num">162.3M</td><td class="num">50.4</td><td class="num">22.4</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %, exact match after stripping whitespace for every model. Boolean chance is 50%. Scored without stripping spaces, all four small models get 0, because their answers start with a stray space. Frontier models score above 90% on BIG-Bench Hard (Kazemi et al., 2025), so this comparison is against small open models only.</p>
+
+<p>The networks read the same questions as the small models and answer in text, and every answer is scored the same way. Each hand-written network does one task, while the small models are general models given three examples. So this shows that a tiny network can do the task exactly, not that it reasons better in general.</p>
+
+<p><b>No leakage.</b> The networks follow the general rule and didn't absorb anything from the test items: on 300 freshly generated questions per task, they also score 100%. The test questions were on the same machine while the networks were being written, and the session records show they were never opened.</p>
+
+<p class="fine"><b>Good to know.</b> The Boolean network has 183,856 weights, and only 6,756 of them aren't zero. 149,504 of them are a fixed lookup table of positions with 2,048 rows, so it reads inputs of up to about 2,048 characters. The looped block itself is small: two layers with 89 neurons. The Dyck network has 58,695 weights, and only 8,491 of them aren't zero.</p>
+
+<h2 id="q3"><span class="qn">3.</span> Can it solve the puzzles that broke reasoning models?</h2>
+
+<p>Next, two puzzles where the answer is a long run of moves, and one wrong move anywhere ruins it.</p>
+
+<p class="eyebrow label">Experiment 5</p>
+<h3>Tower of Hanoi</h3>
+
+<p>Tower of Hanoi is a puzzle with three pegs and a stack of disks, smallest on top. The goal is to move the whole stack from the first peg to the third, one disk at a time, never putting a larger disk on a smaller one. Each extra disk roughly doubles the number of moves: 20 disks take 1,048,575.</p>
+
+<p>It became famous as the puzzle where reasoning models break down. Reasoning models are LLMs that think step by step before they answer. In 2025, Shojaee et al. at Apple tested them on Tower of Hanoi in <a href="https://arxiv.org/abs/2506.06941">The Illusion of Thinking</a> (NeurIPS 2025). The models of the time, o3-mini, DeepSeek-R1 and Claude 3.7 Sonnet Thinking, began to collapse at 7–8 disks when writing out every move without tools. Giving them the solution algorithm did not help.</p>
+
+<p>Some newer models still fail early. In 2026 tests, o4-mini failed from 6 disks, and Qwen3-235B-Thinking fell to about 52% at 7 disks and 20% at 8 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot). When allowed to write and run code, models solved every size tested, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>).</p>
+
+<p><strong>How the network solves it.</strong> Before each move, the network's attention averages over everything written so far: the starting position plus every move already made. That average tells it exactly which peg each disk is on now.</p>
+
+<p>The rest of the layer applies the classic rule for this puzzle, written straight into the weights. It takes turns between two kinds of move. First it moves the smallest disk one peg along, in a direction set by whether the number of disks is odd or even. Then it makes the only other legal move. When every disk is on the third peg, it says it is done.</p>
+
+<p>It works out the position from scratch at every move, instead of keeping a running tally. So small errors have nothing to build up on, even over a million moves, and extra passes give exactly the same answer.</p>
+
+<div class="setup">
+  <div class="label">Setup</div>
+  <dl>
+    <dt>Task</dt><dd>Move N disks from the first peg to the third, one at a time, never placing a larger disk on a smaller one</dd>
+    <dt>Network</dt><dd>One transformer layer, looped: 427,654 weights, and only 3,686 of them aren't zero</dd>
+    <dt>Written by</dt><dd>Claude Opus 5.5, from a plain-language description of the puzzle</dd>
+    <dt>Checked on</dt><dd>Up to 6 disks</dd>
+    <dt>Tested on</dt><dd>7 to 20 disks</dd>
+    <dt>Not allowed</dt><dd>Training, gradients, fitting to data, any puzzle logic in the code that runs it</dd>
+    <dt>Scoring</dt><dd>A separate program replays every move, checks that each one is legal, and checks that the puzzle ends solved in the fewest possible moves</dd>
+  </dl>
+</div>
+
+<p class="q">Can it really make a million moves?</p>
+<p class="a"><strong>Yes. All 1,048,575 of them, and none is wrong.</strong></p>
+
+<figure class="video-fig">
+  <div class="player">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/hanoi_hero_poster.png" width="1280" height="720" data-tall="figures/hanoi_hero_tall" aria-label="Animation. On the left, the hand-written network reads every token so far, runs the same transformer layer four times, and writes the next move, which goes back in as input. On the right, that disk moves on the pegs. Then playback speeds up through all 1,048,575 moves and slows down for the last few. The mistake counter stays at 0.">
+      <source src="figures/hanoi_hero.mp4" type="video/mp4">
+      <source src="figures/hanoi_hero.webm" type="video/webm">
+    </video>
+  </div>
+  <figcaption>The network Claude wrote, solving 20 disks: 1,048,575 moves, zero mistakes (sped up). <a href="demo/index.html">Run it yourself.</a></figcaption>
+</figure>
+
+<p>The hand-written network solves every size from 7 to 20 disks. Every move is legal, and every total is the fewest possible. At 20 disks that is 1,048,575 moves.</p>
+
+<p>It also doesn't overthink. Run its layer 4 or 8 times per move instead of 2, and every move comes out exactly the same.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Disks</th><th class="num">Moves</th><th>Hand-written network</th><th>Reasoning models (Shojaee et al., 2025)</th></tr></thead>
+  <tbody>
+    <tr><td>7–8</td><td class="num">127 / 255</td><td>✓ all legal, fewest moves</td><td>Begin to collapse</td></tr>
+    <tr><td>9–12</td><td class="num">511 – 4,095</td><td>✓ all legal, fewest moves</td><td>Collapsed</td></tr>
+    <tr><td>13–19</td><td class="num">8,191 – 524,287</td><td>✓ all legal, fewest moves</td><td>Beyond the paper's range</td></tr>
+    <tr><td>20</td><td class="num">1,048,575</td><td>✓ all legal, fewest moves</td><td>Beyond the paper's range</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Apple's paper tests up to 12 disks. In its own words, reasoning models "face a complete accuracy collapse beyond certain complexities" (Shojaee et al., abstract). It grades whether the moves are legal, not whether they are the fewest possible.</p>
+
+<figure class="reveal" style="--hide: 62%">
+  <div class="layers">
+  <img class="data" src="figures/hanoi_data.svg" width="518" height="538" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/hanoi_base.svg" width="518" height="538" loading="lazy" alt="Moves needed versus number of disks, on a log scale. The hand-written network solves every size from 7 to 20 disks, up to 1,048,575 moves, with no mistakes. Reasoning models began to collapse at 7–8 disks in 2025 tests, and Apple's paper tests up to 12 disks.">
+  </div>
+  <figcaption>Each blue dot is one size the network solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse.</figcaption>
+</figure>
+
+<p class="q">Couldn't an LLM do this too?</p>
+<p class="a"><strong>Up to a point.</strong> Reasoning models can write out every move for smaller towers, and with code they solved every size they were tested on, up to 13 disks (Song et al.). For 20 disks, MAKER voted over more than 3 million LLM calls. Here, one small neural network does all 1,048,575 moves itself.</p>
+
+<p>Apple's paper drew pushback, and part of the debate is how hard Tower of Hanoi really is. It needs no search, because each move is a simple decision. Critics of the Apple paper argued that part of the collapse came from output limits. The authors replied that the first errors appear early, around move 40 at 8 disks.</p>
+
+<p>MAKER (<a href="https://arxiv.org/abs/2511.09030">Meyerson et al., 2025</a>) was the first to solve 20 disks with an LLM and no errors. It asks gpt-4.1-mini for each move several times and keeps voting until one answer leads by three. That is at least three calls per move, and over 3 million in all. The strategy is in every prompt, and a program keeps track of the pegs between moves.</p>
+
+<p>Our network is a different kind of thing: one network, with no voting and no outside help. It is also a specialist that does only this. Our claim is narrower than "better than LLMs": a network can carry out the entire sequence, at every size we tested, without one error.</p>
+
+<p class="fine"><b>Good to know.</b> It works out how many disks there are from the starting position. It only goes from the first peg to the third, and started anywhere else, it doesn't finish. It needs 64-bit numbers, because with 32-bit numbers rounding errors could pile up over a million moves. Its context window, the number of tokens it can read, is sized so that 20 disks is the most it can handle.</p>
+
+<p class="eyebrow label">Experiment 6</p>
+<h3>Checker Jumping</h3>
+
+<p>Red and blue checkers sit in a row with one empty space between them. The goal is to swap the two colours, moving only forward, by sliding into the empty space or jumping over one checker of the other colour. This is the second puzzle Apple used for its "even with the algorithm, models still fail" finding. In Apple's 2025 tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side (15 moves). o3-mini, on its high reasoning setting, held about 50% or better up to 8 per side. These values are read from the paper's figures. In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
+
+<p><strong>How the network solves it.</strong> Like the Hanoi network, it reads the board and every move so far, then applies a simple rule written into its weights. If a checker can jump into the empty space, it jumps. Otherwise a checker slides in, and when both colours could, it picks the colour that moved last. When no move is left, it stops.</p>
+
+<p>Claude checked it on boards of up to 3 checkers per side while building it. Every size tested below is bigger.</p>
+
+<p class="q">Does it work on a second puzzle?</p>
+<p class="a"><strong>Yes. Every size from 4 to 40 checkers per side, each in the fewest possible moves.</strong></p>
+
+<p>At 40 checkers per side that is 1,680 moves. Sizes above 15 per side are beyond the paper's range.</p>
+
+<p class="fine"><b>Good to know.</b> It reads the board from the prompt. The move strategy and the stopping rule are built into its weights. It has 10,008,568 weights, and only 11,062 of them aren't zero. It is built for boards of up to 40 checkers per side.</p>
+
+<h2 id="q4"><span class="qn">4.</span> Does it hold up on problems built to stump strong LLMs?</h2>
+
+<p>On Maze-Hard, a written network beat the model that wrote it. Can written networks hold up against strong LLMs too, on tests built to be hard for them? <a href="https://arxiv.org/abs/2502.19187">BIG-Bench Extra Hard</a> (BBEH, Google DeepMind, 2025) was built because frontier models, the strongest LLMs, had become too good at BIG-Bench Hard. It replaces each task with a much harder version. We took two of its tasks. In Web of Lies, the model works out who is telling the truth from a long chain of claims. In Shuffled Objects, it tracks who holds what after many swaps. Each network reads the question in plain English, the same text the LLMs are given, and writes its answer as text.</p>
+
+<p><strong>How the networks solve them.</strong> In Web of Lies, each person's claim is about someone else. In each loop, everyone whose subject is already settled works out whether they are telling the truth, so the answers spread along the chain of claims. In Shuffled Objects, the network finds every swap in the text and combines them. In each loop, every position merges its record of swaps with one twice as far back, so after a few loops the last position knows the result of all the swaps.</p>
+
+<p class="q">Do the networks hold up where strong LLMs fall short?</p>
+<p class="a"><strong>Yes. Both get all 180 test questions right.</strong> A separate check re-ran both networks and got the same scores.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th>Method</th><th>Reported</th><th class="num">Web of Lies</th><th class="num">Shuffled Objects</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written</td><td>One network per task</td><td>Nov 2026</td><td class="num">100.0</td><td class="num">100.0</td></tr>
+    <tr class="llm"><td>Qwen3-235B-A22B</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">14.4</td></tr>
+    <tr class="llm"><td>Qwen3-235B-A22B</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">56.9</td></tr>
+    <tr class="llm"><td>o4-mini</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">38.8</td><td class="num">8.1</td></tr>
+    <tr class="llm"><td>o4-mini</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">52.5</td><td class="num">34.4</td></tr>
+    <tr class="llm"><td>o3-mini (high)</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">43.0</td><td class="num">49.5</td></tr>
+    <tr class="llm"><td>DeepSeek-R1</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">29.5</td><td class="num">6.0</td></tr>
+    <tr class="llm"><td>GPT-4o</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">14.5</td><td class="num">14.0</td></tr>
+    <tr><td>Random guess</td><td>Chance</td><td>Feb 2025</td><td class="num">5.5</td><td class="num">14.3</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
+
+<p>There is a catch. These networks read BBEH's fixed question templates and solve them exactly, so they don't show that a tiny network reasons better than general models. What they show is how much of these hard tasks is fixed structure, the kind a tiny network can handle exactly.</p>
+
+<details>
+  <summary>Details: where each score comes from</summary>
+  <p>Ours: 180 of 180 on each task. The task's 20 public example questions are not counted. Feb 2025 rows: the BBEH paper (Kazemi et al.), on all 200 questions per task. Oct 2025 rows: <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
+</details>
+
+<p class="fine"><b>Good to know.</b> Each network understands only the wording it was built for, taken from the public examples, the paper's description and a few everyday words such as "swaps" and "trades". None of those extra words appears in the test questions. It doesn't understand statements worded any other way. The Shuffled Objects network assumes the options are listed in the order the objects were first handed out, as in every public example. They need 64-bit numbers and an exact softmax, the step that turns attention scores into weights. With a standard library softmax, Web of Lies drops to 139 of 180. Web of Lies: 10,903,996 weights, and only 44,550 of them aren't zero. Shuffled Objects: 6,663,936 weights, and only 40,316 of them aren't zero.</p>
+
+<h2 id="q5"><span class="qn">5.</span> Can the same approach help a real pretrained looped model?</h2>
+
+<p>Every network so far was written from scratch. The last question is about a model someone else trained, and the result is of a different kind: a change to how its loop runs, not new weights. <a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> is a pretrained looped language model that runs its 24 layers 4 times. Run it for more loops, and it gets worse. This is the overthinking from the start of the post. Ouro also has a built-in "am I done?" signal, which it uses to decide when to stop looping.</p>
+
+<p class="q">Why does it get worse?</p>
+<p class="a"><strong>Its first few tokens act as a clock, and past 4 loops the clock shows values it never saw in training.</strong></p>
+
+<p>Claude found this by reading the model's internal states. The trouble starts at loop 5. It changes the output more than loop 4 did, and Ouro's own "am I done?" signal drops, as if the model had gone back to an early loop.</p>
+
+<p>The cause is at the very start of the input. Ouro adds no start token, so its first token can only look at itself. Loop after loop, its state steps through a fixed sequence, and every other token reads the first few tokens, like a clock. Past loop 4, the clock shows values Ouro never saw in training.</p>
+
+<p>We tested this directly. At each extra loop, we reset the first four tokens to their loop-3 state. That removes about 93% of the harm loop 5 does. Pinning them at their loop-4 state instead makes it 2–4× worse. As a control, rescaling every other token does almost nothing.</p>
+
+<p class="q">Can it be fixed without training?</p>
+<p class="a"><strong>Yes, in the sense that more loops stop hurting.</strong> The fix sets the first few tokens on a schedule that keeps the clock in its trained range. It also takes the answer from a mix of loops, weighted by Ouro's own "am I done?" signal. It adds no new weights and changes none. More loops stop hurting.</p>
+
+<figure>
+  <img src="figures/ouro_clock.svg" width="518" height="451" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states never seen in training. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's own exit signal.">
+  <figcaption>A schematic, not data: what the clock looks like across loops, with and without the fix.</figcaption>
+</figure>
+
+<p>We measured three things: perplexity, which says how well the model predicts real text (lower is better), ARC-Challenge, a set of science exam questions, and 3-step versions of the reasoning chains from question 2. A second table shows GSM8K, a set of grade-school math word problems, at 4 and 8 loops.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Ouro-1.4B</th><th class="num">Perplexity (lower is better)</th><th class="num">ARC-Challenge</th><th class="num">3-step chains</th></tr></thead>
+  <tbody>
+    <tr><td>4 loops, as trained</td><td class="num">11.61</td><td class="num">52.6</td><td class="num">21</td></tr>
+    <tr><td>8 loops</td><td class="num">12.63</td><td class="num">50.8</td><td class="num">18</td></tr>
+    <tr><td>16 loops</td><td class="num">21.24</td><td class="num">44.7</td><td class="num">14</td></tr>
+    <tr class="written"><td>16 loops, with the fix</td><td class="num">11.54</td><td class="num">52.1</td><td class="num">20</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Test sets: 200 test passages from wikitext-103, a standard collection of Wikipedia articles, ARC-Challenge test (1,172 questions, no worked examples) and 100 chains.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>GSM8K (500 problems, 8 worked examples)</th><th class="num">4 loops</th><th class="num">8 loops</th></tr></thead>
+  <tbody>
+    <tr><td>Ouro-1.4B</td><td class="num">75.0</td><td class="num">66.6</td></tr>
+    <tr class="written"><td>Ouro-1.4B, with the fix</td><td class="num">77.2</td><td class="num">75.2</td></tr>
+  </tbody>
+</table>
+</div>
+
+<details>
+  <summary>Details: uncertainty, and how this compares with STARS</summary>
+  <p>The 95% confidence intervals at 8 loops are 75.2 [71.4, 78.8] with the fix and 66.6 [62.4, 70.6] without it. The 4-loop gain with the fix (77.2) comes from the answer-mixing step alone and is small enough that it could be noise.</p>
+  <p>STARS (ICML 2026) addressed the same decline in Ouro with extra training. Ours needs no training. Our 4→8 drop without the fix is smaller than the one STARS reports (−8.4 vs −17.0 points), which suggests the two setups differ.</p>
+</details>
+
+<p class="fine"><b>Good to know.</b> This is stability, not a gain. Extra loops no longer hurt, but they do not beat 4 loops on ARC or the chains. And it changes how the loop runs, not the weights.</p>
+
+<h2 id="limits">What this shows, and what it doesn't</h2>
+<p>Claude wrote small networks that solve hard problems exactly, including on inputs much larger than the ones they were checked on. On Maze-Hard, the network solved mazes Claude could not solve on its own. Here is what it does not show.</p>
+<ul>
+  <li><strong>Each network is a specialist.</strong> One network, one task. The language models we compare against are general.</li>
+  <li><strong>These tasks have known algorithms.</strong> Claude decides what each loop should compute and turns that into weights. The point is that the result runs without error at sizes where the trained models we tested, and the reasoning models in the papers we cite, fail.</li>
+  <li><strong>Comparisons use the numbers each paper reports,</strong> with the paper and date given. Newer models may score differently.</li>
+  <li><strong>Weight counts include lookup tables of positions.</strong> Where the looped layers themselves are much smaller, we give their size too.</li>
+</ul>
+
+<h2 id="honest">How we kept it honest</h2>
+<ul>
+  <li>No training, no gradients and no fitting to data in any hand-written network.</li>
+  <li>We locked each network before testing it, and tested it once.</li>
+  <li>The code that runs a network is the same simple loop for every task. Everything the network knows is in its weights.</li>
+  <li>Independent reviewers, which were separate Claude agents that hadn't seen how the networks were built, checked the work. The results reported here held up.</li>
+</ul>
+
+<h2 id="related">Related work</h2>
+<div class="related">
+<p><strong>Writing weights.</strong> <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> named and demonstrated LLMs reading and writing weights directly. <a href="https://github.com/anadim/AdderBoard">AdderBoard</a> showed coding agents hand-setting the weights of tiny transformers. At the same time, <a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a> had Claude set every weight of small transformers for ten algorithmic tasks, including parity, and <a href="https://github.com/Fchaubard/WSP-for-turing-complete">Chaubard</a> compares weight-space programming with gradient training on small algorithmic tasks. Earlier, LLMs wrote programs that a compiler turned into weights (<a href="https://arxiv.org/abs/2304.01665">Weng et al.</a>, <a href="https://arxiv.org/abs/2409.13714">TracrBench</a>).</p>
+<p><strong>Hand-built and compiled networks.</strong> Programs have long been compiled into transformer weights (<a href="https://arxiv.org/abs/2301.05062">Tracr</a>, and <a href="https://arxiv.org/abs/2410.18077">ALTA</a>, which also compiles looped programs for parity and addition). Looped transformers can simulate general programs (<a href="https://arxiv.org/abs/2301.13196">Giannou et al.</a>). Closest to our tasks are hand-constructed looped transformers that run breadth-first search, depth-first search and Dijkstra's algorithm (<a href="https://arxiv.org/abs/2402.01107">Back de Luca and Fountoulakis</a>), an exact hand-built transformer for parity (<a href="https://arxiv.org/abs/2202.12172">Chiang and Cholak</a>), and programs in RASP, a programming language that maps onto transformers, for balanced brackets (<a href="https://arxiv.org/abs/2106.06981">Weiss et al.</a>).</p>
+<p><strong>Trained models that extrapolate.</strong> With specific training recipes, trained models do generalize past their training lengths. Looped transformers handle longer parity inputs when the loop count grows with the input (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) or when the loop also carries state from token to token (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). Transformers track variable chains longer than those seen in training (<a href="https://arxiv.org/abs/2505.20896">Wu et al.</a>). Recursive latent reasoning with step-by-step supervision extrapolates too (<a href="https://arxiv.org/abs/2510.14095">Altabaa et al.</a>), and so do graph networks trained on algorithm traces (<a href="https://arxiv.org/abs/2209.11142">Ibarz et al.</a>).</p>
+<p><strong>Looped models.</strong> Trained recursive reasoners such as HRM, TRM, LDT and Attractor Models set the Maze-Hard results we compare against. Overthinking was named for recurrent networks by <a href="https://arxiv.org/abs/2202.05826">Bansal et al.</a> Overthinking in looped language models is studied by <a href="https://arxiv.org/abs/2604.11791">Blayney et al.</a> and addressed with training by <a href="https://arxiv.org/abs/2605.26733">STARS</a>. Training-free decoding and step-scheduling methods have also been applied to Ouro (<a href="https://arxiv.org/abs/2610.02185">Liu et al.</a>, <a href="https://arxiv.org/abs/2609.36653">Wang et al.</a>). <a href="https://arxiv.org/abs/2605.20670">LT2</a> observed first-token attention building up across loops in a looped transformer.</p>
+<p><strong>Puzzles.</strong> The puzzle comparisons come from <a href="https://arxiv.org/abs/2506.06941">Shojaee et al.</a> With code execution, reasoning models solved Tower of Hanoi at every size tested, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al.</a>). A system that votes over several LLM samples for every move solved 20 disks without an error (<a href="https://arxiv.org/abs/2511.09030">Meyerson et al.</a>).</p>
+</div>
+
+<h2 id="next">What's next</h2>
+<ul>
+  <li>One hand-written network for many tasks, with a written router that picks the right module.</li>
+  <li>Hand-written weights as a starting point for training. Does gradient descent keep the extrapolation, or wash it out?</li>
+  <li>Keeping the loop clock in range while training looped language models.</li>
+</ul>
+
+<p>Claude solves 13 of the first 50 Maze-Hard test mazes on its own. The tiny transformer it wrote solves all 1,000. An LLM that struggles with a problem can still write a network that solves it.</p>
+
+<h2 id="code">Weights and demo</h2>
+<p><a href="demo/maze.html">Run the Maze-Hard network in your browser</a> on the first 50 test mazes, and watch its state change loop by loop. The page compares every finished grid with the dataset's answer.</p>
+
+<p><a href="demo/index.html">Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move. Give it 4 or 8 passes per move, and every move stays the same.</p>
+
+<p>The weights of all ten hand-written networks are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>: Maze-Hard, graph search, parity, reasoning chains, Boolean Expressions, Dyck Languages, Tower of Hanoi, Checker Jumping, Web of Lies and Shuffled Objects. One short Python script runs any of them, for example <code>python run.py maze --random 30</code> or <code>python run.py hanoi 10</code>.</p>
+
+<h2 id="citation">Citation</h2>
+<p>If you use this work, please cite it:</p>
+<p>Abdelrahman Elsayed and Ahmed Heakl. "Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes." November 2026. https://python-arch.github.io/written-not-trained/</p>
+<pre>@misc{elsayed2026written,
+  title        = {{Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes}},
+  author       = {Elsayed, Abdelrahman and Heakl, Ahmed},
+  year         = {2026},
+  month        = nov,
+  howpublished = {\url{https://python-arch.github.io/written-not-trained/}},
+  note         = {Blog post}
+}</pre>
+<p>The text, figures and animations are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, and the code and weights under the <a href="https://github.com/python-arch/written-not-trained/blob/main/LICENSE">MIT license</a>.</p>
+
+</main>
+<script>
+  (function () {
+    if (document.documentElement.className.indexOf("anim") < 0) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("play"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.45 });
+    document.querySelectorAll(".reveal").forEach(function (f) { io.observe(f); });
+  })();
+</script>
+</body>
+</html>

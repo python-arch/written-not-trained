@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run the network · Written, Not Trained</title>
+<meta name="description" content="Run the hand-written Tower of Hanoi network in your browser: its real weights, one generic loop, every move checked.">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root { --fg: #1d1d1f; --muted: #5f6368; --faint: #969aa0; --line: #d7d9dd; --soft: #f6f6f7; --accent: #154677;
+          --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --serif: "Source Serif 4", Georgia, serif; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; color: var(--fg); font: 17px/1.6 var(--serif); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 56px; }
+  a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--fg); }
+  .top { font: 500 0.82rem/1 var(--sans); padding: 18px 0 0; }
+  .mark { width: 1.35em; height: 1.35em; vertical-align: -0.38em; margin-right: 0.55em; }
+  .kicker { font: 600 0.72rem/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 28px 0 10px; }
+  h1 { font: 700 1.9rem/1.15 var(--sans); letter-spacing: -0.02em; margin: 0 0 12px; }
+  p { margin: 0 0 14px; }
+  .lede { color: #3c4043; }
+  .panel { border: 1px solid var(--line); margin: 20px 0 0; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; padding: 14px 16px; border-bottom: 1px solid var(--line); font-family: var(--sans); }
+  .controls label { display: grid; gap: 4px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  select, button { font: 500 0.92rem/1 var(--sans); color: var(--fg); background: #fff; border: 1px solid var(--line); border-radius: 0; padding: 8px 10px; }
+  select { padding-right: 26px; }
+  button { cursor: pointer; }
+  button.go { background: var(--fg); color: #fff; border-color: var(--fg); min-width: 92px; }
+  button:disabled { opacity: 0.45; cursor: default; }
+  .btns { display: flex; gap: 8px; margin-left: auto; }
+  canvas { display: block; width: 100%; height: auto; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); font-family: var(--sans); }
+  .stat { padding: 10px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stat:nth-child(2n) { border-right: 0; }
+  .stat .k { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .stat .v { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .v small { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+  .passes { padding: 12px 16px 14px; font-family: var(--sans); border-bottom: 1px solid var(--line); }
+  .passes .k { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .cells { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cell { border: 1px solid var(--line); min-width: 92px; padding: 6px 10px; }
+  .cell .n { font-size: 0.7rem; color: var(--muted); }
+  .cell .o { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cell .o.end { color: var(--faint); font-weight: 600; }
+  .cell .o.move { color: var(--accent); }
+  .note { font: 0.8rem/1.5 var(--sans); color: var(--muted); margin: 8px 0 0; }
+  .status { padding: 12px 16px; font: 500 0.92rem/1.5 var(--sans); min-height: 46px; }
+  .status.done { color: var(--accent); font-weight: 600; }
+  .out { margin: 0; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--soft); font: 0.78rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; word-break: break-all; max-height: 7.6em; overflow: auto; }
+  h2 { font: 700 1.15rem/1.3 var(--sans); margin: 36px 0 10px; }
+  details { border: 1px solid var(--line); margin: 14px 0 0; font-family: var(--sans); }
+  summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 0.9rem; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "+"; display: inline-block; width: 1.1em; color: var(--muted); }
+  details[open] summary::before { content: "−"; }
+  details pre { margin: 0; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--soft); font: 0.74rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow: auto; max-height: 460px; }
+  ol { padding-left: 1.2em; }
+  li { margin: 0 0 6px; }
+  @media (min-width: 640px) {
+    h1 { font-size: 2.3rem; }
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stat:nth-child(2n) { border-right: 1px solid var(--line); }
+    .stat:nth-child(4n) { border-right: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="maze.html">Maze demo</a></div>
+  <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
+  <h1>Run the hand-written network</h1>
+  <p class="lede">This page runs the Tower of Hanoi network from the post, in your browser. It loads the network's real weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each token, run the same transformer layer again and again, and read off the next move. The loop knows nothing about the puzzle. A separate checker on this page replays every move.</p>
+
+  <div class="panel">
+    <div class="controls">
+      <label>Disks
+        <select id="disks"></select>
+      </label>
+      <label>Passes per move
+        <select id="passes">
+          <option value="2" selected>2 (what it needs)</option>
+          <option value="4">4</option>
+          <option value="8">8</option>
+        </select>
+      </label>
+      <label>Speed
+        <select id="speed">
+          <option value="2">Slow</option>
+          <option value="12">Normal</option>
+          <option value="60" selected>Fast</option>
+          <option value="0">As fast as it runs</option>
+        </select>
+      </label>
+      <div class="btns">
+        <button class="go" id="run" type="button">Run</button>
+        <button id="pause" type="button" disabled>Pause</button>
+      </div>
+    </div>
+    <canvas id="pegs" width="1456" height="560" aria-label="The three pegs and the disks, updated as the network writes each move."></canvas>
+    <div class="stats">
+      <div class="stat"><div class="k">Moves</div><div class="v" id="s-moves">0</div></div>
+      <div class="stat"><div class="k">Mistakes</div><div class="v" id="s-mistakes">0</div></div>
+      <div class="stat"><div class="k">Tokens it reads</div><div class="v" id="s-tokens">0</div></div>
+      <div class="stat"><div class="k">Network time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
+    </div>
+    <div class="passes">
+      <div class="k">What the network wrote after each pass, for the latest move</div>
+      <div class="cells" id="cells"></div>
+      <p class="note">The move is read after the last pass. With 4 or 8 passes, every move stays exactly the same.</p>
+    </div>
+    <div class="status" id="status">Pick a number of disks and press Run.</div>
+    <pre class="out" id="out" aria-label="The moves, in the format of Apple's paper">moves = []</pre>
+  </div>
+
+  <h2>What happens when you press Run</h2>
+  <ol>
+    <li>The puzzle becomes tokens: the number of disks, where each disk starts, where it should end, and a separator.</li>
+    <li>For every new token, the network looks it up in its embedding table, runs the same transformer layer a few times, and reads off a score for each possible next token. The highest score is the next move.</li>
+    <li>That move is added to the input, and the loop goes again, until the network writes its end token.</li>
+    <li>Separately, a small checker replays each move on the pegs: the disk must be on top of its peg and may never land on a smaller one.</li>
+  </ol>
+  <p>Each step reads every earlier token, so bigger puzzles take longer. Up to 13 disks finishes in about a second. 15 disks, 32,767 moves, takes several seconds on a laptop.</p>
+
+  <details>
+    <summary>The whole runner: the loop that runs the network</summary>
+    <pre id="runner-src"></pre>
+  </details>
+  <p class="note">The same loop in Python, and the weights of all the hand-written networks, are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>. This page uses <a href="hanoi_network.js">hanoi_network.js</a>, the same numbers as <code>weights/networks/hanoi.npz</code>.</p>
+</div>
+
+<script src="hanoi_network.js"></script>
+<script id="runner">
+// The generic loop, the same as weights/run.py. It knows nothing about Tower of Hanoi:
+// it only reads the config and the weights. Numbers are 64-bit, as the network needs.
+
+function loadNetwork(net) {
+  const cfg = net.config, T = net.tensors;
+  const size = (k) => T[k].shape.reduce((a, b) => a * b, 1);
+  const dense = (k) => { const a = new Float64Array(size(k)); T[k].idx.forEach((i, j) => { a[i] = T[k].val[j]; }); return a; };
+  const sparse = (k) => {                       // a weight matrix kept as its nonzero entries
+    const t = T[k], cols = t.shape[1];
+    const o = t.idx.map((_, j) => j).sort((a, b) => (t.idx[a] % cols) - (t.idx[b] % cols) || t.idx[a] - t.idx[b]);
+    return { rows: t.shape[0], cols, r: Int32Array.from(o, j => Math.floor(t.idx[j] / cols)),
+             c: Int32Array.from(o, j => t.idx[j] % cols), v: Float64Array.from(o, j => t.val[j]) };
+  };
+  const N = { cfg, d: cfg.d_model, emb: cfg.fields.map(f => dense("emb." + f)), W_out: sparse("out.W"),
+              b_out: dense("out.b"), layers: [] };
+  cfg.layers.forEach((heads, l) => {
+    const L = { heads, W1: sparse(`L${l}.W1`), b1: dense(`L${l}.b1`), W2: sparse(`L${l}.W2`), b2: dense(`L${l}.b2`) };
+    if (heads.length) for (const k of ["Wq", "Wk", "Wv", "Wo"]) L[k] = sparse(`L${l}.${k}`);
+    N.layers.push(L);
+  });
+  N.total = Object.keys(T).reduce((s, k) => s + size(k), 0);
+  N.nonzero = Object.keys(T).reduce((s, k) => s + T[k].idx.length, 0);
+  return N;
+}
+
+function matvec(x, W) {                         // x W, using only the nonzero entries of W
+  const out = new Float64Array(W.cols);
+  for (let j = 0; j < W.v.length; j++) out[W.c[j]] += x[W.r[j]] * W.v[j];
+  return out;
+}
+
+let scores = new Float64Array(1024);            // reused buffer for one row of attention scores
+
+function layer(L, h, cache) {                   // softmax attention over this token and every earlier one, then a ReLU MLP
+  if (L.heads.length) {
+    const q = matvec(h, L.Wq), k = matvec(h, L.Wk), v = matvec(h, L.Wv);
+    for (let i = 0; i < k.length; i++) cache.K.push(k[i]);         // keep this token's keys and values for later tokens
+    for (let i = 0; i < v.length; i++) if (v[i] !== 0) { cache.vi.push(i); cache.vv.push(v[i]); }
+    cache.start.push(cache.vi.length);
+    const n = cache.start.length - 1, kd = k.length, att = new Float64Array(v.length);
+    if (scores.length < n) scores = new Float64Array(2 * n);
+    const s = scores, K = cache.K, VI = cache.vi, VV = cache.vv, S = cache.start;
+    let q0 = 0, v0 = 0;
+    for (const [dk, dv] of L.heads) {
+      const scale = Math.sqrt(dk);
+      let m = -Infinity, sum = 0;
+      for (let j = 0; j < n; j++) {
+        let x = 0;
+        for (let c = q0; c < q0 + dk; c++) x += q[c] * K[j * kd + c];
+        s[j] = x / scale; if (s[j] > m) m = s[j];
+      }
+      for (let j = 0; j < n; j++) { s[j] = Math.exp(s[j] - m); sum += s[j]; }     // exact softmax: exp(s - max) / sum
+      for (let j = 0; j < n; j++) {
+        const p = s[j] / sum;
+        for (let t = S[j]; t < S[j + 1]; t++) { const i = VI[t]; if (i >= v0 && i < v0 + dv) att[i] += p * VV[t]; }
+      }
+      q0 += dk; v0 += dv;
+    }
+    const o = matvec(att, L.Wo);
+    h = h.map((x, i) => x + o[i]);
+  }
+  const a = matvec(h, L.W1);
+  for (let i = 0; i < a.length; i++) a[i] = Math.max(a[i] + L.b1[i], 0);
+  const b = matvec(a, L.W2);
+  return h.map((x, i) => x + b[i] + L.b2[i]);
+}
+
+function argmax(x) { let k = 0; for (let i = 1; i < x.length; i++) if (x[i] > x[k]) k = i; return k; }
+
+class Decoder {                                 // causal mask: keys and values of earlier tokens are kept, which is exact
+  constructor(N, R) { this.N = N; this.R = R; this.caches = Array.from({ length: R }, () => N.layers.map(() => ({ K: [], vi: [], vv: [], start: [0] }))); }
+  step(token) {                                 // feed one token; returns the argmax after every pass, and the logits after the last
+    const N = this.N; let h = new Float64Array(N.d);
+    token.forEach((value, f) => { const E = N.emb[f]; for (let i = 0; i < N.d; i++) h[i] += E[value * N.d + i]; });
+    const after = [];
+    let logits = null;
+    for (let r = 0; r < this.R; r++) {
+      N.layers.forEach((L, l) => { h = layer(L, h, this.caches[r][l]); });
+      logits = matvec(h, N.W_out).map((x, i) => x + N.b_out[i]);
+      after.push(argmax(logits));
+    }
+    return { after, next: after[after.length - 1] };
+  }
+}
+</script>
+<script>
+(function () {
+  // ---------------- task-specific input and output (as in weights/run.py): prompt -> token ids, ids -> moves
+  const net = loadNetwork(window.HANOI_NETWORK);
+  const vocab = net.cfg.io.vocab, ix = Object.fromEntries(vocab.map((s, i) => [s, i]));
+  const promptIds = (n) => ["N=" + n, ...Array.from({ length: n }, (_, k) => `INIT(${n - k},0)`),
+                            ...Array.from({ length: n }, (_, k) => `GOAL(${n - k},2)`), "SEP"].map(w => [ix[w]]);
+  const asMove = (id) => { const m = /^\[(\d+), (\d), (\d)\]$/.exec(vocab[id] || ""); return m ? m.slice(1).map(Number) : null; };
+  const PEG = "ABC";
+  const fmt = (x) => x.toLocaleString("en-US");
+  document.getElementById("w-total").textContent = fmt(net.total);
+  document.getElementById("w-nonzero").textContent = fmt(net.nonzero);
+  document.getElementById("runner-src").textContent = document.getElementById("runner").textContent.trim();
+
+  const sel = document.getElementById("disks");
+  for (let n = 1; n <= 15; n++) sel.add(new Option(`${n}  (${fmt(2 ** n - 1)} moves)`, n, n === 8, n === 8));
+
+  // ---------------- drawing
+  const cv = document.getElementById("pegs"), cx = cv.getContext("2d");
+  let W = cv.width, H = cv.height, px = 1;
+  function fit() {                              // a taller drawing on narrow screens, labels at a readable size
+    const css = cv.clientWidth || 700;
+    cv.width = 1456; cv.height = css < 560 ? 1100 : 560; W = cv.width; H = cv.height; px = W / css;
+  }
+  const GRAY = ["#cbcfd5", "#b8bdc5"], PEGC = "#bec2c8", ACCENT = "#154677";
+  let n = 8, pegs = [[], [], []], fly = null, hot = null;
+  function geometry() {
+    const pad = 40, base = H - 30 - 26 * px, pw = (W - 2 * pad) / 3;
+    const dh = Math.min(H / 9, (base - 20) / (n + 3)), top = base - dh * (n + 1.2);    // room above for a flying disk
+    const maxw = pw * 0.9, minw = Math.max(pw * 0.16, 26);
+    return { pad, base, top, pw, dh, x: [0, 1, 2].map(p => pad + pw * (p + 0.5)),
+             w: (d) => n === 1 ? maxw * 0.5 : minw + (maxw - minw) * (d - 1) / (n - 1) };
+  }
+  function disk(g, d, x, yb, color) { const w = g.w(d); cx.fillStyle = color; cx.fillRect(x - w / 2, yb - g.dh * 0.86, w, g.dh * 0.86); }
+  function draw() {
+    const g = geometry();
+    cx.fillStyle = "#fff"; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = PEGC; cx.fillRect(g.pad, g.base, W - 2 * g.pad, 10);
+    cx.font = `600 ${Math.round(15 * px)}px Inter, system-ui, sans-serif`; cx.textAlign = "center"; cx.textBaseline = "middle";
+    g.x.forEach((x, p) => { cx.fillStyle = PEGC; cx.fillRect(x - 5, g.top - 10, 10, g.base - g.top + 10); cx.fillStyle = "#5f6368"; cx.fillText(PEG[p], x, g.base + 10 + 14 * px); });
+    pegs.forEach((st, p) => st.forEach((d, lv) => disk(g, d, g.x[p], g.base - lv * g.dh, d === hot ? ACCENT : GRAY[d % 2])));
+    if (fly) {
+      const { d, f, t, u } = fly, e = (x) => x * x * (3 - 2 * x), cl = (x) => Math.max(0, Math.min(1, x));
+      const y0 = g.base - pegs[f].length * g.dh, y1 = g.base - pegs[t].length * g.dh, yt = g.top - g.dh * 0.3;
+      const up = e(cl(u / 0.35)), ac = e(cl((u - 0.25) / 0.5)), dn = e(cl((u - 0.65) / 0.35));
+      disk(g, d, g.x[f] + (g.x[t] - g.x[f]) * ac, y0 + (yt - y0) * up + (y1 - yt) * dn, ACCENT);
+    }
+  }
+
+  // ---------------- run: the network computes moves, the page plays them, the checker replays them
+  const el = (id) => document.getElementById(id);
+  let dec = null, queue = [], written = 0, played = 0, mistakes = 0, done = false, ended = false, running = false;
+  let t0 = 0, tSpent = 0, lastMove = 0, moves = [], tokens = 0, passes = 2, flyStart = 0;
+
+  function reset() {
+    n = +sel.value; passes = +el("passes").value;
+    pegs = [Array.from({ length: n }, (_, i) => n - i), [], []]; fly = null; hot = null;
+    dec = new Decoder(net, passes); queue = []; written = played = mistakes = 0; done = ended = false;
+    moves = []; tSpent = 0; tokens = 0;
+    let last = null;
+    for (const tk of promptIds(n)) { last = dec.step(tk); tokens++; }
+    queue.pending = last;                       // the network's answer for the first move
+    el("cells").innerHTML = ""; el("out").textContent = "moves = []";
+    el("status").className = "status"; el("status").textContent = "Running…";
+    show(); draw();
+  }
+  function compute(budget) {                    // let the network write moves for at most `budget` ms
+    const start = performance.now();
+    while (!ended && performance.now() - start < budget && queue.length < 4000) {
+      const r = queue.pending;
+      if (r.next === net.cfg.end_id) { ended = true; break; }
+      const mv = asMove(r.next);
+      queue.push({ id: r.next, mv, after: r.after });
+      written++;
+      queue.pending = dec.step([r.next]); tokens++;
+      if (written > 2 ** n + 4) { ended = true; break; }
+    }
+    tSpent += performance.now() - start;
+  }
+  function apply(item) {                        // the separate checker: replay the move on the pegs
+    const mv = item.mv;
+    const ok = mv && mv[1] !== mv[2] && pegs[mv[1]].length && pegs[mv[1]][pegs[mv[1]].length - 1] === mv[0]
+               && (!pegs[mv[2]].length || pegs[mv[2]][pegs[mv[2]].length - 1] > mv[0]);
+    if (!ok) { mistakes++; return; }
+    pegs[mv[2]].push(pegs[mv[1]].pop());
+    moves.push(vocab[item.id]); played++;
+  }
+  function cellsFor(item) {
+    el("cells").innerHTML = item.after.map((id, r) => {
+      const m = asMove(id), end = id === net.cfg.end_id;
+      const txt = end ? "end" : m ? `disk ${m[0]}: ${PEG[m[1]]}→${PEG[m[2]]}` : vocab[id];
+      return `<div class="cell"><div class="n">pass ${r + 1}</div><div class="o ${end ? "end" : "move"}">${txt}</div></div>`;
+    }).join("");
+  }
+  function show() {
+    el("s-moves").innerHTML = `${fmt(played)} <small>of ${fmt(2 ** n - 1)}</small>`;
+    el("s-mistakes").textContent = fmt(mistakes);
+    el("s-tokens").textContent = fmt(tokens);
+    el("s-time").innerHTML = `${(tSpent / 1000).toFixed(1)} <small>s</small>`;
+    const shown = moves.length > 400 ? moves.slice(0, 200).join(", ") + `, … ${fmt(moves.length - 400)} more …, ` + moves.slice(-200).join(", ") : moves.join(", ");
+    el("out").textContent = `moves = [${shown}${done ? "]" : ""}`;
+  }
+  function finish() {
+    done = true; running = false; fly = null; hot = null; draw(); show();
+    const goal = pegs[0].length === 0 && pegs[1].length === 0 && pegs[2].length === n;
+    const best = 2 ** n - 1;
+    el("status").className = "status" + (goal && !mistakes ? " done" : "");
+    el("status").textContent = goal && !mistakes && played === best
+      ? `Solved. ${fmt(played)} moves, every one legal, the fewest possible (2^${n} − 1 = ${fmt(best)}). The network wrote its end token, and the checker found no mistake.`
+      : `Stopped after ${fmt(played)} moves. Goal reached: ${goal ? "yes" : "no"}. Mistakes: ${fmt(mistakes)}.`;
+    el("run").textContent = "Run again"; el("pause").disabled = true;
+  }
+  function frame(now) {
+    if (!running) return;
+    const speed = +el("speed").value;
+    compute(speed === 0 ? 14 : Math.min(10, 2 + speed / 10));
+    if (speed === 0) {                          // as fast as it runs: play everything written so far
+      while (queue.length) { const it = queue.shift(); apply(it); lastMove = it; }
+      hot = null;
+    } else {
+      const per = 1000 / speed;
+      if (fly) {
+        fly.u = Math.min(1, (now - flyStart) / per);
+        if (fly.u >= 1) { const it = fly.item; fly = null; apply(it); hot = it.mv ? it.mv[0] : null; }
+      }
+      if (!fly && queue.length) {
+        const it = queue.shift(); lastMove = it; cellsFor(it);
+        const src = it.mv ? pegs[it.mv[1]] : null;
+        if (speed <= 12 && src && src[src.length - 1] === it.mv[0]) {   // slow speeds: animate the disk;
+          fly = { d: it.mv[0], f: it.mv[1], t: it.mv[2], u: 0, item: it }; flyStart = now; hot = null;   // the checker
+        } else { apply(it); hot = it.mv ? it.mv[0] : null; }                                // replays it on landing
+      }
+    }
+    if (speed === 0 && lastMove) cellsFor(lastMove);
+    drawWithFlight(); show();
+    if (ended && !queue.length && !fly) { finish(); return; }
+    requestAnimationFrame(frame);
+  }
+  function drawWithFlight() {                   // while a disk flies, draw its source peg without it
+    if (fly) { const p = pegs[fly.f]; const top = p.pop(); draw(); p.push(top); } else draw();
+  }
+
+  el("run").addEventListener("click", () => {
+    reset(); running = true; el("run").textContent = "Restart"; el("pause").disabled = false; el("pause").textContent = "Pause";
+    requestAnimationFrame(frame);
+  });
+  el("pause").addEventListener("click", () => {
+    if (done) return;
+    running = !running; el("pause").textContent = running ? "Pause" : "Resume";
+    el("status").textContent = running ? "Running…" : "Paused.";
+    if (running) requestAnimationFrame(frame);
+  });
+  sel.addEventListener("change", () => { if (!running) { n = +sel.value; pegs = [Array.from({ length: n }, (_, i) => n - i), [], []]; draw(); el("s-moves").innerHTML = `0 <small>of ${fmt(2 ** n - 1)}</small>`; } });
+  fit(); draw(); el("s-moves").innerHTML = `0 <small>of ${fmt(2 ** 8 - 1)}</small>`;
+  window.addEventListener("resize", () => { fit(); drawWithFlight(); });
+})();
+</script>
+</body>
+</html>
