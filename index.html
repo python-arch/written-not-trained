@@ -79,6 +79,16 @@
   .card .ctx { color: var(--muted); font-size: 0.78rem; }
   .hero-video { margin: 16px 0 18px; }
   .video-fig { margin: 18px 0 26px; }
+  .anatomy { margin: 18px 0 26px; }
+  .anat-grid { display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--sans); }
+  .anat-box { border: 1px solid var(--line); border-top: 3px solid var(--line); padding: 10px 13px 12px; font-size: 0.8rem; line-height: 1.45; }
+  .anat-box.loop { border-top-color: var(--written); }
+  .anat-box p { margin: 0; }
+  .anat-box .label { font-size: 0.62rem; margin-bottom: 5px; }
+  .anat-box .anat-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+  @media (min-width: 480px) { .anat-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 640px) { .anat-grid { grid-template-columns: repeat(3, 1fr); } }
+  .todo { background: #fff3cd; color: #7a4d00; font-family: var(--sans); font-size: 0.86em; font-weight: 600; padding: 8px 12px; margin: 12px 0; }
   .mark { width: 1.35em; height: 1.35em; vertical-align: -0.38em; margin-right: 0.55em; }
   .kicker { font-family: var(--sans); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
   .hero-video .player, .video-fig .player { position: relative; }
@@ -272,6 +282,23 @@
 <p class="q">Then why not just write a program?</p>
 <p class="a"><strong>Because the network is the point.</strong> A small network that loops, written by an LLM, can solve problems that the LLM itself, and trained networks far bigger, get wrong.</p>
 
+<p class="q">What does writing a network involve?</p>
+<p class="a">Writing breadth-first search in Python is writing software. Writing it as a network is more like designing a chip out of fixed parts. A transformer has no variables, no if-statements and no queue, and no loop of its own apart from the one that re-runs it. Every step has to be built from the same few parts (attention, matrix multiplications and simple nonlinearities), applied to every cell of the maze at once. The network also has to read the raw maze text itself, because the code that runs it knows nothing about mazes. And it has to stay exact through hundreds of loops of continuous arithmetic, where a small error in one loop could grow in the next. Here is how the maze network is put together from those parts.</p>
+
+<figure class="anatomy">
+  <div class="anat-grid">
+    <div class="anat-box"><p class="label">1 · Once, at the start</p><p class="anat-title">Reading the maze</p><p>Each character of the maze text becomes one token, so each token is one cell. Separate row and column tables give every cell its place, on grids up to 128×128.</p></div>
+    <div class="anat-box loop"><p class="label">2 · Every loop</p><p class="anat-title">Finding the neighbours</p><p>Four attention heads, one per direction. Each puts all its weight on one neighbour: the cell below, to the left, to the right or above.</p></div>
+    <div class="anat-box loop"><p class="label">3 · Every loop</p><p class="anat-title">The wave</p><p>Each unreached cell next to a reached one takes that neighbour's distance plus one, so the reached area spreads one step from the goal. The distance is stored modulo 3 (0, 1, 2, 0, 1, 2, …), as three switches with exactly one on.</p></div>
+    <div class="anat-box loop"><p class="label">4 · Every loop</p><p class="anat-title">Pointers</p><p>Each reached cell points to the neighbour one step closer to the goal. Modulo 3 is enough to tell which one that is. Ties are broken in the order down, left, right, up.</p></div>
+    <div class="anat-box loop"><p class="label">5 · Every loop, then at the end</p><p class="anat-title">The path</p><p>From the start, a chain switches on along the pointers, one cell per loop. The answer is final at loop 2D, twice the path's length D. The cells that are on are written out as the path.</p></div>
+    <div class="anat-box loop"><p class="label">6 · After every loop</p><p class="anat-title">Staying exact</p><p>Every update snaps back to exactly 0 or 1. After every loop, every value apart from a cell's position is exactly 0 or 1, so no error can build up.</p></div>
+  </div>
+  <figcaption>Anatomy of the maze network. Part 1 happens once, as the maze is read in. Parts 2 to 6 are the same single layer, run again in every loop.</figcaption>
+</figure>
+
+<p>The algorithm is simple. Building it out of a transformer's parts, so that it stays exact as the maze grows, is not. In our graph-search tests, trained networks built from the same parts failed on longer routes, even the largest, which learned the small cases almost perfectly.</p>
+
 <div class="credit">
   <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, November 2026) showed that a frontier LLM can read a network's weights, fix them, and write new ones from a plain-language goal, without an optimizer. This post builds directly on that idea. At the same time, <a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a> had Claude hand-write the weights of small transformers for ten algorithmic tasks.
 </div>
@@ -329,7 +356,44 @@
   <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. Trained on one path per maze, it scores 99.0. Both are averages over 3 runs.</p>
 </details>
 
-<p class="fine"><b>Good to know.</b> Most mazes have many shortest paths. To give the dataset's exact path, the network breaks ties with a fixed order of moves (down, left, right, up). This order was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. It matters only for matching the dataset's exact path.</p>
+<p class="fine"><b>Good to know.</b> Most mazes have many shortest paths. To give the dataset's exact path, the network breaks ties with a fixed order of moves (down, left, right, up). This order was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. It matters only for matching the dataset's exact path. The network's row and column tables have rows for mazes up to 128×128, and a 30×30 maze uses only the first 30 rows of each.</p>
+
+<p class="eyebrow label">Deep dive</p>
+<h3 id="maze-claude">Why can't Claude just solve it?</h3>
+
+<div class="todo">To be written: why Claude struggles with these mazes, with its table.</div>
+
+<h3 id="maze-why">Why does the network work?</h3>
+
+<p>Here is what the network stores, cell by cell, while it solves the first test maze.</p>
+
+<figure class="video-fig">
+  <div class="player">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_inside_poster.png" width="1280" height="720" data-tall="figures/maze_inside_tall" data-tall-size="720x850" aria-label="Animation of the network's real internal state on the first Maze-Hard test maze. On the left, a close-up of the cells around the goal. On the right, the whole maze and a loop counter. The goal holds 0. Each cell reads its four neighbours. Each loop, the cells next to counted ones take that count plus one, counted 0, 1, 2, 0, 1, 2. A loop later, each counted cell gets an arrow to a neighbour one step closer to the goal. The count reaches the start at loop 111. Then the path grows from the start, one cell per loop, along the arrows, and reaches the goal. After that nothing changes, all the way to loop 1,800.">
+      <source src="figures/maze_inside.mp4" type="video/mp4">
+      <source src="figures/maze_inside.webm" type="video/webm">
+    </video>
+  </div>
+  <figcaption>Inside the network on the first test maze, the same maze as at the top. Every digit, arrow and colour is read from the network after each loop (sped up). The orange arrows at the start mark the four neighbours each cell reads.</figcaption>
+</figure>
+
+<p><strong>Every cell has a fixed place.</strong> Each token is one cell of the maze, and it carries that cell's row and column. The network uses them to look straight at the cells above, below, left and right. It never has to count along the text to find which character sits above which.</p>
+
+<p><strong>Each loop, the count spreads by one cell.</strong> The goal holds 0. In every loop, each open cell that has no count yet looks at its four neighbours. If one of them has a count, it takes that count plus one. So the distance from the goal spreads out around the walls, one cell per loop. A loop later, the cell also points to a neighbour one step closer to the goal. Once the count reaches the start, the path grows from the start along these arrows, one cell per loop, until it reaches the goal.</p>
+
+<p><strong>The values snap back every loop.</strong> The network never stores a distance as a big number. It keeps each distance counted in threes, which is enough to tell which neighbour is one step closer. Apart from the numbers that give each cell's position, every number it stores is 0 or 1. The layer is written so that each value it updates snaps to exactly 0 or exactly 1, even when its input is slightly off. So tiny rounding errors are wiped out in every loop instead of building up. On this maze, after every one of the 1,800 loops, every one of those numbers was exactly 0 or 1.</p>
+
+<p><strong>Extra loops change nothing.</strong> On this maze the answer is complete at loop 222, and one loop later the whole state stops changing. Every count, arrow and path cell stays exactly as it is, all the way to loop 1,800. So the number of loops only has to be big enough. We run twice as many loops as the maze has cells, which is always enough, and the same rule lets the same weights solve mazes at 60×60 and 100×100.</p>
+
+<h3 id="maze-write">Why can Claude write it?</h3>
+
+<p><strong>The description is short, and the run is long.</strong> 97 lines of code, using 11 formulas, set all 19,936 weights. Claude had the final design 15 minutes in and made its last change to any weight at 40 minutes. Solving a single maze takes hundreds of loops, and every one of them has to be exact. Claude never has to carry out those steps. It only has to describe one of them correctly.</p>
+
+<p><strong>The design takes real ideas.</strong> The clearest one is counting in threes. An earlier version stored each cell's full distance from the goal, and those numbers grow with the maze. The final version stores only the distance modulo 3, as three switches with exactly one on. Neighbouring cells differ by exactly one step, so that is enough to tell which neighbour is closer. The stored values never grow, so a bigger maze doesn't make them harder to keep exact. The same weights also solved all 40 mazes at 100×100.</p>
+
+<p><strong>It took one detour.</strong> The first design, suggested in the task description, marked every cell on any shortest path. Then the training answers showed that the dataset expects one particular path: most mazes have many shortest paths, and the answers always pick one by a fixed order of moves. Claude rebuilt the network around a chain of pointers that traces exactly that path.</p>
+
+<div class="todo">To come: whether Claude can write the network in one go, with no testing.</div>
 
 <h2 id="q2"><span class="qn">2.</span> Does it beat trained models, even much larger ones?</h2>
 
