@@ -8,7 +8,7 @@ Abdelrahman Elsayed\*, Ahmed Heakl\* · MBZUAI
 
 ## What this is
 
-We asked Claude Opus 5.5 to write neural networks by hand: code that sets every weight with a formula, with no training. On Maze-Hard, Claude solves 13 of 50 test mazes on its own. The tiny transformer it wrote solves all 1,000. Its single layer runs again and again, until the whole path is found.
+Claude Opus 5.5 designed these neural networks and set every weight itself, with nothing learned. On Maze-Hard, Claude solves 13 of 50 test mazes on its own. The tiny transformer it wrote solves all 1,000. Its single layer runs again and again, until the whole path is found.
 
 ## Results
 
