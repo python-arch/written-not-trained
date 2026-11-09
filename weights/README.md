@@ -60,7 +60,7 @@ Every network runs the same loop. Only its config and weights differ.
    Some networks also have a position field, whose value is the token's position.
 2. Run the shared block R times. Each layer adds softmax attention (scores q.k / sqrt(d_k), under the
    network's mask), then a ReLU MLP.
-3. Read out: logits = h W_out + b_out at the last token (maze: at every cell, in one pass).
+3. Read out: logits = h W_out + b_out at the last token (maze: at every cell at once).
 4. Decode greedily: append the argmax id and stop at the end id. Parity, chains and graph give one answer id.
 
 The masks are:
