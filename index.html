@@ -254,7 +254,13 @@
 
 <main class="wrap">
 
-<div class="todo">To come: the results at a glance, accuracy bars with one panel per benchmark, each labelled with its test set and source.</div>
+<figure class="reveal" style="--hide: 45%">
+  <div class="layers">
+  <img class="data" src="figures/glance_data.svg" width="518" height="1025" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="1025" loading="lazy" alt="Bar charts for six benchmarks. The written network scores 100% on each. The strongest other results: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On graph search, a trained model 0%. On parity, a trained model 53.8%, near the 50% chance line. On reasoning chains, a trained model 3.5%. On BIG-Bench Hard, SmolLM2-360M 69.6% on Boolean Expressions and Pythia-410M 33.2% on Dyck Languages. On BIG-Bench Extra Hard, Qwen3-235B-A22B 81.2% on Web of Lies and 56.9% on Shuffled Objects.">
+  </div>
+  <figcaption>Each panel sets the written network against the strongest result on this page for a trained model or an LLM, on the test set named in the panel. The trained maze models' scores are their best checkpoints over training, chosen on the test set (Davis et al., Table 3). For graph search, parity and reasoning chains, the trained model shown is the one that learned the checking range best, with ties going to the best test score, and its checkpoint was chosen on the checking range. Every model is in the tables below.</figcaption>
+</figure>
 
 <div class="tldr">
   <div class="label">TL;DR</div>
@@ -267,7 +273,13 @@
 
 <p><strong>Our step is the loop.</strong> A bigger job would otherwise need a bigger network, and every extra weight is one more thing to write exactly right. So Claude writes one small layer that does one step, setting every weight by hand, and a loop runs it for as long as the task needs. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Without the loop, every step would need its own copy of the layer, so the maze network would need 306 layers and 3,259,341 weights for the longest test maze (163 times the looped network), and 834 layers and 8,867,229 weights for the largest 100×100 maze. Looped transformers are an active research area, and trained ones <em>overthink</em>: run them for more loops than they were trained with, and their answers get worse. A written loop can be built so that once the answer is ready, extra loops leave it exactly as it is. Trained looped models have the same kind of loop, but in our tests training didn't find these solutions. Writing the weights did. We call this looped weight-space programming.</p>
 
-<div class="todo">To come: a figure of maze accuracy against the number of loops.</div>
+<figure class="reveal" style="--hide: 89%">
+  <div class="layers">
+  <img class="data" src="figures/maze_loops_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_loops_base.svg" width="518" height="346" loading="lazy" alt="Accuracy on the 1,000 test mazes against the number of loops. It is 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
+  </div>
+  <figcaption>Accuracy on the 1,000 test mazes, any shortest path, after each number of loops. Each test maze's answer stops changing once the loops reach twice its path length. On all 1,000 training mazes, checked at every loop, the answer is exactly right from that loop on and never before it, so the curve counts the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</figcaption>
+</figure>
 
 <p>We asked five questions:</p>
 <ol class="questions">
@@ -296,7 +308,13 @@
 
 <p>An extra test used bigger mazes, generated in the Maze-Hard style. The same 19,936 weights, run for more loops, also solved all 50 mazes at 60×60 and all 40 at 100×100.</p>
 
-<div class="todo">To come: a figure of maze accuracy against model size.</div>
+<figure class="reveal" style="--hide: 85%">
+  <div class="layers">
+  <img class="data" src="figures/maze_size_data.svg" width="518" height="360" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_size_base.svg" width="518" height="360" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written network has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
+  </div>
+  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the number of weights (log scale, with the vertical axis starting at 80%). The trained models' scores are from Davis et al. (NeurIPS 2026), Table 3, each the best checkpoint over training, chosen on the test set. LDT is shown trained on 512 shortest paths per training maze and on one. LLMs are left out because their sizes aren't public.</figcaption>
+</figure>
 
 <div class="table-wrap">
 <table>
@@ -339,12 +357,11 @@
     <tr class="llm"><td>Told how, just the path, the maze as a list of cells instead of a grid</td><td class="num">19</td></tr>
   </tbody>
   <tbody class="group">
-    <tr class="written"><td>Writing a network in one go, with no testing</td><td class="num">50</td></tr>
     <tr class="written"><td>Writing a network, with testing (the network on this page)</td><td class="num">50</td></tr>
   </tbody>
 </table>
 </div>
-<p class="note">The first row is the paper's result for Claude Opus 5.5. The next four are our runs on the same 50 mazes with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a few mazes either way is noise. The one-go row is the one attempt in five that produced a network. The other four ran out of output at 128,000 tokens.</p>
+<p class="note">The first row is the paper's result for Claude Opus 5.5. The next four are our runs on the same 50 mazes with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a few mazes either way is noise.</p>
 
 <p>It isn't the tokenizer. In the paper's format one token often covers several cells, but with one token per cell Claude finds the shortest path in 22, against 24. When it goes wrong, it goes wrong early: told how to search, its first wrong step comes a median 35% of the way along the shortest path.</p>
 
