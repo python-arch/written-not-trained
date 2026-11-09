@@ -84,7 +84,7 @@
       <label>Disks
         <select id="disks"></select>
       </label>
-      <label>Passes per move
+      <label>Loops per move
         <select id="passes">
           <option value="2" selected>2 (what it needs)</option>
           <option value="4">4</option>
@@ -112,9 +112,9 @@
       <div class="stat"><div class="k">Network time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
     </div>
     <div class="passes">
-      <div class="k">What the network wrote after each pass, for the latest move</div>
+      <div class="k">What the network wrote after each loop, for the latest move</div>
       <div class="cells" id="cells"></div>
-      <p class="note">The move is read after the last pass. With 4 or 8 passes, every move stays exactly the same.</p>
+      <p class="note">The move is read after the last loop. With 4 or 8 loops, every move stays exactly the same.</p>
     </div>
     <div class="status" id="status">Pick a number of disks and press Run.</div>
     <pre class="out" id="out" aria-label="The moves, in the format of Apple's paper">moves = []</pre>
@@ -314,7 +314,7 @@ class Decoder {                                 // causal mask: keys and values 
     el("cells").innerHTML = item.after.map((id, r) => {
       const m = asMove(id), end = id === net.cfg.end_id;
       const txt = end ? "end" : m ? `disk ${m[0]}: ${PEG[m[1]]}→${PEG[m[2]]}` : vocab[id];
-      return `<div class="cell"><div class="n">pass ${r + 1}</div><div class="o ${end ? "end" : "move"}">${txt}</div></div>`;
+      return `<div class="cell"><div class="n">loop ${r + 1}</div><div class="o ${end ? "end" : "move"}">${txt}</div></div>`;
     }).join("");
   }
   function show() {
