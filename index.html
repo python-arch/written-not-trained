@@ -138,6 +138,7 @@
   td.num, th.num { text-align: right; }
   tr.written td { color: var(--written); font-weight: 600; }
   tr.llm td:first-child { color: var(--llm); font-weight: 600; }
+  table.text-first td:first-child, table.text-first th:first-child { white-space: normal; }
   .note { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
   .fine { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .fine b { color: var(--fg); font-weight: 600; }
@@ -318,7 +319,24 @@
 
 <h3 id="maze-claude">Why can't Claude solve it on its own?</h3>
 
-<div class="todo">To be written: why Claude struggles with these mazes, with its table.</div>
+<p>Even told how to search, Claude finds the shortest path in at most 25 of the 50 mazes, whatever the format. To tell it how, we added one paragraph to the paper's prompt that describes breadth-first search: spread out from the goal one step at a time, then walk back from the start. Then we changed one thing at a time: one token per cell, the answer as just the path, and the maze as a list of open cells instead of a grid.</p>
+
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>On the paper's 50 test mazes</th><th class="num">Shortest path found (of 50)</th></tr></thead>
+  <tbody>
+    <tr class="llm"><td>The paper's prompt (Davis et al., NeurIPS 2026)</td><td class="num">13</td></tr>
+    <tr class="llm"><td>Told how to search</td><td class="num">24</td></tr>
+    <tr class="llm"><td>Told how, one cell per token</td><td class="num">22</td></tr>
+    <tr class="llm"><td>Told how, answer with just the path</td><td class="num">25</td></tr>
+    <tr class="llm"><td>Told how, just the path, the maze as a list of cells instead of a grid</td><td class="num">19</td></tr>
+    <tr class="written"><td>The network Claude wrote</td><td class="num">50</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">The first row is the paper's result for Claude Opus 5.5. The other Claude rows are our runs on the same 50 mazes with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a few mazes either way is noise.</p>
+
+<p>It isn't the tokenizer. In the paper's format one token often covers several cells, but with one token per cell Claude finds the shortest path in 22, against 24. When it goes wrong, it goes wrong early: told how to search, its first wrong step comes a median 35% of the way along the shortest path.</p>
 
 <h3 id="maze-why">Inside the network</h3>
 
@@ -350,9 +368,11 @@
 
 <p>The description is short, and the run is long. 97 lines of code, using 11 formulas, set all 19,936 weights, and Claude made its last change to any weight 40 minutes in. Solving one maze takes hundreds of loops that all have to be exact, but Claude only has to describe one loop correctly. Its key idea was keeping each distance modulo 3, so no stored value grows with the maze. There was one detour: the first design, suggested in the task description, marked every shortest path, until the training answers showed that the dataset expects one particular path, and Claude rebuilt the network around a chain of pointers.</p>
 
-<div class="todo">To come: whether Claude can write the network in one go, with no testing.</div>
+<p>Claude can sometimes write it in one go. In five tries with no tools, no data and no testing, one produced a network, and it found a shortest path in all 200 training mazes it was run on. It guessed a different tie-break from the dataset's, so none matches the dataset's exact path. The other four ran out of output at 128,000 tokens while still working.</p>
 
-<div class="todo">Draft closing line, to keep only if the results on why Claude fails directly support it: "Solving a maze is long and must be exact at every step. Describing how to solve it is short. Claude is good at the short part. The loop does the long part."</div>
+<div class="todo">To come: one clause on what the one-shot prompt contained.</div>
+
+<p>Claude can't run an exact search in its head. It can write one into weights.</p>
 
 <h2 id="q3"><span class="qn">3.</span> Does it beat trained models, even much larger ones?</h2>
 
@@ -587,7 +607,7 @@
 <ul>
   <li>No training, no gradients and no fitting to data in any hand-written network.</li>
   <li>We locked each network before testing it, and tested it once.</li>
-  <li>The code that runs a network is the same simple loop for every task. Everything the network knows is in its weights.</li>
+  <li>The loop that runs a network is the same for every task, and all the computing happens in the weights. Only a small step per task turns the input text into tokens and the output tokens back into text, without solving anything.</li>
   <li>Independent reviewers, which were separate Claude agents that hadn't seen how the networks were built, checked the work. The results reported here held up.</li>
 </ul>
 
