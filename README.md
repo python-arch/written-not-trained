@@ -4,7 +4,7 @@
 
 Abdelrahman Elsayed\*, Ahmed Heakl\* · MBZUAI
 
-**[Read the post](https://python-arch.github.io/written-not-trained/)** · Run it in your browser: [mazes](demo/maze.html) · [Tower of Hanoi](demo/index.html)
+**[Read the post](https://python-arch.github.io/written-not-trained/)** · Run it in your browser: [mazes](https://python-arch.github.io/written-not-trained/demo/maze.html) · [Tower of Hanoi](https://python-arch.github.io/written-not-trained/demo/index.html)
 
 ## What this is
 
