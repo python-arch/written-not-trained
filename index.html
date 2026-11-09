@@ -370,7 +370,9 @@
 
 <h3 id="maze-write">Why can Claude write it?</h3>
 
-<p>The description is short, and the run is long. 97 lines of code, using 11 formulas, set all 19,936 weights, and Claude made its last change to any weight 40 minutes in. Solving one maze takes hundreds of loops that all have to be exact, but Claude only has to describe one loop correctly. Its key idea was keeping each distance modulo 3, so no stored value grows with the maze. There was one detour: the first design, suggested in the task description, marked every shortest path, until the training answers showed that the dataset expects one particular path, and Claude rebuilt the network around a chain of pointers.</p>
+<p>Claude never runs the search. It designs one loop: what each of the 35 numbers in a cell means, which neighbour each of the four heads looks at, and how every number changes. Then it sets every weight to do exactly that. The loop repeats it hundreds of times per maze, exact every time. The key idea is counting distance in threes, so the count never grows with the maze.</p>
+
+<p>There was one detour. The task description, also written by Claude, suggested a first design: two waves, one from each end, using the position tables to look at each cell's neighbours, and marking every cell on a shortest path. The training answers showed the dataset expects one particular path, so the Claude writing the weights kept the neighbour lookups and rebuilt the rest: one wave from the goal, counted in threes, pointers, and a chain from the start.</p>
 
 <p>Claude can sometimes write it in one go, with no data, no tools and no testing. One of five attempts produced a network. On the paper's 50 test mazes it found a shortest path in all 50, and in all 200 training mazes it was run on. It guessed a different tie-break from the dataset's, so none of its paths matches the dataset's exact answer.</p>
 
