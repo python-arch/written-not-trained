@@ -1,0 +1,1 @@
+{"name":"maze","d_model":35,"layers":[[[8,8],[8,8],[8,8],[8,8]]],"readout":"all","fields":["row","col","char"],"position_field":false,"mask":"none","loops":{"n":"input","const":0,"lin":2,"div":1,"log2":0},"end_id":null,"max_new":null,"max_tokens":16384,"out_token":null,"io":{"charset":"# SGo"}}

@@ -1,0 +1,1 @@
+{"name":"chains","d_model":10,"layers":[[[2,2]]],"readout":"last","fields":["lhs","rhs","opc"],"position_field":false,"mask":"none","loops":{"n":"input","const":0,"lin":1,"div":1,"log2":0},"end_id":null,"max_new":1,"max_tokens":65,"out_token":null,"io":{"lit":64,"query":64}}

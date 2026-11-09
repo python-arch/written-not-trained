@@ -1,0 +1,1 @@
+{"name":"graph","d_model":21,"layers":[[[3,3],[3,3]],[[3,3]],[[3,3],[3,3]]],"readout":"last","fields":["type","f1","f2"],"position_field":false,"mask":"none","loops":{"n":"input","const":0,"lin":1,"div":1,"log2":0},"end_id":null,"max_new":1,"max_tokens":4097,"out_token":null,"io":{"kind":{"node":0,"edge":1,"query":2},"unreachable":64}}

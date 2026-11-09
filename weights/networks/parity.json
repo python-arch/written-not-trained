@@ -1,0 +1,1 @@
+{"name":"parity","d_model":6,"layers":[[[2,2]]],"readout":"last","fields":["tok","pos"],"position_field":true,"mask":"causal","loops":{"n":"input","const":-1,"lin":1,"div":1,"log2":0},"end_id":null,"max_new":1,"max_tokens":4096,"out_token":null,"io":{"bos":2}}

@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes"
+authors:
+  - family-names: Elsayed
+    given-names: Abdelrahman
+    affiliation: MBZUAI
+  - family-names: Heakl
+    given-names: Ahmed
+    affiliation: MBZUAI
+date-released: 2026-11-09
+url: "https://python-arch.github.io/written-not-trained/"
+repository-code: "https://github.com/python-arch/written-not-trained"
+license:
+  - MIT
+  - CC-BY-4.0
+preferred-citation:
+  type: blog
+  title: "Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes"
+  authors:
+    - family-names: Elsayed
+      given-names: Abdelrahman
+      affiliation: MBZUAI
+    - family-names: Heakl
+      given-names: Ahmed
+      affiliation: MBZUAI
+  year: 2026
+  month: 11
+  url: "https://python-arch.github.io/written-not-trained/"
