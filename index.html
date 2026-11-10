@@ -397,11 +397,7 @@
 
 <p>There was one detour. The task description, also written by Claude, suggested a first design: two waves, one from each end, using the position tables to look at each cell's neighbours, and marking every cell on a shortest path. The training answers showed the dataset expects one particular path, so the Claude writing the weights kept the neighbour lookups and rebuilt the rest: one wave from the goal, counted in threes, pointers, and a chain from the start.</p>
 
-<p>Claude can sometimes write it in one go, with no data, no tools and no testing. One of five attempts produced a network. On the paper's 50 test mazes it found a shortest path in all 50, and in all 200 training mazes it was run on. It guessed a different tie-break from the dataset's, so none of its paths matches the dataset's exact answer.</p>
-
-<div class="todo">To come: one clause on what the one-shot prompt contained.</div>
-
-<div class="todo">To come: the one-go network's result on all 1,000 test mazes.</div>
+<p>Claude can design it even in one go, with no data, no tools and no way to test. The one try that finished found a shortest path in all 1,000 test mazes. It guessed a different tie-break from the dataset's, so its paths are never the dataset's exact ones. Its instructions did say how many loops our network runs. Finishing in one go is rare: 9 of 10 tries hit the length limit of a single answer first, though the one that got furthest had already landed on much the same design, counting in threes included. With the chance to check its work on training mazes, Claude got it exactly right.</p>
 
 <p>Claude can't run an exact search in its head. It can write one into weights.</p>
 
