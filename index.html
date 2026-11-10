@@ -441,7 +441,15 @@
 
 <h2 id="q3"><span class="qn">3.</span> Does it beat trained models, even much larger ones?</h2>
 
-<div class="todo">To come: a figure of maze accuracy against compute when solving, for this network, HRM, TRM and LDT.</div>
+<figure class="reveal" style="--hide: 88%">
+  <div class="layers">
+  <img class="data" src="figures/maze_compute_data.svg" width="518" height="374" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_compute_base.svg" width="518" height="374" loading="lazy" alt="Accuracy on the 1,000 test mazes against compute per maze when solving, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
+  </div>
+  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the computing each model does per maze when solving (log scale). Every model is counted the same way, as in Davis et al. (NeurIPS 2026, Appendix N), with a multiply-add as two operations. The blue curve is the written network after each number of loops, and the dot marks the 1,800 loops we run. HRM and TRM run their usual 16 steps per maze, with the cost worked out from their published settings. LDT has no published model, and its paper doesn't give how many search rounds a 30×30 maze takes, so its dots mark the least a solve can use, and the line runs to its limit of 1,000 rounds. Scores for HRM, TRM and LDT are from Davis et al., Table 3, each the best checkpoint over training, chosen on the test set.</figcaption>
+</figure>
+
+<div class="todo">To come: HRM and TRM at other step counts, from their released models.</div>
 
 <p>Could ordinary training find networks like these? While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>
 
