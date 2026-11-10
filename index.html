@@ -142,6 +142,11 @@
   table.text-first tbody:not(.group) tr:last-child td { border-bottom-color: var(--fg); }
   table.text-wrap td:not(.num), table.text-wrap th:not(.num) { white-space: normal; }
   td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
+  .ablate { font-family: var(--sans); font-size: 0.8rem; line-height: 1.5; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
+  .ablate .label { margin: 0 0 6px; }
+  .ablate ul { margin: 0; padding-left: 16px; }
+  .ablate li { margin-bottom: 4px; }
+  .ablate b { color: var(--fg); font-weight: 600; }
   .note { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
   .fine { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .fine b { color: var(--fg); font-weight: 600; }
@@ -438,6 +443,20 @@
   </div>
   <figcaption>Anatomy of the maze network. Part 1 happens once, as the maze is read in. Parts 2 to 6 are the same single layer, run again in every loop.</figcaption>
 </figure>
+
+<figure>
+  <img src="figures/maze_block.svg" width="518" height="739" loading="lazy" alt="Diagram of the maze network's one block. A bar shows the 35 numbers in every cell, grouped by meaning: always 1, position (row, column, r² + c²), the input (wall, start, goal), distance to the goal in threes, a pointer to the next step, on the path, and 20 numbers the heads copy each loop, 5 from each neighbour. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The units, by job: wave (6 units), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain units work in pairs that give exactly 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and distance, pointer and the heads' copies never reach that step.">
+  <figcaption>The maze network's one layer, read from its weights. After the last loop, every cell's distance, pointer and path flag match a standard shortest-path search exactly, on all 1,000 training mazes.</figcaption>
+</figure>
+
+<div class="ablate">
+  <p class="label">Switch one part off, on the 1,000 training mazes</p>
+  <ul>
+    <li><b>Any one head:</b> the wave can't cross that direction and stalls near the goal, reaching only 8.2–8.6% of the cells it should, so no maze is solved.</li>
+    <li><b>The pointer units:</b> every distance is still right, but no cell points anywhere, so the path never leaves the start.</li>
+    <li><b>The tie order inside them:</b> cells with several closer neighbours point to all of them, and the path branches, with 623.5 path cells per maze against 113.1 when nothing is off.</li>
+  </ul>
+</div>
 
 <p>There are no instructions running one after another. All the maze's cells update at the same moment, every loop, each knowing only its own 35 numbers and what its four neighbours hold. Nothing can grow: a cell can't hold a distance in the hundreds, so it keeps only which of three steps it is on. Apart from its position, every number in a cell is a switch, exactly on or off after every loop. The path isn't worked out and then written down. It lights up across the grid, one cell per loop, from the start to the goal.</p>
 
