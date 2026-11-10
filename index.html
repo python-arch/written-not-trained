@@ -350,6 +350,8 @@
 
 <p><strong>How the network solves it.</strong> The network reads the puzzle as text, one character per token, and writes back the solved grid. A block of five layers makes one step of a guess-and-check search, with all 81 cells working at once, and the loop runs it 40,000 times. Each cell keeps a list of the digits it could still be. Three attention heads let it look at its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit with only one place left. When nothing more can be crossed out, the network saves the whole grid and guesses a digit for the cell with the fewest left. When a guess leads to a contradiction, such as a cell with no digit left, it goes back to the saved grid, where that guess is now ruled out. A solved grid stays exactly as it is, so extra loops change nothing.</p>
 
+<p>All 81 cells cross out digits at once, and when the network has to guess, it saves the whole grid inside its own numbers, so a wrong guess can be undone.</p>
+
 <p class="q">Can it beat the model that wrote it at Sudoku too?</p>
 <p class="a"><strong>Yes. It solves all of the first 10,000 test puzzles,</strong> the ones HRM and TRM are scored on. That includes the 50 the LLMs were tested on, where Claude Opus 5.5 solves 54%. Among trained models, only a group of 15 LDT models used together also solves every puzzle.</p>
 
@@ -428,6 +430,8 @@
   </div>
   <figcaption>Anatomy of the maze network. Part 1 happens once, as the maze is read in. Parts 2 to 6 are the same single layer, run again in every loop.</figcaption>
 </figure>
+
+<p>There are no instructions running one after another. All the maze's cells update at the same moment, every loop, each knowing only its own 35 numbers and what its four neighbours hold. Nothing can grow: a cell can't hold a distance in the hundreds, so it keeps only which of three steps it is on. Apart from its position, every number in a cell is a switch, exactly on or off after every loop. The path isn't worked out and then written down. It lights up across the grid, one cell per loop, from the start to the goal.</p>
 
 <h3 id="maze-write">Why can Claude write it?</h3>
 
