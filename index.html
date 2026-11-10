@@ -140,6 +140,7 @@
   tr.llm td:first-child { color: var(--llm); font-weight: 600; }
   table.text-first td:first-child, table.text-first th:first-child { white-space: normal; }
   table.text-first tbody:not(.group) tr:last-child td { border-bottom-color: var(--fg); }
+  table.text-wrap td:not(.num), table.text-wrap th:not(.num) { white-space: normal; }
   .note { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
   .fine { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .fine b { color: var(--fg); font-weight: 600; }
@@ -283,7 +284,7 @@
 
 <p>We asked five questions:</p>
 <ol class="questions">
-  <li><a href="#q1"><strong>Can it beat the model that wrote it?</strong></a> (Maze-Hard)</li>
+  <li><a href="#q1"><strong>Can it beat the model that wrote it?</strong></a> (Maze-Hard, Sudoku-Extreme)</li>
   <li><a href="#q2"><strong>Why can Claude write a network for a maze it can't solve?</strong></a></li>
   <li><a href="#q3"><strong>Does it beat trained models, even much larger ones?</strong></a> (graph search, parity, reasoning chains, BIG-Bench Hard)</li>
   <li><a href="#q4"><strong>Can it solve the puzzles that broke reasoning models?</strong></a> (Tower of Hanoi, Checker Jumping)</li>
@@ -339,6 +340,43 @@
 </details>
 
 <p class="fine"><b>Good to know.</b> The order the network uses to break ties between shortest paths (down, left, right, up) was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. A 30×30 maze uses only the first 30 rows of the network's row and column tables.</p>
+
+<p class="eyebrow label">Experiment 2</p>
+<h3>Sudoku-Extreme</h3>
+
+<p><a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and exactly one solution, and the answer must match that solution.</p>
+
+<p>The newest frontier LLMs solve about half. In the LDT paper's tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200 test puzzles in April 2026. In October 2026, on the first 50 test puzzles, GPT-6 Astra solved 68%, Claude Opus 5.5 54% and GPT-6.1 Sol 44%.</p>
+
+<p><strong>How the network solves it.</strong> The network reads the puzzle as text, one character per token, and writes back the solved grid. A block of five layers makes one step of a guess-and-check search, with all 81 cells working at once, and the loop runs it 40,000 times. Each cell keeps a list of the digits it could still be. Three attention heads let it look at its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit with only one place left. When nothing more can be crossed out, the network saves the whole grid and guesses a digit for the cell with the fewest left. When a guess leads to a contradiction, such as a cell with no digit left, it goes back to the saved grid, where that guess is now ruled out. A solved grid stays exactly as it is, so extra loops change nothing.</p>
+
+<p class="q">Can it beat the model that wrote it at Sudoku too?</p>
+<p class="a"><strong>Yes. It solves all of the first 10,000 test puzzles,</strong> the ones HRM and TRM are scored on. That includes the 50 the LLMs were tested on, where Claude Opus 5.5 solves 54%. Among trained models, only a portfolio of 15 LDT models also solves every puzzle.</p>
+
+<div class="todo">To come: the result on all 422,786 test puzzles, which is still running.</div>
+
+<div class="table-wrap">
+<table class="text-first text-wrap">
+  <thead><tr><th>Model</th><th>Training</th><th class="num">Solved (%)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (2,973,688 weights, only 17,014 not zero)</td><td>None, tested on the first 10,000</td><td class="num">100</td></tr>
+    <tr><td>LDT, a portfolio of 15 models (12M weights)</td><td>1K puzzles, with augmentation, tested on all 422,786</td><td class="num">100</td></tr>
+    <tr><td>TRM (5M weights)</td><td>1K puzzles, with augmentation, tested on the first 10,000</td><td class="num">79.5</td></tr>
+    <tr><td>HRM (27M weights)</td><td>1K puzzles, with augmentation, tested on the first 10,000</td><td class="num">55.4</td></tr>
+    <tr class="llm"><td>GPT-6 Astra</td><td>No Sudoku training, tested on the first 50</td><td class="num">68</td></tr>
+    <tr class="llm"><td>Claude Opus 5.5</td><td>No Sudoku training, tested on the first 50</td><td class="num">54</td></tr>
+    <tr class="llm"><td>GPT-6.1 Sol</td><td>No Sudoku training, tested on the first 50</td><td class="num">44</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">A puzzle counts as solved when the answer matches its one solution. The test puzzles are in the fixed order set by the LDT code, so the first 50 are part of the first 10,000. Scores for LDT, TRM and HRM are from Table 1 of Davis et al. (NeurIPS 2026), which scores the released HRM and TRM models on the first 10,000 puzzles only. Scores for the LLMs are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
+
+<details>
+  <summary>Details: computing per puzzle</summary>
+  <p>The network does more computing per puzzle than the trained models: 21.7 trillion floating-point operations (TFLOPs), against 0.22 for HRM, 0.41 for TRM and 4.6 for the LDT portfolio, counted the same way (Davis et al., Appendix N). That is because it always runs all 40,000 loops. Most puzzles are solved after a few thousand, and the loops after that leave the solved grid exactly as it is.</p>
+</details>
+
+<p class="fine"><b>Good to know.</b> The network writes the solution as one line of 81 digits instead of nine rows, and the scoring ignores line breaks, so it counts the same. On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the network has. Before the test, the network itself was run once on 92 of the training puzzles, and it solved all 92.</p>
 
 <h2 id="q2"><span class="qn">2.</span> Why can Claude write a network for a maze it can't solve?</h2>
 
@@ -407,7 +445,7 @@
 
 <p>Could ordinary training find networks like these? While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>
 
-<p class="eyebrow label">Experiment 2</p>
+<p class="eyebrow label">Experiment 3</p>
 <h3>Graph search</h3>
 
 <p>The first task is to find the shortest route from A to B on a map of one-way links with dead ends and decoys, or to say that B can't be reached. Longer routes need more loops, so the network runs its loop more times on bigger maps.</p>
@@ -440,7 +478,7 @@
 </div>
 <p class="note">Accuracy in %. The two smaller trained models don't learn even the checking range well. We checked that the puzzles have no shortcut: no single clue in the input beats always guessing the most common answer by more than 1 point.</p>
 
-<p class="eyebrow label">Experiment 3</p>
+<p class="eyebrow label">Experiment 4</p>
 <h3>Parity and reasoning chains</h3>
 
 <p>Two more tasks test the same thing. <strong>Parity</strong> asks whether a string of 0s and 1s has an odd or even number of 1s. <strong>Reasoning chains</strong> are shuffled statements like <code>x2 = x1 + 5. x0 = 7. x1 = x0 + 3.</code>, followed by a question about one variable. Extra chains that lead nowhere are mixed in, so adding up all the numbers doesn't give the answer.</p>
@@ -493,7 +531,7 @@
   <figcaption>The same story for graph search, parity and reasoning chains. The shaded column is the range each network was checked on. Nothing between the two columns was tested.</figcaption>
 </figure>
 
-<p class="eyebrow label">Experiment 4</p>
+<p class="eyebrow label">Experiment 5</p>
 <h3>BIG-Bench Hard: Boolean Expressions and Dyck Languages</h3>
 
 <p>The next comparison uses public language models on a public benchmark, <a href="https://arxiv.org/abs/2210.09261">BIG-Bench Hard</a> (Suzgun et al.), which collects the BIG-Bench tasks that language models found hardest at the time. We took two rule-following tasks from it. Boolean Expressions asks for the value of a logic expression like <code>not ( True and False ) or False</code>, and Dyck Languages asks to close a bracket sequence like <code>[ { ( ) &lt;</code> → <code>&gt; } ]</code>.</p>
@@ -525,7 +563,7 @@
 
 <p>Next, two puzzles where the answer is a long run of moves, and one wrong move anywhere ruins it.</p>
 
-<p class="eyebrow label">Experiment 5</p>
+<p class="eyebrow label">Experiment 6</p>
 <h3>Tower of Hanoi</h3>
 
 <p>Tower of Hanoi has three pegs and a stack of disks, smallest on top. The goal is to move the whole stack from the first peg to the third, one disk at a time, never putting a larger disk on a smaller one, and each extra disk roughly doubles the number of moves. It became famous as the puzzle where reasoning models, LLMs that think step by step before they answer, break down. In <a href="https://arxiv.org/abs/2506.06941">The Illusion of Thinking</a> (Shojaee et al., Apple, NeurIPS 2025), o3-mini, DeepSeek-R1 and Claude 3.7 Sonnet Thinking began to collapse at 7–8 disks when writing out every move without tools, and giving them the solution algorithm did not help. Some newer models still fail early: in 2026 tests, o4-mini failed from 6 disks, and Qwen3-235B-Thinking fell to about 52% at 7 disks and 20% at 8 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
@@ -575,7 +613,7 @@
 
 <p class="fine"><b>Good to know.</b> It only goes from the first peg to the third, and started anywhere else, it doesn't finish. It needs 64-bit numbers, because with 32-bit numbers rounding errors could pile up over a million moves. Its context window, the number of tokens it can read, is sized so that 20 disks is the most it can handle.</p>
 
-<p class="eyebrow label">Experiment 6</p>
+<p class="eyebrow label">Experiment 7</p>
 <h3>Checker Jumping</h3>
 
 <p>Red and blue checkers sit in a row with one empty space between them. The goal is to swap the two colours, moving only forward, by sliding into the empty space or jumping over one checker of the other colour. It is the second puzzle in Apple's study. In its 2025 tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side (15 moves), and o3-mini, on its high reasoning setting, held about 50% or better up to 8 per side (read from the paper's figures). In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
