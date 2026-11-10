@@ -257,10 +257,10 @@
 
 <figure class="reveal" style="--hide: 45%">
   <div class="layers">
-  <img class="data" src="figures/glance_data.svg" width="518" height="1025" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/glance_base.svg" width="518" height="1025" loading="lazy" alt="Bar charts for six benchmarks. The written network scores 100% on each. The strongest other results: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On graph search, a trained model 0%. On parity, a trained model 53.8%, near the 50% chance line. On reasoning chains, a trained model 3.5%. On BIG-Bench Hard, SmolLM2-360M 69.6% on Boolean Expressions and Pythia-410M 33.2% on Dyck Languages. On BIG-Bench Extra Hard, Qwen3-235B-A22B 81.2% on Web of Lies and 56.9% on Shuffled Objects.">
+  <img class="data" src="figures/glance_data.svg" width="518" height="559" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="559" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The strongest other result for each task: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption>Each panel sets the written network against the strongest trained model or LLM on this page, on the test set named in the panel. For each trained maze model, Davis et al. report the best of the versions saved during training, picked by its test score (Table 3). For graph search, parity and reasoning chains, the trained model shown is the one that learned its training sizes best, with ties going to the best test score, and the version kept was picked on those sizes. Every model is in the tables below.</figcaption>
+  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Maze scores are from Davis et al. (NeurIPS 2026), Table 3, each trained model the best version saved during training, picked by its test score. For graph search, parity and reasoning chains, we trained the models and kept their best version on the training sizes. The BIG-Bench Extra Hard LLM scores are on a random 80% of each task (Stein et al., Oct 2025).</figcaption>
 </figure>
 
 <div class="tldr">
@@ -279,7 +279,7 @@
   <img class="data" src="figures/maze_loops_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="518" height="346" loading="lazy" alt="Accuracy on the 1,000 test mazes against the number of loops. It is 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
-  <figcaption>Accuracy on the 1,000 test mazes, any shortest path, after each number of loops. Each test maze's answer stops changing once the loops reach twice its path length. On all 1,000 training mazes, checked at every loop, the answer is exactly right from that loop on and never before it, so the curve counts the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</figcaption>
+  <figcaption>Accuracy on the 1,000 test mazes, any shortest path, after each number of loops. A maze is solved once the loops reach twice its path length, not before, and it stays solved. We checked this at every loop on all 1,000 training mazes, so the curve counts the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</figcaption>
 </figure>
 
 <p>We asked five questions:</p>
@@ -314,7 +314,7 @@
   <img class="data" src="figures/maze_size_data.svg" width="518" height="360" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_size_base.svg" width="518" height="360" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written network has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
   </div>
-  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the number of weights (log scale, with the vertical axis starting at 80%). The trained models' scores are from Davis et al. (NeurIPS 2026), Table 3, each the best of the versions saved during training, picked by its test score. LDT is shown trained on 512 shortest paths per training maze and on one. LLMs are left out because their sizes aren't public.</figcaption>
+  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the number of weights (log scale, with the vertical axis starting at 80%). Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LDT is shown trained on 512 shortest paths per maze and on one. LLMs are left out because their sizes aren't public.</figcaption>
 </figure>
 
 <div class="table-wrap">
@@ -446,7 +446,7 @@
   <img class="data" src="figures/maze_compute_data.svg" width="518" height="374" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_compute_base.svg" width="518" height="374" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
-  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the arithmetic each model does to solve one maze (log scale), counted the same way for every model, as Davis et al. (NeurIPS 2026) count it. The blue curve is the written network after each number of loops, and the dot marks the 1,800 loops we run. HRM and TRM are shown at their usual 16 steps per maze. LDT's model isn't public, and its paper doesn't say how many search rounds a 30×30 maze takes, so its dots mark the least a solve can cost, and the line runs to its limit of 1,000 rounds. Scores for HRM, TRM and LDT are from Davis et al., Table 3, each the best of the versions saved during training, picked by its test score.</figcaption>
+  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the arithmetic it takes to solve one maze (log scale), counted for every model as Davis et al. (NeurIPS 2026) do. The blue curve is the written network after each number of loops, with a dot at the 1,800 we run. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots are the least a solve can cost, and the line runs to its limit of 1,000 rounds. Trained scores: Davis et al., Table 3, each the best version saved during training, picked by its test score.</figcaption>
 </figure>
 
 <div class="todo">To come: HRM and TRM at other step counts, from their released models.</div>
