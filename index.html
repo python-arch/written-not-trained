@@ -150,6 +150,11 @@
   details summary::before { content: "+ "; color: var(--muted); }
   details[open] summary::before { content: "− "; }
   details p { margin: 0 0 10px; }
+  details.appendix { font-family: var(--serif); font-size: inherit; line-height: inherit; color: inherit; margin-top: 4px; }
+  details.appendix > summary { font-family: var(--sans); font-size: 0.86rem; }
+  details.appendix p { margin: 0 0 16px; }
+  details.appendix p.note { margin: 0 0 22px; }
+  details.appendix > :last-child { margin-bottom: 18px; }
   figure { margin: 10px 0 30px; }
   figure img { display: block; width: 100%; max-width: 540px; height: auto; margin: 0 auto; border: 1px solid var(--line); }
   /* Charts in two layers: the frame, and the data on top. Stacked, they are the full chart. */
@@ -260,7 +265,7 @@
   <img class="data" src="figures/glance_data.svg" width="518" height="559" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg" width="518" height="559" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The strongest other result for each task: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Maze scores are from Davis et al. (NeurIPS 2026), Table 3, each trained model the best version saved during training, picked by its test score. For graph search, parity and reasoning chains, we trained the models and kept their best version on the training sizes. The BIG-Bench Extra Hard LLM scores are on a random 80% of each task (Stein et al., Oct 2025).</figcaption>
+  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Sources are in each section.</figcaption>
 </figure>
 
 <div class="tldr">
@@ -272,15 +277,23 @@
 
 <p><a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026) showed that a frontier LLM can work on a network's weights directly, with no training. It fixed a flaw in a small Qwen language model by editing its weights, and wrote small game-playing networks from scratch.</p>
 
-<p><strong>Our step is the loop.</strong> A bigger job would otherwise need a bigger network, and every extra weight is one more thing to write exactly right. So Claude writes one small layer that does one step, setting every weight by hand, and a loop runs it for as long as the task needs. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Without the loop, every step would need its own copy of the layer, so the maze network would need 306 layers and 3,259,341 weights for the longest test maze (163 times the looped network), and 834 layers and 8,867,229 weights for the largest 100×100 maze. Looped transformers are an active research area, and trained ones <em>overthink</em>: run them for more loops than they were trained with, and their answers get worse. A written loop can be built so that once the answer is ready, extra loops leave it exactly as it is. Trained looped models have the same kind of loop, but in our tests training didn't find these solutions. Writing the weights did. We call this looped weight-space programming.</p>
+<p><strong>Our step is the loop.</strong> Claude writes one small layer that does one step, setting every weight by hand, and a loop runs it for as long as the task needs. A bigger job doesn't need a bigger network, and every extra weight would be one more thing to get exactly right. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Without the loop, the maze network would need 163 times as many weights.</p>
+
+<p><strong>Built not to overthink.</strong> Looped transformers are an active research area, and trained ones <em>overthink</em>: run them for more loops than they were trained with, and their answers get worse. A written loop can be built so that once the answer is ready, extra loops leave it exactly as it is. Trained looped models have the same kind of loop, but in our tests training didn't find these solutions. Writing the weights did. We call this looped weight-space programming.</p>
 
 <figure class="reveal" style="--hide: 89%">
   <div class="layers">
   <img class="data" src="figures/maze_loops_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="518" height="346" loading="lazy" alt="Accuracy on the 1,000 test mazes against the number of loops. It is 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
-  <figcaption>Accuracy on the 1,000 test mazes, any shortest path, after each number of loops. A maze is solved once the loops reach twice its path length, not before, and it stays solved. We checked this at every loop on all 1,000 training mazes, so the curve counts the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</figcaption>
+  <figcaption>Once a maze is solved, it stays solved, through 1,800, 3,600 and 7,200 loops.</figcaption>
 </figure>
+
+<details>
+  <summary>Details: the loop in numbers</summary>
+  <p>Without the loop, every step would need its own copy of the layer. The maze network would then need 306 layers and 3,259,341 weights for the longest test maze, and 834 layers and 8,867,229 weights for the largest 100×100 maze.</p>
+  <p>How the curve is counted: any shortest path counts. A maze is solved once the loops reach twice its path length, not before, and it stays solved. We checked this at every loop on all 1,000 training mazes, so the curve counts the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
+</details>
 
 <p>We asked five questions:</p>
 <ol class="questions">
@@ -296,25 +309,21 @@
 <p class="eyebrow label">Experiment 1</p>
 <h3>Maze-Hard</h3>
 
-<p>Maze-Hard is the 30×30 maze benchmark from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model), also used by <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model), two small models trained to solve puzzles like this by repeating a step many times. The task is to find the shortest path, which is over 110 steps long. Most mazes have many equally short paths, and the dataset marks one of them as the answer.</p>
+<p>Maze-Hard is the 30×30 maze benchmark from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model), also used by <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model), two small models trained to solve puzzles like this by repeating a step many times. The shortest path is over 110 steps long. Most mazes have many equally short paths, and the dataset marks one of them as the answer.</p>
 
-<p>Frontier LLMs find it hard. In tests reported for the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT, Davis et al., NeurIPS 2026), a small model trained on mazes, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200 test mazes in April 2026. In October 2026, Claude Opus 5.5 and GPT-6 Astra each solved 26% of the 50 test mazes they were tested on, and GPT-6.1 Sol 12%.</p>
-
-<p><strong>How the network solves it.</strong> The network reads the maze as text, one token per cell, and writes back the same grid with the path marked. In every loop each cell reads its four neighbours, so a count of the distance from the goal spreads out one cell per loop, and then the path grows from the start, one cell per loop (<a href="#q2">section 2</a> shows this inside the network).</p>
+<p>Frontier LLMs find it hard. In October 2026, Claude Opus 5.5 and GPT-6 Astra each solved 26% of the 50 test mazes they were tested on, and GPT-6.1 Sol 12%. In April 2026, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200. Both tests are reported for the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT, Davis et al., NeurIPS 2026), a small model trained on mazes.</p>
 
 <p class="q">Can it solve mazes that stump the model that wrote it?</p>
-<p class="a"><strong>Yes. It solves all 1,000 test mazes.</strong> Every answer is a shortest path, and it is also the exact path the dataset expects. On the 50 test mazes Claude was tested on, where it solves 13 on its own, the network it wrote solves all 50.</p>
+<p class="a"><strong>Yes. It solves all 1,000 test mazes,</strong> each with the exact path the dataset expects. On the 50 where Claude solves 13 on its own, the network it wrote solves all 50.</p>
 
-<p>A separate check re-ran the network on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly. We run 1,800 loops, and 3,600 or 7,200 give exactly the same answers.</p>
-
-<p>An extra test used bigger mazes, generated in the Maze-Hard style. The same 19,936 weights, run for more loops, also solved all 50 mazes at 60×60 and all 40 at 100×100.</p>
+<p>It holds up. A separate check re-ran it on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly. On bigger mazes in the Maze-Hard style, the same 19,936 weights, run for more loops, solved all 50 at 60×60 and all 40 at 100×100.</p>
 
 <figure class="reveal" style="--hide: 85%">
   <div class="layers">
   <img class="data" src="figures/maze_size_data.svg" width="518" height="360" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_size_base.svg" width="518" height="360" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written network has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
   </div>
-  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the number of weights (log scale, with the vertical axis starting at 80%). Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LDT is shown trained on 512 shortest paths per maze and on one. LLMs are left out because their sizes aren't public.</figcaption>
+  <figcaption>The vertical axis starts at 80%. LDT is shown trained on 512 shortest paths per maze and on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
 
 <div class="table-wrap">
@@ -331,26 +340,23 @@
   </tbody>
 </table>
 </div>
-<p class="note">A maze counts as solved when the answer is any shortest path from start to goal. Scores for LDT, TRM and HRM are from Table 3 of Davis et al. (NeurIPS 2026), and scores for the LLMs from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</p>
+<p class="note">A maze counts as solved when the answer is any shortest path from start to goal. Trained scores: Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores: their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</p>
+
+<p><strong>How the network solves it.</strong> It reads the maze as text, one token per cell, and writes back the grid with the path marked. The distance from the goal spreads out one cell per loop, then the path grows from the start (<a href="#q2">section 2</a> shows this inside the network).</p>
 
 <details>
-  <summary>Details: other scoring, and how the comparison models were picked</summary>
+  <summary>Details: other scoring, the comparison models, and the tie-break</summary>
   <p>HRM and TRM count a maze as solved only when the answer matches the dataset's reference path exactly (per Davis et al.). Scored that way, their own papers report 74.5 for HRM and 85.3 for TRM. <a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze. It follows TRM's training protocol and reports its number next to HRM's 74.5 and TRM's 85.3.</p>
   <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. Trained on one path per maze, it scores 99.0. Both are averages over 3 runs.</p>
+  <p>The order the network uses to break ties between shortest paths (down, left, right, up) was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. A 30×30 maze uses only the first 30 rows of the network's row and column tables.</p>
 </details>
-
-<p class="fine"><b>Good to know.</b> The order the network uses to break ties between shortest paths (down, left, right, up) was chosen from 96 candidate rules because it matched all 1,000 training mazes, while the next best matched 956. A 30×30 maze uses only the first 30 rows of the network's row and column tables.</p>
 
 <p class="eyebrow label">Experiment 2</p>
 <h3>Sudoku-Extreme</h3>
 
 <p><a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and exactly one solution, and the answer must match that solution.</p>
 
-<p>The newest frontier LLMs solve about half. In the LDT paper's tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200 test puzzles in April 2026. In October 2026, on the first 50 test puzzles, GPT-6 Astra solved 68%, Claude Opus 5.5 54% and GPT-6.1 Sol 44%.</p>
-
-<p><strong>How the network solves it.</strong> The network reads the puzzle as text, one character per token, and writes back the solved grid. A block of five layers makes one step of a guess-and-check search, with all 81 cells working at once, and the loop runs it 40,000 times. Each cell keeps a list of the digits it could still be. Three attention heads let it look at its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit with only one place left. When nothing more can be crossed out, the network saves the whole grid and guesses a digit for the cell with the fewest left. When a guess leads to a contradiction, such as a cell with no digit left, it goes back to the saved grid, where that guess is now ruled out. A solved grid stays exactly as it is, so extra loops change nothing.</p>
-
-<p>All 81 cells cross out digits at once, and when the network has to guess, it saves the whole grid inside its own numbers, so a wrong guess can be undone.</p>
+<p>The newest frontier LLMs solve about half. On the first 50 test puzzles in October 2026, GPT-6 Astra solved 68%, Claude Opus 5.5 54% and GPT-6.1 Sol 44%. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
 
 <p class="q">Can it beat the model that wrote it at Sudoku too?</p>
 <p class="a"><strong>Yes. It solves all of the first 10,000 test puzzles,</strong> the ones HRM and TRM are scored on. That includes the 50 the LLMs were tested on, where Claude Opus 5.5 solves 54%. Among trained models, only a group of 15 LDT models used together also solves every puzzle.</p>
@@ -371,20 +377,23 @@
   </tbody>
 </table>
 </div>
-<p class="note">A puzzle counts as solved when the answer matches its one solution. The test puzzles are in the fixed order set by the LDT code, so the first 50 are part of the first 10,000. Scores for LDT, TRM and HRM are from Table 1 of Davis et al. (NeurIPS 2026), which scores the released HRM and TRM models on the first 10,000 puzzles only. Scores for the LLMs are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
+<p class="note">A puzzle counts as solved when the answer matches its one solution. Trained scores: Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM and TRM models on the first 10,000 puzzles only. LLM scores: their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens. The test puzzles are in the fixed order set by the LDT code, so the first 50 are part of the first 10,000.</p>
+
+<p><strong>How the network solves it.</strong> It reads the puzzle as text, one character per token, and writes back the solved grid. A block of five layers makes one step of a guess-and-check search, and the loop runs it 40,000 times. Each cell keeps a list of the digits it could still be, and three attention heads let it look at its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit with only one place left. When nothing more can be crossed out, it saves the grid and guesses a digit for the cell with the fewest left. When a guess leads to a contradiction, such as a cell with no digit left, it goes back to the saved grid, where that guess is now ruled out. A solved grid stays exactly as it is, so extra loops change nothing.</p>
+
+<p>All 81 cells cross out digits at once, and when the network has to guess, it saves the whole grid inside its own numbers, so a wrong guess can be undone.</p>
 
 <details>
-  <summary>Details: computing per puzzle</summary>
+  <summary>Details: computing per puzzle, and the search's limits</summary>
   <p>The network does more arithmetic per puzzle than the trained models: 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. That is because it always runs all 40,000 loops. Most puzzles are solved after a few thousand, and the loops after that leave the solved grid exactly as it is.</p>
+  <p>On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the network has. Before the test, the network itself was run once on 92 of the training puzzles, and it solved all 92. It writes the solution as one line of 81 digits instead of nine rows, and the scoring ignores line breaks, so it counts the same.</p>
 </details>
-
-<p class="fine"><b>Good to know.</b> The network writes the solution as one line of 81 digits instead of nine rows, and the scoring ignores line breaks, so it counts the same. On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the network has. Before the test, the network itself was run once on 92 of the training puzzles, and it solved all 92.</p>
 
 <h2 id="q2"><span class="qn">2.</span> Why can Claude write a network for a maze it can't solve?</h2>
 
 <h3 id="maze-claude">Why can't Claude solve it on its own?</h3>
 
-<p>Even told how to search, Claude finds the shortest path in at most 25 of the 50 mazes, whatever the format. To tell it how, we added one paragraph to the paper's prompt that describes breadth-first search: spread out from the goal one step at a time, then walk back from the start. Then we changed one thing at a time: one token per cell, the answer as just the path, and the maze as a list of open cells instead of a grid.</p>
+<p>Even told how to search, Claude finds the shortest path in at most 25 of the 50 mazes, whatever the format. To tell it how, we added one paragraph to the paper's prompt: spread out from the goal one step at a time, then walk back from the start. Then we changed one thing at a time.</p>
 
 <div class="table-wrap">
 <table class="text-first">
@@ -401,7 +410,7 @@
   </tbody>
 </table>
 </div>
-<p class="note">The first row is the paper's result for Claude Opus 5.5. The next four are our runs on the same 50 mazes with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a few mazes either way is noise.</p>
+<p class="note">The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a few mazes either way is noise.</p>
 
 <p>It isn't the tokenizer. In the paper's format one token often covers several cells, but with one token per cell Claude finds the shortest path in 22, against 24. When it goes wrong, it goes wrong early: told how to search, its first wrong step comes a median 35% of the way along the shortest path.</p>
 
@@ -437,9 +446,12 @@
 
 <p>Claude never runs the search. It designs one loop: what each of the 35 numbers in a cell means, which neighbour each of the four heads looks at, and how every number changes. Then it sets every weight to do exactly that. The loop repeats it hundreds of times per maze, exact every time. The key idea is counting distance in threes, so the count never grows with the maze.</p>
 
-<p>There was one detour. The task description, also written by Claude, suggested a first design: two waves, one from each end, using the position tables to look at each cell's neighbours, and marking every cell on a shortest path. The training answers showed the dataset expects one particular path, so the Claude writing the weights kept the neighbour lookups and rebuilt the rest: one wave from the goal, counted in threes, pointers, and a chain from the start.</p>
-
 <p>Claude can design it even in one go, with no data, no tools and no way to test. The one try that finished found a shortest path in all 1,000 test mazes. It guessed a different tie-break from the dataset's, so its paths are never the dataset's exact ones. Its instructions did say how many loops our network runs. Finishing in one go is rare: 9 of 10 tries hit the length limit of a single answer first, though the one that got furthest had already landed on much the same design, counting in threes included. With the chance to check its work on training mazes, Claude got it exactly right.</p>
+
+<details>
+  <summary>Details: the one detour</summary>
+  <p>The task description, also written by Claude, suggested a first design: two waves, one from each end, using the position tables to look at each cell's neighbours, and marking every cell on a shortest path. The training answers showed the dataset expects one particular path, so the Claude writing the weights kept the neighbour lookups and rebuilt the rest: one wave from the goal, counted in threes, pointers, and a chain from the start.</p>
+</details>
 
 <p>Claude can't run an exact search in its head. It can write one into weights.</p>
 
@@ -450,19 +462,22 @@
   <img class="data" src="figures/maze_compute_data.svg" width="518" height="374" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_compute_base.svg" width="518" height="374" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
-  <figcaption>Accuracy on all 1,000 test mazes, any shortest path, against the arithmetic it takes to solve one maze (log scale), counted for every model as Davis et al. (NeurIPS 2026) do. The blue curve is the written network after each number of loops, with a dot at the 1,800 we run. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots are the least a solve can cost, and the line runs to its limit of 1,000 rounds. Trained scores: Davis et al., Table 3, each the best version saved during training, picked by its test score.</figcaption>
+  <figcaption>The blue curve is the written network after each number of loops, with a dot at the 1,800 we run.</figcaption>
 </figure>
 
 <div class="todo">To come: HRM and TRM at other step counts, from their released models.</div>
+
+<details>
+  <summary>Details: how the arithmetic is counted</summary>
+  <p>Every model is counted the way Davis et al. (NeurIPS 2026) count it, and any shortest path counts as solved. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots are the least a solve can cost, and the line runs to its limit of 1,000 rounds. Trained scores are from Davis et al., Table 3, each the best version saved during training, picked by its test score.</p>
+</details>
 
 <p>Could ordinary training find networks like these? While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>
 
 <p class="eyebrow label">Experiment 3</p>
 <h3>Graph search</h3>
 
-<p>The first task is to find the shortest route from A to B on a map of one-way links with dead ends and decoys, or to say that B can't be reached. Longer routes need more loops, so the network runs its loop more times on bigger maps.</p>
-
-<p><strong>How the network solves it.</strong> The network keeps track of which points it can already reach from A, and in each loop every reached point sends that on along its outgoing links. The number of loops it takes to reach B is the length of the route.</p>
+<p>The first task is to find the shortest route from A to B on a map of one-way links with dead ends and decoys, or to say that B can't be reached.</p>
 
 <div class="setup">
   <div class="label">Setup</div>
@@ -490,16 +505,28 @@
 </div>
 <p class="note">Accuracy in %. The two smaller trained models don't learn even the checking range well. We checked that the puzzles have no shortcut: no single clue in the input beats always guessing the most common answer by more than 1 point.</p>
 
+<p><strong>How the network solves it.</strong> It keeps track of which points it can already reach from A, and in each loop every reached point sends that on along its outgoing links. The number of loops it takes to reach B is the length of the route, so longer routes simply take more loops.</p>
+
 <p class="eyebrow label">Experiment 4</p>
 <h3>Parity and reasoning chains</h3>
 
 <p>Two more tasks test the same thing. <strong>Parity</strong> asks whether a string of 0s and 1s has an odd or even number of 1s. <strong>Reasoning chains</strong> are shuffled statements like <code>x2 = x1 + 5. x0 = 7. x1 = x0 + 3.</code>, followed by a question about one variable. Extra chains that lead nowhere are mixed in, so adding up all the numbers doesn't give the answer.</p>
 
-<p><strong>How the networks solve them.</strong> The parity network keeps a running answer, odd or even so far, at every position, and in each loop every position updates its answer from the one before. The chains network works the same way along a chain: each statement looks up the statement that defines the variable it depends on, and one more link gets its value in each loop.</p>
-
 <p class="q">Is graph search a lucky case?</p>
 <p class="a"><strong>No. Parity and reasoning chains tell the same story.</strong> Checked on strings up to 20 bits, the parity network is correct at every length we tested, up to 4,095. Checked on up to 8 steps, the chains network is correct on 12, 16, 24 and 32, and up to 63 in an extra, harder test.</p>
 
+<figure class="reveal" style="--hide: 82%">
+  <div class="layers">
+  <img class="data" src="figures/written_vs_trained_data.svg" width="518" height="749" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/written_vs_trained_base.svg" width="518" height="749" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. Graph search: the hand-written network scores 100% on both, and three trained models score 0% on paths 8–16. Parity: the hand-written network scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. Reasoning chains: the hand-written network scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
+  </div>
+  <figcaption>The same story for graph search, parity and reasoning chains. The shaded column is the range each network was checked on.</figcaption>
+</figure>
+
+<p><strong>How the networks solve them.</strong> The parity network keeps a running answer, odd or even so far, at every position, and in each loop every position updates its answer from the one before. The chains network works the same way along a chain: each statement looks up the statement that defines the variable it depends on, and one more link gets its value in each loop.</p>
+
+<details>
+  <summary>Details: the full numbers for parity and reasoning chains</summary>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 20 bits)</th><th class="num">Test (21–128 bits)</th></tr></thead>
@@ -513,13 +540,8 @@
   </tbody>
 </table>
 </div>
-<p class="note">Accuracy in %. Chance is 50%. The hand-written network's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions). Only two trained models stay at 99% or above even at 21 bits, and none beyond.</p>
-
-<details>
-  <summary>Details: can trained models ever handle longer parity strings?</summary>
+  <p>Accuracy in %. Chance is 50%. Only two trained models stay at 99% or above even at 21 bits, and none beyond. The hand-written network's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
   <p>With standard training, none of these models handles strings longer than the ones it saw. Special training recipes go further, to over 40 bits (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) and to 256 bits (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). In an extra test on lengths from 256 to 4,095 bits, the hand-written network got every input right.</p>
-</details>
-
 <div class="table-wrap">
 <table>
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
@@ -533,22 +555,13 @@
   </tbody>
 </table>
 </div>
-<p class="note">Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model: 93.7% on the checking range, 3.5% beyond it.</p>
-
-<figure class="reveal" style="--hide: 82%">
-  <div class="layers">
-  <img class="data" src="figures/written_vs_trained_data.svg" width="518" height="749" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/written_vs_trained_base.svg" width="518" height="749" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. Graph search: the hand-written network scores 100% on both, and three trained models score 0% on paths 8–16. Parity: the hand-written network scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. Reasoning chains: the hand-written network scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
-  </div>
-  <figcaption>The same story for graph search, parity and reasoning chains. The shaded column is the range each network was checked on. Nothing between the two columns was tested.</figcaption>
-</figure>
+  <p>Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model: 93.7% on the checking range, 3.5% beyond it.</p>
+</details>
 
 <p class="eyebrow label">Experiment 5</p>
 <h3>BIG-Bench Hard: Boolean Expressions and Dyck Languages</h3>
 
 <p>The next comparison uses public language models on a public benchmark, <a href="https://arxiv.org/abs/2210.09261">BIG-Bench Hard</a> (Suzgun et al.), which collects the BIG-Bench tasks that language models found hardest at the time. We took two rule-following tasks from it. Boolean Expressions asks for the value of a logic expression like <code>not ( True and False ) or False</code>, and Dyck Languages asks to close a bracket sequence like <code>[ { ( ) &lt;</code> → <code>&gt; } ]</code>.</p>
-
-<p><strong>How the networks solve them.</strong> The Boolean network simplifies the expression one step per loop, the way you would by hand, until one value is left. The Dyck network works out how deep each bracket sits by adding up the openers and closers before it, then finds the most recent bracket that is still open and writes the bracket that closes it, one at a time.</p>
 
 <p class="q">Can a tiny network beat small language models?</p>
 <p class="a"><strong>On these two tasks, yes. Both networks score 100% on the official 250 test items.</strong> Among four well-known small open models, the best scores are 69.6% and 33.2%.</p>
@@ -569,7 +582,12 @@
 
 <p><b>No leakage.</b> The networks follow the general rule and didn't absorb anything from the test items: on 300 freshly generated questions per task, they also score 100%. The test questions were on the same machine while the networks were being written, and the session records show they were never opened.</p>
 
-<p class="fine"><b>Good to know.</b> Only 6,756 of the Boolean network's weights and 8,491 of the Dyck network's aren't zero. 149,504 of the Boolean network's weights are a fixed lookup table of positions with 2,048 rows, so it reads inputs of up to about 2,048 characters, and its looped block is two layers with 89 neurons.</p>
+<p><strong>How the networks solve them.</strong> The Boolean network simplifies the expression one step per loop, the way you would by hand, until one value is left. The Dyck network works out how deep each bracket sits by adding up the openers and closers before it, then finds the most recent bracket that is still open and writes the bracket that closes it, one at a time.</p>
+
+<details>
+  <summary>Details: the networks' size</summary>
+  <p>Only 6,756 of the Boolean network's weights and 8,491 of the Dyck network's aren't zero. 149,504 of the Boolean network's weights are a fixed lookup table of positions with 2,048 rows, so it reads inputs of up to about 2,048 characters, and its looped block is two layers with 89 neurons.</p>
+</details>
 
 <h2 id="q4"><span class="qn">4.</span> Can it solve the puzzles that broke reasoning models?</h2>
 
@@ -578,9 +596,7 @@
 <p class="eyebrow label">Experiment 6</p>
 <h3>Tower of Hanoi</h3>
 
-<p>Tower of Hanoi has three pegs and a stack of disks, smallest on top. The goal is to move the whole stack from the first peg to the third, one disk at a time, never putting a larger disk on a smaller one, and each extra disk roughly doubles the number of moves. It became famous as the puzzle where reasoning models, LLMs that think step by step before they answer, break down. In <a href="https://arxiv.org/abs/2506.06941">The Illusion of Thinking</a> (Shojaee et al., Apple, NeurIPS 2025), o3-mini, DeepSeek-R1 and Claude 3.7 Sonnet Thinking began to collapse at 7–8 disks when writing out every move without tools, and giving them the solution algorithm did not help. Some newer models still fail early: in 2026 tests, o4-mini failed from 6 disks, and Qwen3-235B-Thinking fell to about 52% at 7 disks and 20% at 8 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
-
-<p><strong>How the network solves it.</strong> Before each move, the network's attention reads the starting position and every move written so far, which tells it where each disk is now. The rest of the layer turns that position into the next move, which goes back in as input. It works the position out from scratch at every move instead of keeping a running tally, so errors have nothing to build up on.</p>
+<p>Tower of Hanoi has three pegs and a stack of disks, smallest on top. The goal is to move the whole stack from the first peg to the third, one disk at a time, never putting a larger disk on a smaller one, and each extra disk roughly doubles the number of moves. It became famous as the puzzle where reasoning models, LLMs that think step by step before they answer, break down. In <a href="https://arxiv.org/abs/2506.06941">The Illusion of Thinking</a> (Shojaee et al., Apple, NeurIPS 2025), o3-mini, DeepSeek-R1 and Claude 3.7 Sonnet Thinking began to collapse at 7–8 disks when writing out every move without tools, and giving them the solution algorithm did not help.</p>
 
 <div class="setup">
   <div class="label">Setup</div>
@@ -618,30 +634,34 @@
 <p class="q">Couldn't an LLM do this too?</p>
 <p class="a"><strong>Up to a point.</strong> When allowed to write and run code, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks with an LLM by asking for every move at least three times and voting, over 3 million LLM calls in all. Here, one network makes every move itself.</p>
 
-<details>
-  <summary>Details: the debate around Apple's paper</summary>
-  <p>Apple's paper drew pushback, and part of the debate is how hard Tower of Hanoi really is. It needs no search, because each move is a simple decision. Critics of the Apple paper argued that part of the collapse came from output limits. The authors replied that the first errors appear early, around move 40 at 8 disks.</p>
-</details>
+<p><strong>How the network solves it.</strong> Before each move, the network's attention reads the starting position and every move written so far, which tells it where each disk is now. The rest of the layer turns that position into the next move, which goes back in as input. It works the position out from scratch at every move instead of keeping a running tally, so errors have nothing to build up on.</p>
 
-<p class="fine"><b>Good to know.</b> It only goes from the first peg to the third, and started anywhere else, it doesn't finish. It needs 64-bit numbers, because with 32-bit numbers rounding errors could pile up over a million moves. Its context window, the number of tokens it can read, is sized so that 20 disks is the most it can handle.</p>
+<details>
+  <summary>Details: newer models, the debate around Apple's paper, and the network's limits</summary>
+  <p>Some newer models still fail early: in 2026 tests, o4-mini failed from 6 disks, and Qwen3-235B-Thinking fell to about 52% at 7 disks and 20% at 8 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
+  <p>Apple's paper drew pushback, and part of the debate is how hard Tower of Hanoi really is. It needs no search, because each move is a simple decision. Critics of the Apple paper argued that part of the collapse came from output limits. The authors replied that the first errors appear early, around move 40 at 8 disks.</p>
+  <p>The network only goes from the first peg to the third, and started anywhere else, it doesn't finish. It needs 64-bit numbers, because with 32-bit numbers rounding errors could pile up over a million moves. Its context window, the number of tokens it can read, is sized so that 20 disks is the most it can handle.</p>
+</details>
 
 <p class="eyebrow label">Experiment 7</p>
 <h3>Checker Jumping</h3>
 
-<p>Red and blue checkers sit in a row with one empty space between them. The goal is to swap the two colours, moving only forward, by sliding into the empty space or jumping over one checker of the other colour. It is the second puzzle in Apple's study. In its 2025 tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side (15 moves), and o3-mini, on its high reasoning setting, held about 50% or better up to 8 per side (read from the paper's figures). In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
-
-<p><strong>How the network solves it.</strong> Like the Hanoi network, its attention reads the board and every move so far, and the layer turns that into the next move. When no move is left, it stops.</p>
+<p>Red and blue checkers sit in a row with one empty space between them. The goal is to swap the two colours, moving only forward, by sliding into the empty space or jumping over one checker of the other colour. It is the second puzzle in Apple's study. In its 2025 tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side (15 moves), and o3-mini, on its high reasoning setting, held about 50% or better up to 8 per side (read from the paper's figures).</p>
 
 <p class="q">Does it work on a second puzzle?</p>
 <p class="a"><strong>Yes. Every size from 4 to 40 checkers per side, each in the fewest possible moves.</strong> Claude checked it only on boards of up to 3 checkers per side. At 40 per side that is 1,680 moves, and sizes above 15 per side are beyond the paper's range.</p>
 
-<p class="fine"><b>Good to know.</b> It has 10,008,568 weights, and only 11,062 of them aren't zero. It is built for boards of up to 40 checkers per side.</p>
+<p><strong>How the network solves it.</strong> Like the Hanoi network, its attention reads the board and every move so far, and the layer turns that into the next move. When no move is left, it stops.</p>
+
+<details>
+  <summary>Details: newer models, and the network's size</summary>
+  <p>In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
+  <p>The network has 10,008,568 weights, and only 11,062 of them aren't zero. It is built for boards of up to 40 checkers per side.</p>
+</details>
 
 <h2 id="q5"><span class="qn">5.</span> Does it hold up on problems built to stump strong LLMs?</h2>
 
 <p><a href="https://arxiv.org/abs/2502.19187">BIG-Bench Extra Hard</a> (BBEH, Google DeepMind, 2025) was built because frontier models had become too good at BIG-Bench Hard, and it replaces each task with a much harder version. We took two of its tasks: in Web of Lies, the model works out who is telling the truth from a long chain of claims, and in Shuffled Objects, it tracks who holds what after many swaps. Each network reads the question in plain English, the same text the LLMs are given, and writes its answer as text.</p>
-
-<p><strong>How the networks solve them.</strong> In Web of Lies, each person's claim is about someone else, and in each loop everyone whose subject is already settled works out whether they are telling the truth, so the answers spread along the chain of claims. In Shuffled Objects, the network finds every swap in the text, and in each loop every position merges its record of swaps with one twice as far back, so after a few loops the last position knows the result of all the swaps.</p>
 
 <p class="q">Do the networks hold up where strong LLMs fall short?</p>
 <p class="a"><strong>Yes. Both get all 180 test questions right.</strong> A separate check re-ran both networks and got the same scores.</p>
@@ -664,12 +684,13 @@
 </div>
 <p class="note">Accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
 
-<details>
-  <summary>Details: where each score comes from</summary>
-  <p>Ours: 180 of 180 on each task. The task's 20 public example questions are not counted. Feb 2025 rows: the BBEH paper (Kazemi et al.), on all 200 questions per task. Oct 2025 rows: <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
-</details>
+<p><strong>How the networks solve them.</strong> In Web of Lies, each person's claim is about someone else, and in each loop everyone whose subject is already settled works out whether they are telling the truth, so the answers spread along the chain of claims. In Shuffled Objects, the network finds every swap in the text, and in each loop every position merges its record of swaps with one twice as far back, so after a few loops the last position knows the result of all the swaps.</p>
 
-<p class="fine"><b>Good to know.</b> These networks read BBEH's fixed question templates and understand only the wording they were built for: the public examples, the paper's description and a few everyday words such as "swaps" and "trades", none of which appears in the test questions. The Shuffled Objects network assumes the options are listed in the order the objects were first handed out, as in every public example. Both need 64-bit numbers and an exact version of the step that turns attention scores into weights: with the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, only 44,550 of them not zero, and Shuffled Objects 6,663,936, only 40,316 not zero.</p>
+<details>
+  <summary>Details: where each score comes from, and what the networks can read</summary>
+  <p>Ours: 180 of 180 on each task. The task's 20 public example questions are not counted. Feb 2025 rows: the BBEH paper (Kazemi et al.), on all 200 questions per task. Oct 2025 rows: <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
+  <p>These networks read BBEH's fixed question templates and understand only the wording they were built for: the public examples, the paper's description and a few everyday words such as "swaps" and "trades", none of which appears in the test questions. The Shuffled Objects network assumes the options are listed in the order the objects were first handed out, as in every public example. Both need 64-bit numbers and an exact version of the step that turns attention scores into weights: with the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, only 44,550 of them not zero, and Shuffled Objects 6,663,936, only 40,316 not zero.</p>
+</details>
 
 <h2 id="limits">What this shows, and what it doesn't</h2>
 <p>Claude wrote small networks that solve hard problems exactly, including on inputs much larger than the ones they were checked on. Here is what it does not show.</p>
@@ -727,7 +748,12 @@
 
 <h2 id="appendix">Appendix: a training-free fix for a pretrained looped model</h2>
 
-<p>As a side result, we looked at a looped model someone else trained. <a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> is a pretrained looped language model that runs its 24 layers 4 times, and run for more loops, it overthinks and gets worse. It also has a built-in "am I done?" signal, which it uses to decide when to stop looping.</p>
+<p>As a side result, Claude found why Ouro-1.4B, a pretrained looped language model, gets worse with extra loops, and stopped the decline without any training.</p>
+
+<details class="appendix">
+  <summary>Read the appendix</summary>
+
+<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> is a looped model someone else trained. It runs its 24 layers 4 times, and run for more loops, it overthinks and gets worse. It also has a built-in "am I done?" signal, which it uses to decide when to stop looping.</p>
 
 <p><strong>The clock.</strong> Claude found the cause by reading the model's internal states: Ouro adds no start token, so its first token can only look at itself, and loop after loop its state steps through a fixed sequence that every other token reads, like a clock. Past loop 4, the clock shows values Ouro never saw in training.</p>
 
@@ -771,6 +797,8 @@
 </details>
 
 <p class="fine"><b>Good to know.</b> This is stability, not a gain. Extra loops no longer hurt, but they do not beat 4 loops on ARC or the chains. A next step is keeping the loop clock in range while training looped language models.</p>
+
+</details>
 
 </main>
 <script>
