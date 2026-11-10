@@ -141,6 +141,7 @@
   table.text-first td:first-child, table.text-first th:first-child { white-space: normal; }
   table.text-first tbody:not(.group) tr:last-child td { border-bottom-color: var(--fg); }
   table.text-wrap td:not(.num), table.text-wrap th:not(.num) { white-space: normal; }
+  td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
   .note { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; }
   .fine { font-size: 0.78rem; line-height: 1.55; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .fine b { color: var(--fg); font-weight: 600; }
@@ -359,25 +360,23 @@
 <p>The newest frontier LLMs solve about half. On the first 50 test puzzles in October 2026, GPT-6 Astra solved 68%, Claude Opus 5.5 54% and GPT-6.1 Sol 44%. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
 
 <p class="q">Can it beat the model that wrote it at Sudoku too?</p>
-<p class="a"><strong>Yes. It solves all of the first 10,000 test puzzles,</strong> the ones HRM and TRM are scored on. That includes the 50 the LLMs were tested on, where Claude Opus 5.5 solves 54%. Among trained models, only a group of 15 LDT models used together also solves every puzzle.</p>
-
-<div class="todo">To come: the result on all 422,786 test puzzles, which is still running.</div>
+<p class="a"><strong>Yes. It solves every one of the first 31,104 test puzzles,</strong> an unbroken run from the start of the test set. That includes the first 10,000, the ones HRM, TRM and Sotaku v2 are scored on, and the first 50, where Claude Opus 5.5 solves 54%.</p>
 
 <div class="table-wrap">
 <table class="text-first text-wrap">
-  <thead><tr><th>Model</th><th>Training</th><th class="num">Solved (%)</th></tr></thead>
+  <thead><tr><th>Model and training</th><th class="num">First 50</th><th class="num">First 10,000</th></tr></thead>
   <tbody>
-    <tr class="written"><td>Hand-written (2,973,688 weights, only 17,014 not zero)</td><td>None, tested on the first 10,000</td><td class="num">100</td></tr>
-    <tr><td>LDT, 15 models used together (12M weights)</td><td>1K puzzles, plus rearranged copies, tested on all 422,786</td><td class="num">100</td></tr>
-    <tr><td>TRM (5M weights)</td><td>1K puzzles, plus rearranged copies, tested on the first 10,000</td><td class="num">79.5</td></tr>
-    <tr><td>HRM (27M weights)</td><td>1K puzzles, plus rearranged copies, tested on the first 10,000</td><td class="num">55.4</td></tr>
-    <tr class="llm"><td>GPT-6 Astra</td><td>No Sudoku training, tested on the first 50</td><td class="num">68</td></tr>
-    <tr class="llm"><td>Claude Opus 5.5</td><td>No Sudoku training, tested on the first 50</td><td class="num">54</td></tr>
-    <tr class="llm"><td>GPT-6.1 Sol</td><td>No Sudoku training, tested on the first 50</td><td class="num">44</td></tr>
+    <tr class="written"><td>Hand-written (2,973,688 weights, only 17,014 not zero)<span class="sub">No training</span></td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td><a href="https://github.com/chenglou/sotaku">Sotaku v2</a> (800K weights)<span class="sub">Trained on 2.7M puzzles</span></td><td class="num">–</td><td class="num">98.96</td></tr>
+    <tr><td>TRM (5M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">79.5</td></tr>
+    <tr><td>HRM (27M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">55.4</td></tr>
+    <tr class="llm"><td>GPT-6 Astra<span class="sub">No Sudoku training</span></td><td class="num">68</td><td class="num">–</td></tr>
+    <tr class="llm"><td>Claude Opus 5.5<span class="sub">No Sudoku training</span></td><td class="num">54</td><td class="num">–</td></tr>
+    <tr class="llm"><td>GPT-6.1 Sol<span class="sub">No Sudoku training</span></td><td class="num">44</td><td class="num">–</td></tr>
   </tbody>
 </table>
 </div>
-<p class="note">A puzzle counts as solved when the answer matches its one solution. Trained scores: Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM and TRM models on the first 10,000 puzzles only. LLM scores: their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens. The test puzzles are in the fixed order set by the LDT code, so the first 50 are part of the first 10,000.</p>
+<p class="note">Accuracy in %. A puzzle counts as solved when the answer matches its one solution. Each column is the same puzzles in the same order, the test set's fixed order set by the LDT code, and a dash means not run. Trained scores: Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores: their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens. In all, we ran 118,280 test puzzles before stopping, and the network solved every one.</p>
 
 <p><strong>How the network solves it.</strong> It reads the puzzle as text, one character per token, and writes back the solved grid. A block of five layers makes one step of a guess-and-check search, and the loop runs it 40,000 times. Each cell keeps a list of the digits it could still be, and three attention heads let it look at its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit with only one place left. When nothing more can be crossed out, it saves the grid and guesses a digit for the cell with the fewest left. When a guess leads to a contradiction, such as a cell with no digit left, it goes back to the saved grid, where that guess is now ruled out. A solved grid stays exactly as it is, so extra loops change nothing.</p>
 
@@ -697,7 +696,7 @@
 <ul>
   <li><strong>Each network is a specialist.</strong> One network, one task. The language models we compare against are general, so a win on one task doesn't mean a network reasons better in general.</li>
   <li><strong>These tasks have known solutions.</strong> What's new is that an LLM wrote them into weights, and that the networks run them without error at sizes where trained models and reasoning models fail.</li>
-  <li><strong>Comparisons use the numbers each paper reports,</strong> with the paper and date given. Newer models may score differently.</li>
+  <li><strong>Comparisons use the numbers each paper reports,</strong> with the paper and date given. Newer models may score differently. On Sudoku, we compare only on puzzles both sides were run on. The LDT paper's own model was scored on the full test set, which we didn't run in full.</li>
   <li><strong>Weight counts include lookup tables of positions.</strong> Where the looped layers themselves are much smaller, we give their size too.</li>
 </ul>
 
