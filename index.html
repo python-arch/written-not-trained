@@ -275,7 +275,7 @@
   <img class="data" src="figures/glance_data.svg" width="518" height="675" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg" width="518" height="675" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The strongest other result for each task: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Sources are in each section and in the appendix.</figcaption>
+  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Sources are in each section.</figcaption>
 </figure>
 
 <h2 id="concept">Looped weight-space programming</h2>
@@ -686,7 +686,41 @@
   <figcaption>The same story for graph search, parity and reasoning chains. The shaded column is the range each network was checked on.</figcaption>
 </figure>
 
-<p>The full tables, and how both networks work, are in <a href="#app-parity">appendix A</a>.</p>
+<details>
+  <summary>Details: the full tables, and how the networks work</summary>
+<p><strong>How the networks solve them.</strong> The parity network keeps a running answer, odd or even so far, at every position, and in each loop every position updates its answer from the one before. The chains network works the same way along a chain: each statement looks up the statement that defines the variable it depends on, and one more link gets its value in each loop.</p>
+
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 20 bits)</th><th class="num">Test (21–128 bits)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (looped)</td><td class="num">~190 + table</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>Trained, looped</td><td class="num">50,434</td><td class="num">100</td><td class="num">53.8</td></tr>
+    <tr><td>Trained, 1 layer</td><td class="num">50,434</td><td class="num">100</td><td class="num">52.6</td></tr>
+    <tr><td>Trained, 4 layers</td><td class="num">13,234</td><td class="num">100</td><td class="num">49.2</td></tr>
+    <tr><td>Trained, 8 layers</td><td class="num">101,858</td><td class="num">100</td><td class="num">49.5</td></tr>
+    <tr><td>Trained, 12 layers</td><td class="num">600,258</td><td class="num">100</td><td class="num">45.5</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. Chance is 50%. Only two trained models stay at 99% or above even at 21 bits, and none beyond. The hand-written network's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
+<p>With standard training, none of these models handles strings longer than the ones it saw. Special training recipes go further, to over 40 bits (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) and to 256 bits (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). In an extra test on lengths from 256 to 4,095 bits, the hand-written network got every input right.</p>
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Hand-written (looped)</td><td class="num">4,763</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>Trained, looped</td><td class="num">77,924</td><td class="num">69.1</td><td class="num">2.2 – 9.2</td></tr>
+    <tr><td>Trained, 1 layer</td><td class="num">77,924</td><td class="num">7.0</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 4 layers</td><td class="num">51,368</td><td class="num">43.4</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 8 layers (~90× the hand-written size)</td><td class="num">427,812</td><td class="num">93.7</td><td class="num">3.5</td></tr>
+    <tr><td>Trained, 12 layers</td><td class="num">627,748</td><td class="num">49.6</td><td class="num">4.0</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note">Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model: 93.7% on the checking range, 3.5% beyond it.</p>
+</details>
+
 
 <h2 id="limits">What this shows, and what it doesn't</h2>
 <p>Claude wrote small networks that solve hard problems exactly, including on inputs much larger than the ones they were checked on. Here is what it does not show.</p>
@@ -725,7 +759,7 @@
 <p><strong>Writing weights.</strong> <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> named and demonstrated LLMs reading and writing weights directly. <a href="https://github.com/anadim/AdderBoard">AdderBoard</a> showed coding agents hand-setting the weights of tiny transformers. At the same time, <a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a> had Claude set every weight of small transformers for ten algorithmic tasks, including parity, and <a href="https://github.com/Fchaubard/WSP-for-turing-complete">Chaubard</a> compares weight-space programming with ordinary training on small algorithmic tasks. Earlier, LLMs wrote programs that a compiler turned into weights (<a href="https://arxiv.org/abs/2304.01665">Weng et al.</a>, <a href="https://arxiv.org/abs/2409.13714">TracrBench</a>).</p>
 <p><strong>Hand-built and compiled networks.</strong> Programs have long been compiled into transformer weights (<a href="https://arxiv.org/abs/2301.05062">Tracr</a>, and <a href="https://arxiv.org/abs/2410.18077">ALTA</a>, which also compiles looped programs for parity and addition). Looped transformers can simulate general programs (<a href="https://arxiv.org/abs/2301.13196">Giannou et al.</a>). Closest to our tasks are hand-constructed looped transformers that run breadth-first search, depth-first search and Dijkstra's algorithm (<a href="https://arxiv.org/abs/2402.01107">Back de Luca and Fountoulakis</a>), an exact hand-built transformer for parity (<a href="https://arxiv.org/abs/2202.12172">Chiang and Cholak</a>), and programs in RASP, a programming language that maps onto transformers, for balanced brackets (<a href="https://arxiv.org/abs/2106.06981">Weiss et al.</a>).</p>
 <p><strong>Trained models that handle bigger inputs.</strong> With special training recipes, trained models do handle inputs longer than the ones they saw. Looped transformers handle longer parity inputs when the loop count grows with the input (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) or when the loop also carries state from token to token (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). Transformers track variable chains longer than those seen in training (<a href="https://arxiv.org/abs/2505.20896">Wu et al.</a>). Models that reason in a hidden loop and are trained on every intermediate step do this too (<a href="https://arxiv.org/abs/2510.14095">Altabaa et al.</a>), and so do graph networks trained on algorithms' step-by-step runs (<a href="https://arxiv.org/abs/2209.11142">Ibarz et al.</a>).</p>
-<p><strong>Looped models.</strong> Trained recursive reasoners such as HRM, TRM, LDT and Attractor Models set the Maze-Hard results we compare against. Overthinking was named for recurrent networks by <a href="https://arxiv.org/abs/2202.05826">Bansal et al.</a> Overthinking in looped language models is studied by <a href="https://arxiv.org/abs/2604.11791">Blayney et al.</a> and addressed with training by <a href="https://arxiv.org/abs/2605.26733">STARS</a>. Methods that need no training, changing how Ouro writes its answer or how many loops it runs, have also been tried on it (<a href="https://arxiv.org/abs/2610.02185">Liu et al.</a>, <a href="https://arxiv.org/abs/2609.36653">Wang et al.</a>). <a href="https://arxiv.org/abs/2605.20670">LT2</a> saw attention pile up on the first token, loop after loop, in a looped transformer.</p>
+<p><strong>Looped models.</strong> Trained recursive reasoners such as HRM, TRM, LDT and Attractor Models set the Maze-Hard results we compare against. Overthinking was named for recurrent networks by <a href="https://arxiv.org/abs/2202.05826">Bansal et al.</a> Overthinking in looped language models is studied by <a href="https://arxiv.org/abs/2604.11791">Blayney et al.</a> and addressed with training by <a href="https://arxiv.org/abs/2605.26733">STARS</a>. Methods that need no training have also been tried on Ouro, a pretrained looped language model, changing how it writes its answer or how many loops it runs (<a href="https://arxiv.org/abs/2610.02185">Liu et al.</a>, <a href="https://arxiv.org/abs/2609.36653">Wang et al.</a>). <a href="https://arxiv.org/abs/2605.20670">LT2</a> saw attention pile up on the first token, loop after loop, in a looped transformer.</p>
 <p><strong>Puzzles.</strong> The puzzle comparisons come from <a href="https://arxiv.org/abs/2506.06941">Shojaee et al.</a> With code execution, reasoning models solved Tower of Hanoi at every size tested, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al.</a>). A system that votes over several LLM samples for every move solved 20 disks without an error (<a href="https://arxiv.org/abs/2511.09030">Meyerson et al.</a>).</p>
 </div>
 
@@ -741,112 +775,6 @@
   note         = {Blog post}
 }</pre>
 <p>The text, figures and animations are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, and the code and weights under the <a href="https://github.com/python-arch/written-not-trained/blob/main/LICENSE">MIT license</a>.</p>
-
-<h2 id="appendix">Appendix</h2>
-
-<p>The full parity and chains results, the arithmetic each model needs per maze, and a side result on a pretrained looped model.</p>
-
-<h3 id="app-parity">A. Parity and reasoning chains, in full</h3>
-
-<p><strong>How the networks solve them.</strong> The parity network keeps a running answer, odd or even so far, at every position, and in each loop every position updates its answer from the one before. The chains network works the same way along a chain: each statement looks up the statement that defines the variable it depends on, and one more link gets its value in each loop.</p>
-
-<div class="table-wrap">
-<table class="text-first">
-  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 20 bits)</th><th class="num">Test (21–128 bits)</th></tr></thead>
-  <tbody>
-    <tr class="written"><td>Hand-written (looped)</td><td class="num">~190 + table</td><td class="num">100</td><td class="num">100</td></tr>
-    <tr><td>Trained, looped</td><td class="num">50,434</td><td class="num">100</td><td class="num">53.8</td></tr>
-    <tr><td>Trained, 1 layer</td><td class="num">50,434</td><td class="num">100</td><td class="num">52.6</td></tr>
-    <tr><td>Trained, 4 layers</td><td class="num">13,234</td><td class="num">100</td><td class="num">49.2</td></tr>
-    <tr><td>Trained, 8 layers</td><td class="num">101,858</td><td class="num">100</td><td class="num">49.5</td></tr>
-    <tr><td>Trained, 12 layers</td><td class="num">600,258</td><td class="num">100</td><td class="num">45.5</td></tr>
-  </tbody>
-</table>
-</div>
-<p class="note">Accuracy in %. Chance is 50%. Only two trained models stay at 99% or above even at 21 bits, and none beyond. The hand-written network's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
-<p>With standard training, none of these models handles strings longer than the ones it saw. Special training recipes go further, to over 40 bits (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) and to 256 bits (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). In an extra test on lengths from 256 to 4,095 bits, the hand-written network got every input right.</p>
-<div class="table-wrap">
-<table class="text-first">
-  <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
-  <tbody>
-    <tr class="written"><td>Hand-written (looped)</td><td class="num">4,763</td><td class="num">100</td><td class="num">100</td></tr>
-    <tr><td>Trained, looped</td><td class="num">77,924</td><td class="num">69.1</td><td class="num">2.2 – 9.2</td></tr>
-    <tr><td>Trained, 1 layer</td><td class="num">77,924</td><td class="num">7.0</td><td class="num">2.8</td></tr>
-    <tr><td>Trained, 4 layers</td><td class="num">51,368</td><td class="num">43.4</td><td class="num">2.8</td></tr>
-    <tr><td>Trained, 8 layers (~90× the hand-written size)</td><td class="num">427,812</td><td class="num">93.7</td><td class="num">3.5</td></tr>
-    <tr><td>Trained, 12 layers</td><td class="num">627,748</td><td class="num">49.6</td><td class="num">4.0</td></tr>
-  </tbody>
-</table>
-</div>
-<p class="note">Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model: 93.7% on the checking range, 3.5% beyond it.</p>
-
-<h3 id="app-compute">B. Arithmetic per maze</h3>
-
-<p>The maze network needs far less arithmetic per maze than any of the trained models.</p>
-
-<figure class="reveal" style="--hide: 88%">
-  <div class="layers">
-  <img class="data" src="figures/maze_compute_data.svg" width="518" height="374" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_compute_base.svg" width="518" height="374" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
-  </div>
-  <figcaption>The blue curve is the written network after each number of loops, with a dot at the 1,800 we run.</figcaption>
-</figure>
-
-<p class="note">In this figure, every model is counted the way Davis et al. (NeurIPS 2026) count it, and any shortest path counts as solved. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots are the least a solve can cost, and the line runs to its limit of 1,000 rounds. Trained scores are from Davis et al., Table 3, each the best version saved during training, picked by its test score.</p>
-
-<h3 id="app-ouro">C. A training-free fix for a pretrained looped model</h3>
-
-<p>As a side result, Claude found why Ouro-1.4B, a pretrained looped language model, gets worse with extra loops, and stopped the decline without any training.</p>
-
-<details class="appendix">
-  <summary>Read the appendix</summary>
-
-<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> is a looped model someone else trained. It runs its 24 layers 4 times, and run for more loops, it overthinks and gets worse. It also has a built-in "am I done?" signal, which it uses to decide when to stop looping.</p>
-
-<p><strong>The clock.</strong> Claude found the cause by reading the model's internal states: Ouro adds no start token, so its first token can only look at itself, and loop after loop its state steps through a fixed sequence that every other token reads, like a clock. Past loop 4, the clock shows values Ouro never saw in training.</p>
-
-<p><strong>The test.</strong> At each extra loop, we reset the first four tokens to their loop-3 state, which removes about 93% of the harm loop 5 does. Pinning them at their loop-4 state instead makes it 2–4× worse, while rescaling every other token, as a control, does almost nothing.</p>
-
-<p><strong>The fix.</strong> It sets the first few tokens on a schedule that keeps the clock in its trained range, and takes the answer from a mix of loops weighted by Ouro's own "am I done?" signal. It adds no new weights and changes none, and more loops stop hurting.</p>
-
-<figure>
-  <img src="figures/ouro_clock.svg" width="518" height="451" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states never seen in training. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's own exit signal.">
-  <figcaption>A schematic, not data: what the clock looks like across loops, with and without the fix.</figcaption>
-</figure>
-
-<div class="table-wrap">
-<table>
-  <thead><tr><th>Ouro-1.4B</th><th class="num">Perplexity (lower is better)</th><th class="num">ARC-Challenge</th><th class="num">3-step chains</th></tr></thead>
-  <tbody>
-    <tr><td>4 loops, as trained</td><td class="num">11.61</td><td class="num">52.6</td><td class="num">21</td></tr>
-    <tr><td>8 loops</td><td class="num">12.63</td><td class="num">50.8</td><td class="num">18</td></tr>
-    <tr><td>16 loops</td><td class="num">21.24</td><td class="num">44.7</td><td class="num">14</td></tr>
-    <tr class="written"><td>16 loops, with the fix</td><td class="num">11.54</td><td class="num">52.1</td><td class="num">20</td></tr>
-  </tbody>
-</table>
-</div>
-<p class="note">Perplexity says how well the model predicts real text, on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples), and the chains are 100 3-step versions of the reasoning chains from section 3.</p>
-
-<div class="table-wrap">
-<table>
-  <thead><tr><th>GSM8K (500 problems, 8 worked examples)</th><th class="num">4 loops</th><th class="num">8 loops</th></tr></thead>
-  <tbody>
-    <tr><td>Ouro-1.4B</td><td class="num">75.0</td><td class="num">66.6</td></tr>
-    <tr class="written"><td>Ouro-1.4B, with the fix</td><td class="num">77.2</td><td class="num">75.2</td></tr>
-  </tbody>
-</table>
-</div>
-<p class="note">GSM8K is a set of grade-school math word problems.</p>
-
-<details>
-  <summary>Details: uncertainty, and how this compares with STARS</summary>
-  <p>The 95% confidence intervals at 8 loops are 75.2 [71.4, 78.8] with the fix and 66.6 [62.4, 70.6] without it. The 4-loop gain with the fix (77.2) comes from the answer-mixing step alone and is small enough that it could be noise.</p>
-  <p>STARS (ICML 2026) addressed the same decline in Ouro with extra training. Ours needs no training. Our 4→8 drop without the fix is smaller than the one STARS reports (−8.4 vs −17.0 points), which suggests the two setups differ.</p>
-</details>
-
-<p class="fine"><b>Good to know.</b> This is stability, not a gain. Extra loops no longer hurt, but they do not beat 4 loops on ARC or the chains. A next step is keeping the loop clock in range while training looped language models.</p>
-
-</details>
 
 </main>
 <script>
