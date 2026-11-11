@@ -430,7 +430,7 @@
 </div>
 <p class="note">F1, the dataset's own score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores: Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
 
-<p><strong>How the network solves it.</strong> It works like the maze network's wave. In each loop, one attention head lets every link ask whether a link into its starting node has already been reached, so the reached area grows by one step per loop. At the end, every node exactly N steps from the start writes its own name into the answer. Claude Opus 5.5 got it right the first time it was scored: on 350 practice problems from the same benchmark, none of them in the test, it already scored 100%.</p>
+<p><strong>How the network solves it.</strong> It works like the maze network's wave. In each loop, one attention head lets every link ask whether a link into its starting node has already been reached, so the reached area grows by one step per loop. At the end, every node exactly N steps from the start writes its own name into the answer.</p>
 
 <details>
   <summary>Details: the network, and what it reads</summary>
@@ -753,7 +753,7 @@
 
 <p>Claude never runs the search itself. It designs one loop: what each of a cell's 35 numbers means, which neighbour each head looks at, and how each number changes. Then it sets every weight to do exactly that, and the loop repeats it, exact every time. The key idea is counting distance in threes, so the numbers never grow with the maze.</p>
 
-<p>Claude can even design it in one go, with no data, no tools and no way to test. The one try that finished found a shortest path in all 1,000 test mazes. Its paths just aren't the dataset's exact ones, because it guessed a different tie-break. Its instructions did say how many loops our network runs. Finishing in one go is rare: 9 of 10 tries hit the length limit of a single answer first, though the one that got furthest had already landed on much the same design, counting in threes included. With training mazes to check its work against, Claude got it exactly right.</p>
+<p>The design is hard to reach without testing. We asked Claude for the whole network in a single answer, with no data, no tools and no way to test. Of 10 tries, 9 hit the length limit before finishing, though the one that got furthest had already landed on much the same design, counting in threes included. The one try that finished found a shortest path in all 1,000 test mazes, but not the dataset's exact paths, because it guessed a different tie-break. Its instructions did say how many loops our network runs. The network on this page needed the training mazes to check its work against, and Claude rebuilt its first design along the way.</p>
 
 <details>
   <summary>Details: the one detour</summary>
