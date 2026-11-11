@@ -267,7 +267,7 @@
 <main class="wrap">
 <div class="tldr">
   <div class="label">TL;DR</div>
-  <p class="lead"><strong>Claude gets most of these mazes wrong. The network it built by hand gets every one right.</strong> Claude Opus 5.5 designed a tiny transformer and set every weight itself, with no training, and it solves all 1,000 Maze-Hard test mazes, where Claude on its own solves 13 of 50. The key is a loop: one small layer runs again and again, so a tiny network can also make all 1,048,575 moves of a 20-disk Tower of Hanoi without a mistake. Networks written the same way score 100% on GraphWalks, with prompts of up to a million tokens, on Sudoku-Extreme and on BIG-Bench tasks. We show how the maze network works, and why Claude can write a network for a problem it can't solve. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
+  <p class="lead"><strong>Claude gets most of these mazes wrong. The network it built by hand gets every one right.</strong> Claude Opus 5.5 designed a tiny transformer and set every weight itself, with no training, and it solves all 1,000 Maze-Hard test mazes, where Claude on its own solves 13 of 50. The key is a loop: one small layer runs again and again, so a tiny network can also solve a 20-disk Tower of Hanoi, over a million moves, without a mistake. Networks written the same way score 100% on GraphWalks, with prompts of up to a million tokens, on Sudoku-Extreme and on BIG-Bench tasks. We show how the maze network works, and why Claude can write a network for a problem it can't solve. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
 </div>
 
 <figure class="reveal" style="--hide: 45%">
@@ -280,7 +280,7 @@
 
 <h2 id="concept">Looped weight-space programming</h2>
 
-<p><strong>What we add is the loop.</strong> Claude designs one small layer that does one step of the task and sets every weight by hand. A loop then runs that layer for as long as the task needs, so a bigger problem needs more loops, not a bigger network. That matters, because every weight is one more thing Claude has to get exactly right. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it makes all 1,048,575 moves of the 20-disk puzzle. Without the loop, the maze network would need 163 times as many weights.</p>
+<p><strong>What we add is the loop.</strong> Claude designs one small layer that does one step of the task and sets every weight by hand. A loop then runs that layer for as long as the task needs, so a bigger problem needs more loops, not a bigger network. That matters, because every weight is one more thing Claude has to get exactly right. The Tower of Hanoi network has only 3,686 weights that aren't zero, yet it solves the 20-disk puzzle, over a million moves. Without the loop, the maze network would need 163 times as many weights.</p>
 
 <p>We call this looped weight-space programming. It builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026), which showed that a frontier LLM can work on a network's weights directly, with no training. It fixed a flaw in a small Qwen language model by editing its weights, and wrote small game-playing networks from scratch.</p>
 
@@ -295,7 +295,7 @@
 <p>Frontier LLMs find it hard. In October 2026, Claude Opus 5.5 and GPT-6 Astra each solved 13 of 50 test mazes (26%), and GPT-6.1 Sol 12%. In April 2026, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200. Both tests come from the paper on the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT, Davis et al., NeurIPS 2026), a small model trained on mazes.</p>
 
 <p class="q">Can it solve mazes that stump the model that wrote it?</p>
-<p class="a"><strong>Yes. It solves all 1,000 test mazes,</strong> each with the exact path the dataset expects. On the 50 where Claude solves 13 on its own, the network it wrote solves all 50.</p>
+<p class="a"><strong>Yes. It solves all 1,000 test mazes,</strong> each with the exact path the dataset expects, including all 50 that Claude was tested on.</p>
 
 <p>It also scales. On bigger mazes made in the Maze-Hard style, the same 19,936 weights, run for more loops, solved all 50 at 60×60 and all 40 at 100×100. A separate check re-ran it on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly.</p>
 
@@ -550,10 +550,9 @@
   <figcaption>Anatomy of the maze network. Part 1 happens once, as the maze is read in. Parts 2 to 6 are the same single layer, run again in every loop.</figcaption>
 </figure>
 
-<p>There are no instructions running one after another. All the maze's cells update at the same moment, every loop, each knowing only its own 35 numbers and what its four neighbours hold. Nothing can grow: a cell can't hold a distance in the hundreds, so it keeps only which of three steps it is on. Apart from its position, every number in a cell is a switch, exactly on or off after every loop. The path isn't worked out and then written down. It lights up across the grid, one cell per loop, from the start to the goal.</p>
-
 <details>
-  <summary>Details: the layer piece by piece, and what breaks without each piece</summary>
+  <summary>Details: how the layer runs, piece by piece, and what breaks without each piece</summary>
+  <p>There are no instructions running one after another. All the maze's cells update at the same moment, every loop, each knowing only its own 35 numbers and what its four neighbours hold. Nothing can grow: a cell can't hold a distance in the hundreds, so it keeps only which of three steps it is on. Apart from its position, every number in a cell is a switch, exactly on or off after every loop. The path isn't worked out and then written down. It lights up across the grid, one cell per loop, from the start to the goal.</p>
   <figure>
     <img src="figures/maze_block.svg" width="518" height="739" loading="lazy" alt="Diagram of the maze network's one layer. A bar shows a cell's memory of 35 numbers, grouped by meaning: always 1, where it is (row, column, r² + c²), what it is (wall, start or goal), distance to the goal counted in threes, the next step, on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons, by job: wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give exactly 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
     <figcaption>The maze network's one layer, read from its weights. After the last loop, every cell's distance, pointer and path flag match a standard shortest-path search exactly, on all 1,000 training mazes.</figcaption>
