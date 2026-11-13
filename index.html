@@ -94,6 +94,9 @@
   .hero-video .player, .video-fig .player { position: relative; }
   .hero-video video, .video-fig video { display: block; width: 100%; height: auto; border: 1px solid var(--line); background: #fff; cursor: pointer; }
   .hero-video figcaption, .video-fig figcaption { margin-top: 8px; max-width: none; }
+  .hero-chart .layers, .hero-chart img, .hero-chart figcaption { max-width: none; }
+  .hero-chart .layers.tall { display: none; }
+  @media (max-width: 639px) { .hero-chart .layers.wide { display: none; } .hero-chart .layers.tall { display: block; } }
 
   /* ---------- Body ---------- */
   .tldr { border: 1px solid var(--line); padding: 18px 20px; margin: 32px 0; }
@@ -206,14 +209,16 @@
       <div><b class="label">Published</b>9 November 2026</div>
     </div>
 
-    <figure class="hero-video">
-      <div class="player">
-        <video class="loop-video" autoplay muted loop playsinline preload="auto" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. The network Claude wrote solves the first Maze-Hard test maze, loop by loop. In every loop, each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: cells one step farther away learn how far they are from the goal. It reaches the start at loop 111. Then the path grows from the start, always to the neighbour one step closer to the goal, and is complete at loop 222. After that nothing changes, all the way to loop 1,800. The network's grid matches the dataset's answer exactly.">
-          <source src="figures/maze_hero.mp4" type="video/mp4">
-          <source src="figures/maze_hero.webm" type="video/webm">
-        </video>
+    <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
+      <div class="layers wide">
+      <img class="data" src="figures/maze_training_data.svg" width="518" height="384" alt="" aria-hidden="true">
+      <img src="figures/maze_training_base.svg" width="518" height="384" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with 19,936 weights and no training. TRM, a network built for mazes with 6.8M weights, is trained and reaches a best of 77.4% after 13,020 updates, and is still training. The same network as Claude's, trained by gradient descent in 6 versions of up to 2.8M weights, stays at 0% throughout.">
       </div>
-      <figcaption>The network Claude wrote, solving the first test maze of <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a well-known benchmark. Each frame is its real state, loop by loop (sped up). <a href="demo/maze.html">Run it yourself.</a></figcaption>
+      <div class="layers tall">
+      <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="442" alt="" aria-hidden="true">
+      <img src="figures/maze_training_tall_base.svg" width="355" height="442" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with 19,936 weights and no training. TRM, a network built for mazes with 6.8M weights, is trained and reaches a best of 77.4% after 13,020 updates, and is still training. The same network as Claude's, trained by gradient descent in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+      </div>
+      <figcaption>Claude's network needed no training or GPU, and is shown at 1 hour. TRM is our own run of its maze recipe, and it is still training. Details in <a href="#maze-gd-details">section 3</a>.</figcaption>
     </figure>
 
     <div class="cards">
@@ -270,13 +275,6 @@
   <p class="lead"><strong>Claude gets most of these mazes wrong. The network it built by hand gets every one right.</strong> Claude Opus 5.5 designed a tiny transformer and set every weight itself, with no training, and it solves all 1,000 Maze-Hard test mazes, where Claude on its own solves 13 of 50. The key is a loop: one small layer runs again and again, so a tiny network can also solve a 20-disk Tower of Hanoi, over a million moves, without a mistake. Networks written the same way score 100% on GraphWalks, with prompts of up to a million tokens, on Sudoku-Extreme and on BIG-Bench tasks. We show how the maze network works, and why Claude can write a network for a problem it can't solve. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
 </div>
 
-<figure class="reveal" style="--hide: 45%">
-  <div class="layers">
-  <img class="data" src="figures/glance_data.svg" width="518" height="675" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/glance_base.svg" width="518" height="675" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The strongest other result for each task: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
-  </div>
-  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Sources are in each section and in the appendix.</figcaption>
-</figure>
 
 <h2 id="concept">Looped weight-space programming</h2>
 
@@ -288,6 +286,14 @@
 
 <p>Each task below has its own network, written by hand with no training, and each one scores 100% on its test.</p>
 
+<figure class="reveal" style="--hide: 45%">
+  <div class="layers">
+  <img class="data" src="figures/glance_data.svg" width="518" height="675" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="675" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The strongest other result for each task: on Maze-Hard, LDT 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
+  </div>
+  <figcaption>Each bar is the strongest trained model or LLM on this page for that task. Sources are in each section and in the appendix.</figcaption>
+</figure>
+
 <h3 id="maze">Maze-Hard</h3>
 
 <p>Maze-Hard is a benchmark of 30×30 mazes whose shortest paths are over 110 steps long. It comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model) and is also used by <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model), two small models trained to solve puzzles like this by repeating a step many times. Most mazes have many equally short paths, and the dataset marks one of them as the answer.</p>
@@ -296,6 +302,16 @@
 
 <p class="q">Can it solve mazes that stump the model that wrote it?</p>
 <p class="a"><strong>Yes. It solves all 1,000 test mazes,</strong> each with the exact path the dataset expects, including all 50 that Claude was tested on.</p>
+
+<figure class="video-fig">
+  <div class="player">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. The network Claude wrote solves the first Maze-Hard test maze, loop by loop. In every loop, each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: cells one step farther away learn how far they are from the goal. It reaches the start at loop 111. Then the path grows from the start, always to the neighbour one step closer to the goal, and is complete at loop 222. After that nothing changes, all the way to loop 1,800. The network's grid matches the dataset's answer exactly.">
+      <source src="figures/maze_hero.mp4" type="video/mp4">
+      <source src="figures/maze_hero.webm" type="video/webm">
+    </video>
+  </div>
+  <figcaption>The network Claude wrote, solving the first test maze of <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a well-known benchmark. Each frame is its real state, loop by loop (sped up). <a href="demo/maze.html">Run it yourself.</a></figcaption>
+</figure>
 
 <p>It also scales. On bigger mazes made in the Maze-Hard style, the same 19,936 weights, run for more loops, solved all 50 at 60×60 and all 40 at 100×100. A separate check re-ran it on all 1,000 test mazes and on 500 freshly made ones, and it solved every one exactly.</p>
 
@@ -630,13 +646,21 @@
 <p>We gave gradient descent the exact network Claude wrote for mazes, with its weights reset to random, and the same 1,000 training mazes Claude could check its work on.</p>
 
 <p class="q">Can gradient descent find the weights Claude wrote by hand?</p>
-<p class="a"><strong>Not on our budget. Every training run ended with 0% of mazes solved.</strong> The network learned only to copy the maze back unchanged. With the same network and the same mazes, Claude's weights solve all 1,000 test mazes.</p>
+<p class="a"><strong>Not on our budget. Every training run ended with 0% of mazes solved.</strong> The network learned only to copy the maze back unchanged. With the same network and the same mazes, Claude's weights solve all 1,000 test mazes. Longer runs on bigger versions of the network, up to 2.8M weights, also ended at 0% (<a href="#written-vs-trained-maze">the first figure</a>).</p>
 
 <details>
   <summary>Details: how we trained it</summary>
   <p>We fixed the plan before any training: the network's own tokenizer and 1,800 loops, AdamW, 3 learning rates × 2 seeds, and 40 minutes per run. A run counts as training if its loss stays finite and it beats copying the input on mazes it didn't train on.</p>
   <p>As written, the network has no normalisation, and all 6 runs broke down within their first 30 steps. With RMSNorm added, all 6 trained smoothly, but each ended at 0% of mazes solved, with 87.2–87.4% of cells right, against 87.4% for copying the input.</p>
   <p>Each run took about 14,400 steps, or about 5 PFLOPs. HRM, TRM and LDT trained with 1,024–46,944 PFLOPs, so this shows that gradient descent doesn't find these weights on this budget, not that they can't be learned.</p>
+</details>
+
+<details id="maze-gd-details">
+  <summary>Details: the longer runs in the first figure, and why not train them longer</summary>
+  <p>We reset the network Claude wrote to random weights and trained it on the same 1,000 training mazes, in 6 versions: at its own size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and 4 or 16 times wider. As above, each adds normalisation, because the network as written breaks down in training. The runs shared one GPU, so the figure places each one at its number of updates times its time per update with the GPU to itself.</p>
+  <p><strong>Why not train them longer?</strong> Four of the six versions got more updates than the 13,020 TRM needed to reach 77.4%: from 15,210 to 50,370. The other two got 9,750 and 11,130, more than the 7,812 TRM needed to reach 53.9%. And none was slowly getting better. Each one learned early on to copy the maze back unchanged, and none got past 87.5% of cells right, against 87.4% for copying. A maze needs all 900 cells right.</p>
+  <p>TRM is a different network, built for mazes, with 6.8M weights. This is our run of its recipe on one GPU instead of the authors' eight. The authors' released TRM gets 85.3% scored this way, still short of 100%.</p>
+  <p>This is one task and one training recipe, without tricks like starting with small mazes. So it shows that gradient descent doesn't find these weights in this setup, not that they can't be learned.</p>
 </details>
 
 <p>Next, three more tasks. While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>
