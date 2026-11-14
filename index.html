@@ -166,6 +166,8 @@
   .mlogo { height: 1.1em; width: auto; vertical-align: -0.2em; margin-right: 6px; }
   .mlogo.word { height: 0.7em; vertical-align: 0.02em; }
   .narrow .layers, .narrow figcaption { max-width: 620px; }
+  .demo-link { font-weight: 600; }
+  .demo-ico { width: 1.05em; height: 1.05em; vertical-align: -0.17em; margin-right: 6px; }
   td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
   .ablate { font-family: var(--sans); font-size: 0.8rem; line-height: 1.5; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .ablate .label { margin: 0 0 6px; }
@@ -281,7 +283,7 @@
       <source src="figures/maze_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single layer running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a href="demo/maze.html">Run it in your browser.</a></figcaption>
+  <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single layer running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
 </figure>
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
@@ -582,7 +584,7 @@
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption>The network Claude wrote, solving 20 disks with zero mistakes. <a href="demo/index.html">Run it yourself.</a></figcaption>
+  <figcaption>The network Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
 </figure>
 
 <figure class="reveal" style="--hide: 62%">
@@ -706,9 +708,9 @@
 <p>More broadly, our results suggest that for some problems, what holds small networks back is not their size but finding the right weights. An LLM that struggles with a problem can still write a network that solves it.</p>
 
 <h2 id="code">Weights and demo</h2>
-<p><a href="demo/maze.html">Run the Maze-Hard network in your browser</a> on 50 of the test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
+<p><a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Maze-Hard network in your browser</a> on 50 of the test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
 
-<p><a href="demo/index.html">Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move.</p>
+<p><a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move.</p>
 
 <p>The weights of ten of the hand-written networks are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>, along with one short Python script that runs any of them, for example <code>python run.py maze --random 30</code> or <code>python run.py hanoi 10</code>. The Sudoku and GraphWalks networks will follow.</p>
 
