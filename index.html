@@ -224,7 +224,7 @@
           <source src="figures/maze_hero.webm" type="video/webm">
         </video>
       </div>
-      <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard. Each frame shows its real state after one more pass through its single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal (sped up). <a href="demo/maze.html">Run it in your browser.</a></figcaption>
+      <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard. Each frame shows the numbers every cell holds after one more pass through the network's single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal (sped up). <a href="demo/maze.html">Run it in your browser.</a></figcaption>
     </figure>
     <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
       <div class="layers wide">
@@ -282,7 +282,7 @@
     <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe on other hard tasks. One network solves Sudoku-Extreme by guessing and backtracking. Another plays out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake. A third answers graph questions buried in prompts of up to a million tokens (GraphWalks). Four more solve reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these networks scored 100% on its test problems.</li>
     <li><strong>The loop keeps the networks small and lets them scale.</strong> Every weight is one more thing Claude has to get right. With a loop, a bigger problem needs more passes rather than more weights, which keeps the maze network 163 times smaller than it would be without one. The same loop lets each network keep working far beyond the sizes Claude checked it on (<a href="#beyond">section 4</a>).</li>
     <li><strong>Gradient descent did not find these solutions in our runs.</strong> When we reset the maze network Claude wrote to random weights and trained it on the same 1,000 mazes, every run ended with 0% of mazes solved, on budgets far smaller than those of the models built for this benchmark (<a href="#training">section 4</a>).</li>
-    <li><strong>Every number inside has a meaning.</strong> Claude decided what each number in a network's state stands for, so we can decode that state after any loop and watch the algorithm run, as the video above shows.</li>
+    <li><strong>Every number inside has a meaning.</strong> Claude decided what each number inside a network stands for, so we can read those numbers after any loop and watch the algorithm run, as the video above shows.</li>
   </ul>
 </div>
 
@@ -295,7 +295,7 @@
 
 <p>To write a transformer by hand, it helps to picture it as a row of tiny computers, one per token. Each computer has a small memory, which is the vector of numbers the transformer carries for that token from layer to layer. In every layer, attention lets each token read from other tokens. The feed-forward neurons then update the token's memory based on what it already held and what it just read. Writing a network therefore comes down to two decisions. You decide what each number in the memory stands for, then you choose weights that make every update do what you intend.</p>
 
-<p>For mazes, Claude made each cell of the maze one token, so a 30×30 maze becomes 900 tokens. Each cell gets a memory of 35 numbers. A few record what the cell is (a wall, the start or the goal) and where it sits in the grid. Others hold the state of the search, namely the cell's distance from the goal, which neighbour is its next step, and whether it lies on the path. The remaining 20 serve as scratch space for whatever the cell reads from its neighbours. The network's single layer has four attention heads, each with a single job. One lets every cell read the cell below it, while the other three read the cell to its left, to its right and above it.</p>
+<p>For mazes, Claude made each cell of the maze one token, so a 30×30 maze becomes 900 tokens. Each cell gets a memory of 35 numbers. A few record what the cell is (a wall, the start or the goal) and where it sits in the grid. Others track the search, namely the cell's distance from the goal, which neighbour is its next step, and whether it lies on the path. The remaining 20 serve as scratch space for whatever the cell reads from its neighbours. The network's single layer has four attention heads, each with a single job. One lets every cell read the cell below it, while the other three read the cell to its left, to its right and above it.</p>
 
 <p>With this layout, each pass through the layer performs one step of a standard shortest-path search.</p>
 
@@ -309,16 +309,16 @@
 
 <p><strong>Snapping back.</strong> At the end of every loop, each switch is pushed back to 0 or 1. Any small numerical error is wiped out before the next loop can build on it, which is why the network stays accurate through thousands of loops.</p>
 
-<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The network runs 1,800 loops in total, far more than any test maze needs. The next video draws the network's state after every loop.</p>
+<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The network runs 1,800 loops in total, far more than any test maze needs. The next video draws the numbers every cell holds after each loop.</p>
 
 <figure class="video-fig">
   <div class="player">
-    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_inside_poster.png" width="1280" height="720" data-tall="figures/maze_inside_tall" data-tall-size="720x850" aria-label="Animation of the network's real internal state on the first Maze-Hard test maze. On the left, a close-up of the cells around the goal. On the right, the whole maze and a loop counter. The goal holds 0. Each cell reads its four neighbours. Each loop, the cells next to counted ones take that count plus one, counted 0, 1, 2, 0, 1, 2. A loop later, each counted cell gets an arrow to a neighbour one step closer to the goal. The count reaches the start at loop 111. Then the path grows from the start, one cell per loop, along the arrows, and reaches the goal. After that nothing changes, all the way to loop 1,800.">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_inside_poster.png" width="1280" height="720" data-tall="figures/maze_inside_tall" data-tall-size="720x850" aria-label="Animation of the numbers inside the network on the first Maze-Hard test maze. On the left, a close-up of the cells around the goal. On the right, the whole maze and a loop counter. The goal holds 0. Each cell reads its four neighbours. Each loop, the cells next to counted ones take that count plus one, counted 0, 1, 2, 0, 1, 2. A loop later, each counted cell gets an arrow to a neighbour one step closer to the goal. The count reaches the start at loop 111. Then the path grows from the start, one cell per loop, along the arrows, and reaches the goal. After that nothing changes, all the way to loop 1,800.">
       <source src="figures/maze_inside.mp4" type="video/mp4">
       <source src="figures/maze_inside.webm" type="video/webm">
     </video>
   </div>
-  <figcaption>Inside the network on the same maze as at the top. Every digit, arrow and colour is decoded from the network's state after each loop (sped up). The orange arrows at the start mark the four neighbours each cell reads.</figcaption>
+  <figcaption>Inside the network on the same maze as at the top. Every digit, arrow and colour is read from the numbers inside the network after each loop (sped up). The orange arrows at the start mark the four neighbours each cell reads.</figcaption>
 </figure>
 
 
@@ -342,7 +342,7 @@
 
 <h3 id="overthink">Extra loops don't undo the answer</h3>
 
-<p>Looped models trained by gradient descent can <em>overthink</em>. Their answers get worse when they run for more loops than they were trained with. The maze network is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves the state as it is.</p>
+<p>Looped models trained by gradient descent can <em>overthink</em>. Their answers get worse when they run for more loops than they were trained with. The maze network is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves every number as it is.</p>
 
 <figure class="reveal" style="--hide: 89%">
   <div class="layers">
@@ -513,7 +513,7 @@
 
 <p>The maze network has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the first 50 on its own.</p>
 
-<p>The Sudoku network Claude wrote does what a person would do, except for all 81 cells at once. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the network has to guess. It first saves a copy of the whole grid inside its own state, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the network restores the saved grid, in which that guess is now ruled out. One step of this search takes a block of five layers, which the network runs for 40,000 loops with room for 24 saved grids.</p>
+<p>The Sudoku network Claude wrote does what a person would do, except for all 81 cells at once. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the network has to guess. It first saves a copy of the whole grid in its own memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the network restores the saved grid, in which that guess is now ruled out. One step of this search takes a block of five layers, which the network runs for 40,000 loops with room for 24 saved grids.</p>
 
 <p>The Sudoku network solved every one of the 141,040 test puzzles we ran, including the first 10,000 on which HRM, TRM and Sotaku v2 are scored. On those puzzles, the best trained model, <a href="https://github.com/chenglou/sotaku">Sotaku v2</a>, reaches 98.96%. This reliability does cost compute. Because the network runs all 40,000 loops on every puzzle, it does about 50 times more arithmetic per puzzle than TRM, even though most puzzles are solved within the first few thousand loops.</p>
 
@@ -676,7 +676,7 @@
 <p>More broadly, our results suggest that for some problems, what holds small networks back is not their size but finding the right weights. An LLM that struggles with a problem can still write a network that solves it.</p>
 
 <h2 id="code">Weights and demo</h2>
-<p><a href="demo/maze.html">Run the Maze-Hard network in your browser</a> on 50 of the test mazes to watch its state change loop by loop. The page checks every finished grid against the dataset's answer.</p>
+<p><a href="demo/maze.html">Run the Maze-Hard network in your browser</a> on 50 of the test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
 
 <p><a href="demo/index.html">Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move.</p>
 
