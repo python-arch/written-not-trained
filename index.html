@@ -81,6 +81,10 @@
   .card .who { font-weight: 600; line-height: 1.38; }
   .card .ctx { color: var(--muted); font-size: 0.78rem; }
   .hero-video { margin: 16px 0 18px; }
+  .hero-pair { display: grid; grid-template-columns: 1fr; gap: 6px 28px; margin: 16px 0 18px; align-items: start; }
+  .hero-pair > figure { margin: 0 0 12px; }
+  .hero-pair .layers { max-width: none; }
+  @media (min-width: 760px) { .hero-pair { grid-template-columns: 1fr 1fr; } }
   .video-fig { margin: 18px 0 26px; }
   .anatomy { margin: 18px 0 26px; }
   .anat-grid { display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--sans); }
@@ -212,6 +216,7 @@
       <div><b class="label">Published</b>9 November 2026</div>
     </div>
 
+    <div class="hero-pair">
     <figure class="hero-video">
       <div class="player">
         <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. The network Claude wrote solves the first Maze-Hard test maze, loop by loop. In every loop, each cell reads its four neighbours. First, distance from the goal spreads out one step per loop, as cells one step farther away learn how far they are from the goal. It reaches the start at loop 111. Then the path grows from the start, each time to the neighbour one step closer to the goal, and is complete at loop 222. After that nothing changes, all the way to loop 1,800. The network's grid matches the dataset's answer.">
@@ -221,6 +226,18 @@
       </div>
       <figcaption>Claude's network solving the first test maze of Maze-Hard. Each frame shows its real state after one more pass through its single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal (sped up). <a href="demo/maze.html">Run it in your browser.</a></figcaption>
     </figure>
+    <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
+      <div class="layers wide">
+      <img class="data" src="figures/maze_training_data.svg" width="518" height="291" loading="lazy" alt="" aria-hidden="true">
+      <img src="figures/maze_training_base.svg" width="518" height="291" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+      </div>
+      <div class="layers tall">
+      <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="319" loading="lazy" alt="" aria-hidden="true">
+      <img src="figures/maze_training_tall_base.svg" width="355" height="319" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+      </div>
+      <figcaption>The x-axis is training time in hours. The y-axis is the share of the 1,000 test mazes solved. Claude's network needed no training, so it is placed at 1 hour. The dashed line is TRM as released by its authors.</figcaption>
+    </figure>
+    </div>
 
   </div>
 </header>
@@ -422,19 +439,8 @@
 
 <p>Copying turns out to be a trap. Path cells make up only about one cell in eight, so a network that simply copies the maze back already gets 87.4% of cells right. Every run ended at or just below that level, with none getting past 87.5%. To do any better, a network has to mark path cells. In the written network, though, a path cell is marked only after the wave has crossed the maze, which takes a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way to follow.</p>
 
-<p>A standard transformer does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 layers, 6.4 million weights, 320 times Claude's network) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. TRM itself, a looped model built for this benchmark, reached 77.4% when we trained it with its authors' recipe on one GPU.</p>
+<p>A standard transformer does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 layers, 6.4 million weights, 320 times Claude's network) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. TRM itself, a looped model built for this benchmark, reached 77.4% when we trained it with its authors' recipe on one GPU. The chart at the top of this post shows every run against training time.</p>
 
-<figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
-  <div class="layers wide">
-  <img class="data" src="figures/maze_training_data.svg" width="518" height="291" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg" width="518" height="291" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
-  </div>
-  <div class="layers tall">
-  <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="319" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg" width="355" height="319" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
-  </div>
-  <figcaption>The x-axis is training time in hours. The y-axis is the share of the 1,000 test mazes solved. Claude's network needed no training, so it is placed at 1 hour. The dashed line is TRM as released by its authors.</figcaption>
-</figure>
 
 <p>Our runs used far less compute than the models built for Maze-Hard. Each of our first runs inside Claude's network took about 5 PFLOPs, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs. These runs therefore show that gradient descent did not find these weights in our setup, without proving the weights unlearnable. Still, the contrast is hard to ignore. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
 
@@ -445,8 +451,8 @@
 </details>
 
 <details id="maze-gd-details">
-  <summary>Every run in the figure, and why we didn't train them longer</summary>
-  <p>The six versions in the figure are Claude's network at its own size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, the figure places each one at its number of updates times its time per update with the GPU to itself.</p>
+  <summary>Every run in the chart at the top, and why we didn't train them longer</summary>
+  <p>The six versions in the figure are Claude's network at its own size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, the chart at the top places each one at its number of updates times its time per update with the GPU to itself.</p>
   <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. All 111 checkpoints we scored on the test mazes sit at 0%.</p>
   <p><strong>The standard transformer</strong> has width 256 and 8 heads. It has no loop, so one pass fills in all 900 cells. It trained with a standard recipe (AdamW, learning rate 3e-4, batch 64), with nothing tuned, on the 1,000 training mazes plus 2,000 we generated in the same style. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 new mazes of the same style, it levelled off at 45%.</p>
   <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%, between 15,210 and 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. Nor was any of them slowly getting better. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
