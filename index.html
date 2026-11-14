@@ -325,7 +325,7 @@
 
 <h3 id="overthink">Extra loops don't undo the answer</h3>
 
-<p>Looped models trained by gradient descent can <em>overthink</em>. Their answers get worse when they run for more loops than they were trained with, as we saw ourselves in Ouro, a pretrained looped language model (<a href="#app-ouro">appendix C</a>). The maze network is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves the state as it is. On the 1,000 test mazes, accuracy holds at 100% through 1,800, 3,600 and 7,200 loops.</p>
+<p>Looped models trained by gradient descent can <em>overthink</em>. Their answers get worse when they run for more loops than they were trained with. The maze network is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves the state as it is.</p>
 
 <figure class="reveal" style="--hide: 89%">
   <div class="layers">
@@ -340,6 +340,16 @@
   <p>Without the loop, every step would need its own copy of the layer. The maze network would then need 306 layers and 3,259,341 weights for the longest test maze, rising to 834 layers and 8,867,229 weights for the largest 100×100 maze.</p>
   <p>In the curve above, any shortest path counts. We verified the twice-the-path-length rule at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
 </details>
+
+<p>The next chart sets the maze network beside other looped models at two and four times their usual number of loops. Claude's network holds at 100%. The trained looped chains model from <a href="#beyond">section 4</a> falls from 69.1% to 49.2% on the very sizes it was trained on. Ouro-1.4B, a pretrained looped language model, loses accuracy on every benchmark we tried (<a href="#app-ouro">appendix C</a>). Not every trained looped model overthinks, though. Our trained looped graph search and parity models keep the same accuracy with extra loops.</p>
+
+<figure class="reveal" style="--hide: 80%">
+  <div class="layers">
+  <img class="data" src="figures/loops_compare_data.svg" width="518" height="323" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/loops_compare_base.svg" width="518" height="323" loading="lazy" alt="Line chart of accuracy against loops, at 1, 2 and 4 times each model's usual count. Claude's maze network stays at 100%. A trained looped chains model falls from 69.1% to 66.7% to 49.2% on its checking range. Ouro-1.4B falls from 52.6% to 50.8% to 44.7% on ARC-Challenge, from 21% to 18% to 14% on 3-step chains, and from 75.0% to 66.6% on GSM8K.">
+  </div>
+  <figcaption>The x-axis is the number of loops as a multiple of each model's usual count, which is 1,800 for Claude's maze network, the input length for the trained chains model, and 4 for Ouro. The y-axis is accuracy on each model's own task. GSM8K was run at 1× and 2× only.</figcaption>
+</figure>
 
 
 <h2 id="maze"><span class="qn">2.</span> How it compares on Maze-Hard</h2>
