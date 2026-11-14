@@ -165,6 +165,7 @@
   table.text-wrap td:not(.num), table.text-wrap th:not(.num) { white-space: normal; }
   .mlogo { height: 1.1em; width: auto; vertical-align: -0.2em; margin-right: 6px; }
   .mlogo.word { height: 0.7em; vertical-align: 0.02em; }
+  .narrow .layers, .narrow figcaption { max-width: 620px; }
   td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
   .ablate { font-family: var(--sans); font-size: 0.8rem; line-height: 1.5; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .ablate .label { margin: 0 0 6px; }
@@ -401,8 +402,8 @@
     <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
     <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
     <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td>GPT-6 Astra</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td>GPT-6.1 Sol</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">12</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6.1 Sol</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">12</td></tr>
   </tbody>
 </table>
 </div>
@@ -530,7 +531,7 @@
 
 <p>Beyond mazes, Claude wrote networks for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. The rest of this section explains what each network has to do and where a comparison needs care.</p>
 
-<figure class="reveal" style="--hide: 45%">
+<figure class="reveal narrow" style="--hide: 45%">
   <div class="layers">
   <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
@@ -556,9 +557,9 @@
     <tr><td><a href="https://github.com/chenglou/sotaku">Sotaku v2</a> (800K weights)<span class="sub">Trained on 2.7M puzzles</span></td><td class="num">–</td><td class="num">98.96</td></tr>
     <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (5M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">79.5</td></tr>
     <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">55.4</td></tr>
-    <tr class="llm"><td>GPT-6 Astra<span class="sub">No Sudoku training</span></td><td class="num">68</td><td class="num">–</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra<span class="sub">No Sudoku training</span></td><td class="num">68</td><td class="num">–</td></tr>
     <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5<span class="sub">No Sudoku training</span></td><td class="num">54</td><td class="num">–</td></tr>
-    <tr class="llm"><td>GPT-6.1 Sol<span class="sub">No Sudoku training</span></td><td class="num">44</td><td class="num">–</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6.1 Sol<span class="sub">No Sudoku training</span></td><td class="num">44</td><td class="num">–</td></tr>
   </tbody>
 </table>
 </div>
@@ -619,9 +620,9 @@
   <thead><tr><th>Model</th><th class="num">F1 (%)</th></tr></thead>
   <tbody>
     <tr class="written"><td>Hand-written (8,334,331 weights, only 7,777 not zero)</td><td class="num">100.0</td></tr>
-    <tr class="llm"><td>Gemini 4 Carbon</td><td class="num">96.2</td></tr>
-    <tr class="llm"><td>Gemini 4 Argon</td><td class="num">84.2</td></tr>
-    <tr class="llm"><td>GPT-6 Astra</td><td class="num">71.8</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/gemini.png" width="16" height="16" alt="Google Gemini logo">Gemini 4 Carbon</td><td class="num">96.2</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/gemini.png" width="16" height="16" alt="Google Gemini logo">Gemini 4 Argon</td><td class="num">84.2</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra</td><td class="num">71.8</td></tr>
     <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td class="num">66.8</td></tr>
     <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Fable 5.1</td><td class="num">65.0</td></tr>
   </tbody>
@@ -648,10 +649,10 @@
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Boolean Expressions</th><th class="num">Dyck Languages</th></tr></thead>
   <tbody>
     <tr class="written"><td>Hand-written (one network per task)</td><td class="num">183,856 / 58,695</td><td class="num">100.0</td><td class="num">100.0</td></tr>
-    <tr class="llm"><td>SmolLM2-360M</td><td class="num">361.8M</td><td class="num">69.6</td><td class="num">23.6</td></tr>
-    <tr class="llm"><td>SmolLM2-135M</td><td class="num">134.5M</td><td class="num">66.8</td><td class="num">19.2</td></tr>
-    <tr class="llm"><td>Pythia-410M</td><td class="num">405.3M</td><td class="num">52.0</td><td class="num">33.2</td></tr>
-    <tr class="llm"><td>Pythia-160M</td><td class="num">162.3M</td><td class="num">50.4</td><td class="num">22.4</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/huggingface.png" width="16" height="16" alt="Hugging Face logo">SmolLM2-360M</td><td class="num">361.8M</td><td class="num">69.6</td><td class="num">23.6</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/huggingface.png" width="16" height="16" alt="Hugging Face logo">SmolLM2-135M</td><td class="num">134.5M</td><td class="num">66.8</td><td class="num">19.2</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/eleutherai.png" width="16" height="16" alt="EleutherAI logo">Pythia-410M</td><td class="num">405.3M</td><td class="num">52.0</td><td class="num">33.2</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/eleutherai.png" width="16" height="16" alt="EleutherAI logo">Pythia-160M</td><td class="num">162.3M</td><td class="num">50.4</td><td class="num">22.4</td></tr>
   </tbody>
 </table>
 </div>
@@ -662,13 +663,13 @@
   <thead><tr><th>Model</th><th>Method</th><th>Reported</th><th class="num">Web of Lies</th><th class="num">Shuffled Objects</th></tr></thead>
   <tbody>
     <tr class="written"><td>Hand-written</td><td>One network per task</td><td>Nov 2026</td><td class="num">100.0</td><td class="num">100.0</td></tr>
-    <tr class="llm"><td>Qwen3-235B-A22B</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">14.4</td></tr>
-    <tr class="llm"><td>Qwen3-235B-A22B</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">56.9</td></tr>
-    <tr class="llm"><td>o4-mini</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">38.8</td><td class="num">8.1</td></tr>
-    <tr class="llm"><td>o4-mini</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">52.5</td><td class="num">34.4</td></tr>
-    <tr class="llm"><td>o3-mini (high)</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">43.0</td><td class="num">49.5</td></tr>
-    <tr class="llm"><td>DeepSeek-R1</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">29.5</td><td class="num">6.0</td></tr>
-    <tr class="llm"><td>GPT-4o</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">14.5</td><td class="num">14.0</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/qwen.png" width="16" height="16" alt="Qwen logo">Qwen3-235B-A22B</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">14.4</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/qwen.png" width="16" height="16" alt="Qwen logo">Qwen3-235B-A22B</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">81.2</td><td class="num">56.9</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">o4-mini</td><td>Plain reasoning</td><td>Oct 2025</td><td class="num">38.8</td><td class="num">8.1</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">o4-mini</td><td>Program synthesis</td><td>Oct 2025</td><td class="num">52.5</td><td class="num">34.4</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">o3-mini (high)</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">43.0</td><td class="num">49.5</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/deepseek.png" width="16" height="16" alt="DeepSeek logo">DeepSeek-R1</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">29.5</td><td class="num">6.0</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-4o</td><td>Plain reasoning</td><td>Feb 2025</td><td class="num">14.5</td><td class="num">14.0</td></tr>
     <tr><td>Random guess</td><td>Chance</td><td>Feb 2025</td><td class="num">5.5</td><td class="num">14.3</td></tr>
   </tbody>
 </table>
@@ -832,8 +833,8 @@
 <table>
   <thead><tr><th>GSM8K (500 problems, 8 worked examples)</th><th class="num">4 loops</th><th class="num">8 loops</th></tr></thead>
   <tbody>
-    <tr><td>Ouro-1.4B</td><td class="num">75.0</td><td class="num">66.6</td></tr>
-    <tr class="written"><td>Ouro-1.4B, with the fix</td><td class="num">77.2</td><td class="num">75.2</td></tr>
+    <tr><td><img class="mlogo" src="figures/logos/bytedance.png" width="16" height="16" alt="ByteDance logo">Ouro-1.4B</td><td class="num">75.0</td><td class="num">66.6</td></tr>
+    <tr class="written"><td><img class="mlogo" src="figures/logos/bytedance.png" width="16" height="16" alt="ByteDance logo">Ouro-1.4B, with the fix</td><td class="num">77.2</td><td class="num">75.2</td></tr>
   </tbody>
 </table>
 </div>
