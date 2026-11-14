@@ -168,6 +168,7 @@
   .narrow .layers, .narrow figcaption { max-width: 620px; }
   .demo-link { font-weight: 600; }
   .demo-ico { width: 1.05em; height: 1.05em; vertical-align: -0.17em; margin-right: 6px; }
+  .video-fig.smaller .player, .video-fig.smaller figcaption { max-width: 940px; margin-left: auto; margin-right: auto; }
   td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
   .ablate { font-family: var(--sans); font-size: 0.8rem; line-height: 1.5; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .ablate .label { margin: 0 0 6px; }
@@ -333,7 +334,7 @@
 
 <p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The network runs 1,800 loops in total, far more than any test maze needs. Figure 4 draws the numbers every cell holds after each loop.</p>
 
-<figure class="video-fig">
+<figure class="video-fig smaller">
   <div class="player">
     <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_inside_poster.png" width="1280" height="720" data-tall="figures/maze_inside_tall" data-tall-size="720x850" aria-label="Animation of the numbers inside the network on the first Maze-Hard test maze. On the left, a hand-drawn character standing for the network Claude wrote, with a thought bubble holding a close-up of the cells around the goal. On the right, the whole maze and a loop counter. The goal holds 0. Each cell reads its four neighbours. Each loop, the cells next to counted ones take that count plus one, counted 0, 1, 2, 0, 1, 2. A loop later, each counted cell gets an arrow to a neighbour one step closer to the goal. The count reaches the start at loop 111. Then the path grows from the start, one cell per loop, along the arrows, and reaches the goal. After that nothing changes, all the way to loop 1,800.">
       <source src="figures/maze_inside.mp4" type="video/mp4">
