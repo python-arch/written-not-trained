@@ -218,7 +218,7 @@
           <source src="figures/maze_hero.webm" type="video/webm">
         </video>
       </div>
-      <figcaption>A transformer whose every weight Claude set by hand, solving the first test maze of Maze-Hard with no training at all. Each frame shows the network's real state after one more pass through its single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal (sped up). <a href="demo/maze.html">Run it in your browser.</a></figcaption>
+      <figcaption>Claude's network solving the first test maze of Maze-Hard. Each frame shows its real state after one more pass through its single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal (sped up). <a href="demo/maze.html">Run it in your browser.</a></figcaption>
     </figure>
 
   </div>
@@ -250,27 +250,25 @@
 
 <main class="wrap">
 
-<p>Neural networks normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices. Its attention heads decide which tokens each token reads from, while its feed-forward neurons decide what to do with what it read. So if you know the program you want, you can skip training altogether and write the matrices yourself. People have done this by hand for small problems. Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. This year, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a network's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, though only for toy tasks.</p>
+<p>Neural networks normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices, so if you know the program you want, you can skip training and write the matrices yourself. People have done this by hand for small problems (<a href="#related">related work</a>). Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. This year, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a network's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, though only for toy tasks.</p>
 
-<p>We wanted to know whether LLM-written weights hold up on problems that are genuinely hard. Our main test is <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. Frontier LLMs struggle with it. When Claude Opus 5.5 is asked for the shortest path, it gets only 13 of 50 test mazes right (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>). So instead of asking Claude to solve the mazes, we asked it to build a network that solves them, namely a transformer whose every weight Claude sets by hand. Claude could run this network on the 1,000 training mazes to check its work, but nothing in it was trained. No gradient was computed and no data was fitted.</p>
+<p>We wanted to know whether LLM-written weights hold up on problems that are genuinely hard. Our main test is <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. Frontier LLMs struggle with it. When Claude Opus 5.5 is asked for the shortest path, it gets only 13 of 50 test mazes right (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>). So instead of asking Claude to solve the mazes, we asked it to build a network that solves them, namely a transformer whose every weight Claude sets by hand. Claude could run this network on the 1,000 training mazes to check its work, but nothing in it was trained.</p>
 
-<p>The network Claude wrote is a single transformer layer with 19,936 weights, of which only 922 are not zero. That layer runs in a loop, advancing a shortest-path search by one step on every pass. The looped network solves all 1,000 test mazes. For every maze, it returns the same path the dataset gives as the answer, rather than just some shortest path. Because a bigger maze simply needs more loops, the very same weights also solved all 90 of the 60×60 and 100×100 mazes we generated, even though Claude had checked the network only on 30×30 mazes.</p>
+<p>The network Claude wrote is a single transformer layer with 19,936 weights, of which only 922 are not zero. That layer runs in a loop, advancing a shortest-path search by one step on every pass. The looped network solves all 1,000 test mazes. For every maze, it returns the same path the dataset gives as the answer, rather than just some shortest path. Because a bigger maze simply needs more loops, the very same weights also solved all 50 mazes we generated at 60×60 and all 40 at 100×100, even though Claude had checked the network only on 30×30 mazes. The loop is what this post adds to earlier work, since it lets an LLM-written network handle problems that take thousands or even a million steps. We call the approach <em>looped weight-space programming</em>.</p>
 
-<p>What makes this result striking is who wrote the network. Claude itself struggles to carry out a search of more than a hundred steps in text without slipping. Even when we spell the algorithm out, Claude finds a shortest path in at most 25 of the 50 mazes. Its first wrong step comes a median 35% of the way along the path. Yet Claude can describe a single step of that search precisely enough to turn the step into weights. The loop then repeats that step without error for as long as the maze requires. Claude does not have to execute the algorithm itself, because the network does the executing. Programmers rely on the same trick whenever they write code for arithmetic they could not do in their heads.</p>
+<p>What makes this result striking is who wrote the network. Claude itself struggles to carry out a search of more than a hundred steps in text, even when we spell the algorithm out (<a href="#maze-claude">section 3</a>). Yet it can write a single step of that search into weights, leaving the loop to repeat the step for as long as the maze requires. Programmers rely on the same trick whenever they write code for arithmetic they could not do in their heads.</p>
 
 <div class="tldr">
   <div class="label">What we found</div>
   <ul>
-    <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe to write networks that solve Sudoku-Extreme by guessing and backtracking, that play out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake, that answer graph questions buried in prompts of up to a million tokens (GraphWalks), and that solve four reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these networks scored 100% on the test problems we ran. Each of them is a specialist, built for a single task and input format.</li>
-    <li><strong>The loop is what makes these networks possible.</strong> Every weight is one more thing Claude has to get right, which means the networks must stay small. A loop keeps them small, because a bigger problem then needs more passes rather than more weights. Without the loop, the maze network would need 163 times as many weights. The loop is also why the networks keep working far beyond the sizes Claude checked them on. Claude checked its parity network, which tells whether a string of bits holds an odd or even number of 1s, only on strings of up to 20 bits. That network is correct on every length we tried, all the way to 4,095.</li>
-    <li><strong>Gradient descent did not find these solutions in our runs.</strong> We reset Claude's maze network to random weights and trained it on the same 1,000 mazes. Every run ended with 0% of mazes solved. Even a standard transformer 320 times bigger, trained on three times as many mazes, peaked at 42%. Our training budgets were far smaller than those behind the models built for this benchmark, so the solutions may still be learnable. Even so, training did not come close to the solution that the same architecture holds, which solves every test maze.</li>
-    <li><strong>Every number inside has a meaning.</strong> Claude decided what each number in a network's state stands for. As a result, we can decode that state after any loop and watch the algorithm run, as the video above shows. Because Claude controls every number, it could also build its networks so that a finished answer stays the same through extra loops, up to the 7,200 we tested. Some trained looped models, by contrast, get worse when run for longer.</li>
+    <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe to write networks that solve Sudoku-Extreme by guessing and backtracking, that play out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake, that answer graph questions buried in prompts of up to a million tokens (GraphWalks), and that solve four reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these networks scored 100% on the test problems we ran.</li>
+    <li><strong>The loop keeps the networks small and lets them scale.</strong> Every weight is one more thing Claude has to get right. With a loop, a bigger problem needs more passes rather than more weights, which keeps the maze network 163 times smaller than it would be without one. The same loop lets each network keep working far beyond the sizes Claude checked it on (<a href="#beyond">section 4</a>).</li>
+    <li><strong>Gradient descent did not find these solutions in our runs.</strong> When we reset Claude's maze network to random weights and trained it on the same 1,000 mazes, every run ended with 0% of mazes solved, on budgets far smaller than those of the models built for this benchmark (<a href="#training">section 4</a>).</li>
+    <li><strong>Every number inside has a meaning.</strong> Claude decided what each number in a network's state stands for, so we can decode that state after any loop and watch the algorithm run, as the video above shows.</li>
   </ul>
 </div>
 
 <p>Why write weights at all, when Claude could simply write a Python program that searches the maze? Because a program tells us nothing about neural networks. Once the solution sits inside an ordinary transformer, the same kind of network people normally train, we can ask questions that a program cannot answer. Does a network this small already hold a complete solution? And if it does, can training find it?</p>
-
-<p>Hand-built transformers are not new, nor are networks compiled from programs or written by LLMs. The algorithms inside ours come straight from textbooks (<a href="#related">related work</a>). What we add is the loop. It lets a network written by an LLM take on benchmark problems that take hundreds, thousands or even a million steps, each of which has to be right, including problems the LLM fails to solve on its own. We call this pairing of LLM-written weights with a loop <em>looped weight-space programming</em>.</p>
 
 <p>The rest of this post walks through the maze network in detail, since every other network is built the same way. We then look at why Claude can write the network even though it fails to solve most mazes, whether training can find the same weights, and how the other benchmarks went. The weights and two in-browser demos are <a href="#code">public</a>.</p>
 
@@ -293,7 +291,7 @@
 
 <p><strong>Snapping back.</strong> At the end of every loop, each switch is pushed back to 0 or 1. Any small numerical error is wiped out before the next loop can build on it, which is why the network stays accurate through thousands of loops.</p>
 
-<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The network runs 1,800 loops in total, far more than any test maze needs. Once the path is done, the state stays the same. Because Claude chose the meaning of every number, we can decode the state after each loop and draw it, which is what the next video shows.</p>
+<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The network runs 1,800 loops in total, far more than any test maze needs. The next video draws the network's state after every loop.</p>
 
 <figure class="video-fig">
   <div class="player">
@@ -339,7 +337,7 @@
 <details>
   <summary>The loop in numbers</summary>
   <p>Without the loop, every step would need its own copy of the layer. The maze network would then need 306 layers and 3,259,341 weights for the longest test maze, rising to 834 layers and 8,867,229 weights for the largest 100×100 maze.</p>
-  <p>In the curve above, any shortest path counts. A maze becomes solved once the loops reach twice its path length, not earlier, and stays solved afterwards. We verified this at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
+  <p>In the curve above, any shortest path counts. We verified the twice-the-path-length rule at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
 </details>
 
 
@@ -363,7 +361,7 @@
 </div>
 <p class="note">A maze counts as solved when the answer is any shortest path from start to goal. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</p>
 
-<p>The written network tops the table. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written network needed no training at all. The written network also holds up under the stricter scoring of the HRM and TRM papers, where only the dataset's own path counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM. Finally, the written network generalizes to bigger mazes. When we ran it for more loops, the network solved all 50 mazes we generated at 60×60 and all 40 at 100×100 with the same 19,936 weights.</p>
+<p>The written network tops the table. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written network needed no training at all. The written network also holds up under the stricter scoring of the HRM and TRM papers, where only the dataset's own path counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM.</p>
 
 <details>
   <summary>Accuracy against size, stricter scoring, TRM's three scores, and a re-run check</summary>
@@ -374,7 +372,7 @@
   </div>
   <figcaption>The vertical axis starts at 80%. LDT is shown both trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
-  <p>HRM and TRM count a maze as solved only when the answer matches the dataset's reference path (per Davis et al.). Their own papers report 74.5 for HRM and 85.3 for TRM under that scoring. <a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze, although its authors follow TRM's training protocol and report their number next to HRM's 74.5 and TRM's 85.3.</p>
+  <p><a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze, although its authors follow TRM's training protocol and report their number next to HRM's and TRM's reference-path scores.</p>
   <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. LDT scores 99.0 when trained on one path per maze. Both are averages over 3 runs.</p>
   <p>TRM shows up with three scores in this post. The 91.9 is from Davis et al., counting any shortest path, for its best version during training. The 85.3 belongs to the model its authors released, counting only the reference path. The 77.4 is our own training run in <a href="#written-vs-trained-maze">section 4</a>, scored the same way.</p>
   <p>A 30×30 maze uses only the first 30 rows of the network's row and column tables. A separate check re-ran the network on all 1,000 test mazes and on 500 freshly made ones, returning the reference path for every one. In earlier tests in the LDT paper, in April 2026, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
@@ -402,7 +400,7 @@
 </div>
 <p class="note">The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a difference of a few mazes is noise.</p>
 
-<p>Knowing the algorithm helps, then, but only so far. Tokenization isn't the culprit either, since giving Claude one token per cell made it no better (22 against 24). The real difficulty is carrying the algorithm out. The path alone runs over 110 steps, every one of which has to be right. Claude's mistakes also come early. Even when Claude is told how to search, its first wrong step comes a median 35% of the way along the shortest path.</p>
+<p>Knowing the algorithm helps, then, but only so far. Tokenization isn't the culprit either, since giving Claude one token per cell made it no better (22 against 24). The real difficulty is carrying the algorithm out. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 
 <p>Writing the network demands something quite different. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We think this division of labour plays to an LLM's strengths. The design rests on a handful of ideas, such as counting distance in threes, each of which can be checked on its own. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
@@ -434,7 +432,7 @@
   <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="442" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_training_tall_base.svg" width="355" height="442" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
   </div>
-  <figcaption>Test mazes solved against training time. Claude's network needed no training, so it is placed at 1 hour. When the same network is trained from scratch, it stays at 0% in all six versions. TRM and the standard transformer, both of which we trained ourselves, are over 300 times bigger than Claude's network. The dashed line is TRM as released by its authors.</figcaption>
+  <figcaption>Test mazes solved against training time. Claude's network needed no training, so it is placed at 1 hour. The dashed line is TRM as released by its authors.</figcaption>
 </figure>
 
 <p>Our runs used far less compute than the models built for Maze-Hard. Each of our first runs inside Claude's network took about 5 PFLOPs, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs. These runs therefore show that gradient descent did not find these weights in our setup, without proving the weights unlearnable. Still, the contrast is hard to ignore. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
@@ -442,18 +440,16 @@
 <details>
   <summary>How we trained Claude's network</summary>
   <p>We fixed the plan before any training. Every run used the network's own tokenizer and 1,800 loops, AdamW, 3 learning rates × 2 seeds, and 40 minutes per run. A run counts as training if its loss stays finite and it beats copying the input on mazes it didn't train on.</p>
-  <p>As written, the network has no normalisation, so all 6 runs broke down within their first 30 steps. With RMSNorm added, all 6 trained smoothly but each ended at 0% of mazes solved, getting 87.2–87.4% of cells right against 87.4% for copying the input.</p>
-  <p>Each run took about 14,400 steps, or about 5 PFLOPs. HRM, TRM and LDT trained with 1,024–46,944 PFLOPs.</p>
+  <p>With RMSNorm, the six runs got 87.2–87.4% of cells right, against 87.4% for copying the input. Each run took about 14,400 steps.</p>
 </details>
 
 <details id="maze-gd-details">
   <summary>Every run in the figure, and why we didn't train them longer</summary>
-  <p>We reset the network Claude wrote to random weights and trained it on the same 1,000 training mazes, in 6 versions. One kept its own size (with 3 learning rates), while the others had twice the loops, 2 or 4 layers per loop, or 4 or 16 times the width. Each version adds normalisation, because the network as written breaks down in training. Since the runs shared one GPU, the figure places each one at its number of updates times its time per update with the GPU to itself.</p>
-  <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. In 8 hours each, none solved a single maze of any size, not even 10×10. All 111 checkpoints we scored on the test mazes sit at 0%.</p>
-  <p><strong>The standard transformer</strong> is a plain transformer encoder of TRM's size, with 8 layers, width 256, 8 heads and 6.4M weights. It has no loop, so one pass fills in all 900 cells. It trained on the 1,000 training mazes plus 2,000 we generated in the same style, for 8 hours alone on one GPU, with a standard recipe (AdamW, learning rate 3e-4, batch 64). This is one run with nothing tuned. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 of its training mazes it scored 94–99% from about the first hour on, while on 200 new mazes of the same style it levelled off at 45% for the last two hours.</p>
-  <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%, between 15,210 and 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. Nor was any of them slowly getting better. Each one learned early on to copy the maze back unchanged, then did not get past 87.5% of cells right against 87.4% for copying, whereas a maze needs all 900 cells right. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
+  <p>The six versions in the figure are Claude's network at its own size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, the figure places each one at its number of updates times its time per update with the GPU to itself.</p>
+  <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. All 111 checkpoints we scored on the test mazes sit at 0%.</p>
+  <p><strong>The standard transformer</strong> has width 256 and 8 heads. It has no loop, so one pass fills in all 900 cells. It trained with a standard recipe (AdamW, learning rate 3e-4, batch 64), with nothing tuned, on the 1,000 training mazes plus 2,000 we generated in the same style. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 new mazes of the same style, it levelled off at 45%.</p>
+  <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%, between 15,210 and 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. Nor was any of them slowly getting better. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
   <p>TRM is a different network, built for mazes, with 6.8M weights. Our 77.4% comes from our run of its recipe on one GPU instead of the authors' eight, counting only the reference path. The authors' released TRM gets 85.3% scored this way, still short of 100%.</p>
-  <p>This covers one task and a handful of standard recipes. It shows that gradient descent does not find these weights in this setup, without proving that they cannot be learned.</p>
 </details>
 
 <h3 id="beyond">Far beyond the sizes they were checked on</h3>
@@ -474,7 +470,7 @@
   <figcaption>Accuracy within the checking range (shaded) and on longer inputs, for graph search, parity and reasoning chains.</figcaption>
 </figure>
 
-<p>In all three tasks, the trained networks learn the sizes they see and stop there, whereas the written networks only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further, to 256 bits in one recent paper (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). The written networks show what is possible at the other extreme. Small looped networks can hold a solution that works at any size, given enough loops and a large enough position table.</p>
+<p>In all three tasks, the trained networks learn the sizes they see and stop there, whereas the written networks only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written networks show what is possible at the other extreme. Small looped networks can hold a solution that works at any size, given enough loops and a large enough position table.</p>
 
 <details>
   <summary>The graph search table</summary>
@@ -496,7 +492,7 @@
 
 <h2 id="results"><span class="qn">5.</span> The same recipe on other benchmarks</h2>
 
-<p>Beyond mazes, Claude wrote networks for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. Each network was locked before its one and only test run. Every one of them scored 100% on the test problems we ran. The chart sets each network beside the strongest trained model or LLM we could find. The rest of this section explains what each network has to do and where a comparison needs care.</p>
+<p>Beyond mazes, Claude wrote networks for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. The rest of this section explains what each network has to do and where a comparison needs care.</p>
 
 <figure class="reveal" style="--hide: 45%">
   <div class="layers">
@@ -531,7 +527,7 @@
 </table>
 </div>
 <p class="note">Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
-  <p>The network reads the puzzle as text, one character per token, and writes back the solved grid. Per puzzle, it does 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. The gap exists because it runs all 40,000 loops on every puzzle. Most puzzles are solved after a few thousand, after which the remaining loops leave the solved grid unchanged.</p>
+  <p>The network reads the puzzle as text, one character per token, and writes back the solved grid. Per puzzle, it does 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. </p>
   <p>Each column covers the same puzzles in the same order, namely the test set's fixed order set by the LDT code. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper's own model was scored on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
   <p>On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the network has. Before the test, the network itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
 </details>
@@ -560,7 +556,7 @@
   <figcaption>Each blue dot is one size the network solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse. Apple's paper tests up to 12 disks.</figcaption>
 </figure>
 
-<p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. Claude's Hanoi network needs none of that. A single small layer makes all 1,048,575 moves itself, without a single mistake and without tools, votes or second attempts.</p>
+<p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. Claude's Hanoi network needs none of that. A single small layer makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
 
 <p><strong>Checker Jumping</strong>, the second puzzle in the Apple study, tells the same story. Red and blue checkers sit in a row with one gap and must swap sides. They can only move forward, either by sliding into the gap or by jumping a single checker of the other colour. In the paper's tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side, while o3-mini on its high setting held about 50% or better up to 8 per side (read from the paper's figures). Although Claude checked its network only on boards of up to 3 per side, the network solves every size from 4 to 40 per side in the fewest possible moves, which comes to 1,680 moves at 40 per side.</p>
 
@@ -605,7 +601,7 @@
 
 <p>Each network turns its question into something it can loop over. The Boolean network simplifies the expression one step per loop, much as you would by hand. The Dyck network adds up openers and closers to find how deep each bracket sits, then closes the most recent bracket that is still open, one at a time. In Web of Lies, each person's claim concerns someone else. On every loop, everyone whose subject is already settled works out whether they are telling the truth, so the answers spread along the chain of claims. Shuffled Objects uses a doubling trick from parallel computing. On every loop, each position merges its record of swaps with the record twice as far back, so after only a few loops the last position knows the outcome of all of them.</p>
 
-<p>All four networks score 100%, both on the 250 official test items of each BIG-Bench Hard task and on all 180 test questions of each Extra Hard task. The Extra Hard results carry the most weight. There, the best LLM results we found are 81.2% on Web of Lies and 56.9% on Shuffled Objects, the latter achieved by having the model write and run a program. On BIG-Bench Hard, frontier LLMs already score above 90%, so we compare only with small open models and treat the result mainly as proof that the networks can read text.</p>
+<p>All four networks score 100%, both on the 250 official test items of each BIG-Bench Hard task and on all 180 test questions of each Extra Hard task. The Extra Hard results carry the most weight. There, the best LLM results we found are 81.2% on Web of Lies and 56.9% on Shuffled Objects, the latter achieved by having the model write and run a program. On BIG-Bench Hard, frontier LLMs already score above 90% (Kazemi et al., 2025), so we compare only with small open models and treat the result mainly as proof that the networks can read text.</p>
 
 <p>As with GraphWalks, these networks understand only the wording they were built for, which comes from the public example questions, the benchmark paper's description and a few everyday words such as "swaps" and "trades". To confirm that they follow the rule rather than anything absorbed from the test set, we also ran the BIG-Bench Hard networks on 300 freshly generated questions per task, where they again scored 100%. The test questions sat on the same machine while the networks were being written, yet the session records show they were not opened.</p>
 
@@ -623,7 +619,7 @@
   </tbody>
 </table>
 </div>
-<p class="note">BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Frontier models score above 90% on BIG-Bench Hard (Kazemi et al., 2025), so this comparison is against small open models only. Only 6,756 of the Boolean network's weights and 8,491 of the Dyck network's aren't zero. Of the Boolean network's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped block is two layers with 89 neurons.</p>
+<p class="note">BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean network's weights and 8,491 of the Dyck network's aren't zero. Of the Boolean network's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped block is two layers with 89 neurons.</p>
 
 <div class="table-wrap">
 <table>
@@ -643,22 +639,19 @@
 </div>
 <p class="note">BIG-Bench Extra Hard, accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
   <p>Our networks got 180 of 180 on each task, a score that a separate check confirmed by re-running both networks. The task's 20 public example questions are not counted. The Feb 2025 rows come from the BBEH paper (Kazemi et al.), on all 200 questions per task. The Oct 2025 rows come from <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
-  <p>The Extra Hard networks read BBEH's fixed question templates. The few extra everyday words they know, such as "swaps" and "trades", don't appear in the test questions. The Shuffled Objects network assumes the options are listed in the order the objects were first handed out, as in every public example. Both networks need 64-bit numbers and a high-precision version of the step that turns attention scores into weights. With the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, of which only 44,550 are not zero. Shuffled Objects has 6,663,936, of which only 40,316 are not zero.</p>
+  <p>The Extra Hard networks read BBEH's fixed question templates. None of the extra everyday words they know appear in the test questions. The Shuffled Objects network assumes the options are listed in the order the objects were first handed out, as in every public example. Both networks need 64-bit numbers and a high-precision version of the step that turns attention scores into weights. With the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, of which only 44,550 are not zero. Shuffled Objects has 6,663,936, of which only 40,316 are not zero.</p>
 </details>
 
 
 <h2 id="limits">What this shows, and what it doesn't</h2>
 
-<p>Our main result is that a frontier LLM can write, weight by weight, small looped transformers that score 100% on hard benchmarks by running textbook algorithms. These networks keep working on problems far larger than the ones they were checked on, including problems the LLM fails to solve on its own. The points below mark where the result ends.</p>
+<p>Four points mark where these results end.</p>
 
 <ul>
   <li><strong>Each network is a specialist.</strong> One network does one task, whereas the LLMs we compare against handle thousands. Outperforming an LLM on one narrow task says nothing about general reasoning.</li>
   <li><strong>The algorithms are known.</strong> Breadth-first search, backtracking search and the optimal Tower of Hanoi moves are all textbook material. What is new is that an LLM wrote them into weights, producing networks that run them without error over very long runs, which is where trained models and LLMs reasoning in text break down.</li>
-  <li><strong>The networks are brittle outside their format.</strong> Each one reads only the input format it was built for. Some also need 64-bit numbers and a high-precision softmax, without which Web of Lies drops from 180 to 139 correct.</li>
-  <li><strong>Reliability costs compute.</strong> The Sudoku network does about 50 times more arithmetic per puzzle than TRM, because it runs its full 40,000 loops on every puzzle.</li>
-  <li><strong>Comparisons use published numbers.</strong> We quote each paper's results with its date, so newer models may do better. On Sudoku, we compare only on puzzles both sides were run on.</li>
+  <li><strong>Comparisons use published numbers.</strong> We quote each paper's results with its date, so newer models may do better.</li>
   <li><strong>Weight counts include position tables and many zeros.</strong> Wherever the difference is large, we also give the number of weights that are not zero.</li>
-  <li><strong>The training comparisons are limited.</strong> Our runs used small budgets and standard recipes. They show that gradient descent did not find these solutions in our setup. Whether it could with far more compute remains open.</li>
 </ul>
 
 <h2 id="honest">How we kept it honest</h2>
@@ -666,7 +659,7 @@
   <li>No training, no gradients and no fitting to data went into any hand-written network.</li>
   <li>We locked each network before testing it, then tested it once.</li>
   <li>The loop that runs a network is the same for every task, with all the computing happening in the weights. Only a small step per task turns the input text into tokens and the output tokens back into text, without solving anything.</li>
-  <li>Ten of the networks are public, along with one script that runs any of them, so anyone can rerun the results (<a href="#code">weights and demo</a>).</li>
+  <li>Anyone can rerun the results with the public networks (<a href="#code">weights and demo</a>).</li>
 </ul>
 
 <h2 id="next">What's next</h2>
@@ -678,7 +671,7 @@
 <h2 id="code">Weights and demo</h2>
 <p><a href="demo/maze.html">Run the Maze-Hard network in your browser</a> on 50 of the test mazes to watch its state change loop by loop. The page checks every finished grid against the dataset's answer.</p>
 
-<p><a href="demo/index.html">Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move. With 4 or 8 loops per move instead of 2, every move stays the same.</p>
+<p><a href="demo/index.html">Run the Tower of Hanoi network in your browser.</a> The page loads the network's weights and runs them with one generic loop, while a separate checker replays every move.</p>
 
 <p>The weights of ten of the hand-written networks are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>, along with one short Python script that runs any of them, for example <code>python run.py maze --random 30</code> or <code>python run.py hanoi 10</code>. The Sudoku and GraphWalks networks will follow.</p>
 
@@ -686,9 +679,8 @@
 <div class="related">
 <p><strong>Writing weights.</strong> <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> named the idea and showed LLMs reading and editing a network's weights directly. <a href="https://github.com/anadim/AdderBoard">AdderBoard</a> showed coding agents hand-setting the weights of tiny transformers. At the same time, <a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a> had Claude set every weight of small transformers for ten algorithmic tasks, including parity. <a href="https://github.com/Fchaubard/WSP-for-turing-complete">Chaubard</a> compares weight-space programming with ordinary training on small algorithmic tasks. Earlier, LLMs wrote programs that a compiler turned into weights (<a href="https://arxiv.org/abs/2304.01665">Weng et al.</a>, <a href="https://arxiv.org/abs/2409.13714">TracrBench</a>).</p>
 <p><strong>Hand-built and compiled networks.</strong> Programs have long been compiled into transformer weights (<a href="https://arxiv.org/abs/2301.05062">Tracr</a>, and <a href="https://arxiv.org/abs/2410.18077">ALTA</a>, which also compiles looped programs for parity and addition). Looped transformers can simulate general programs (<a href="https://arxiv.org/abs/2301.13196">Giannou et al.</a>). Closest to our tasks are hand-constructed looped transformers that run breadth-first search, depth-first search and Dijkstra's algorithm (<a href="https://arxiv.org/abs/2402.01107">Back de Luca and Fountoulakis</a>), a hand-built transformer for parity (<a href="https://arxiv.org/abs/2202.12172">Chiang and Cholak</a>), and programs in RASP, a programming language that maps onto transformers, for balanced brackets (<a href="https://arxiv.org/abs/2106.06981">Weiss et al.</a>).</p>
-<p><strong>Trained models that handle bigger inputs.</strong> With special training recipes, trained models do handle inputs longer than the ones they saw. Looped transformers handle longer parity inputs when the loop count grows with the input (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) or when the loop also carries state from token to token (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). Transformers track variable chains longer than those seen in training (<a href="https://arxiv.org/abs/2505.20896">Wu et al.</a>). Models that reason in a hidden loop and are trained on every intermediate step do this too (<a href="https://arxiv.org/abs/2510.14095">Altabaa et al.</a>), as do graph networks trained on algorithms' step-by-step runs (<a href="https://arxiv.org/abs/2209.11142">Ibarz et al.</a>).</p>
+<p><strong>Trained models that handle bigger inputs.</strong> With special training recipes, trained models do handle inputs longer than the ones they saw. Looped transformers handle longer parity inputs when the loop count grows with the input (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>, over 40 bits) or when the loop also carries state from token to token (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>, 256 bits). Transformers track variable chains longer than those seen in training (<a href="https://arxiv.org/abs/2505.20896">Wu et al.</a>). Models that reason in a hidden loop and are trained on every intermediate step do this too (<a href="https://arxiv.org/abs/2510.14095">Altabaa et al.</a>), as do graph networks trained on algorithms' step-by-step runs (<a href="https://arxiv.org/abs/2209.11142">Ibarz et al.</a>).</p>
 <p><strong>Looped models.</strong> Trained recursive reasoners such as HRM, TRM, LDT and Attractor Models set the Maze-Hard results we compare against. Overthinking was named for recurrent networks by <a href="https://arxiv.org/abs/2202.05826">Bansal et al.</a> Overthinking in looped language models is studied by <a href="https://arxiv.org/abs/2604.11791">Blayney et al.</a> and addressed with training by <a href="https://arxiv.org/abs/2605.26733">STARS</a>. Methods that need no training, which change how Ouro writes its answer or how many loops it runs, have also been tried on it (<a href="https://arxiv.org/abs/2610.02185">Liu et al.</a>, <a href="https://arxiv.org/abs/2609.36653">Wang et al.</a>). <a href="https://arxiv.org/abs/2605.20670">LT2</a> saw attention pile up on the first token, loop after loop, in a looped transformer.</p>
-<p><strong>Puzzles.</strong> The puzzle comparisons come from <a href="https://arxiv.org/abs/2506.06941">Shojaee et al.</a> With code execution, reasoning models solved Tower of Hanoi at every size tested, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al.</a>). A system that votes over several LLM samples for every move solved 20 disks without an error (<a href="https://arxiv.org/abs/2511.09030">Meyerson et al.</a>).</p>
 </div>
 
 <h2 id="citation">Citation</h2>
@@ -705,8 +697,6 @@
 <p>The text, figures and animations are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, while the code and weights use the <a href="https://github.com/python-arch/written-not-trained/blob/main/LICENSE">MIT license</a>.</p>
 
 <h2 id="appendix">Appendix</h2>
-
-<p>The appendix holds the full parity and chains results, the arithmetic each model needs per maze, and a side result on a pretrained looped model.</p>
 
 <h3 id="app-parity">A. Parity and reasoning chains, in full</h3>
 
@@ -731,7 +721,6 @@
 </table>
 </div>
 <p class="note">Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written network's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
-<p>With standard training, none of these models handles strings longer than the ones it saw. Special training recipes go further, to over 40 bits (<a href="https://arxiv.org/abs/2409.15647">Fan et al.</a>) and to 256 bits (<a href="https://arxiv.org/abs/2610.07591">Zhang et al.</a>). In an extra test on lengths from 256 to 4,095 bits, the hand-written network got every input right.</p>
 <div class="table-wrap">
 <table class="text-first">
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
@@ -777,7 +766,7 @@
 <details class="appendix">
   <summary>Read the appendix</summary>
 
-<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> runs its 24 layers 4 times. When it runs for more loops, it overthinks and gets worse. It also has a built-in "am I done?" signal that it uses to decide when to stop looping.</p>
+<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> runs its 24 layers 4 times. It also has a built-in "am I done?" signal that it uses to decide when to stop looping.</p>
 
 <p><strong>The clock.</strong> Claude found the cause by reading the model's internal states. Ouro adds no start token, so its first token can only attend to itself. Loop after loop, that token's state therefore steps through a fixed sequence that every other token reads, like a clock. Past loop 4, the clock shows values outside the range Ouro saw in training.</p>
 
@@ -820,7 +809,7 @@
   <p>STARS (ICML 2026) addressed the same decline in Ouro with extra training, whereas ours needs none. Our 4→8 drop without the fix is smaller than the one STARS reports (−8.4 vs −17.0 points), which suggests the two setups differ.</p>
 </details>
 
-<p class="fine"><b>Good to know.</b> This is stability, not a gain. Extra loops no longer hurt, but they do not beat 4 loops on ARC or the chains. A natural next step is to keep the loop clock in range while training looped language models.</p>
+<p class="fine"><b>Good to know.</b> This is stability, not a gain, since extra loops do not beat 4 loops on ARC or the chains. A natural next step is to keep the loop clock in range while training looped language models.</p>
 
 </details>
 
