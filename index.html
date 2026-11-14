@@ -363,17 +363,17 @@
 <p>Looped models trained by gradient descent can <em>overthink</em>, which means their answers get worse when they run for more loops than they were trained with. <a href="https://arxiv.org/abs/2202.05826">Bansal et al. (NeurIPS 2022)</a> showed this on mazes with DeepThinking, a looped convolutional model trained on 9×9 mazes. On 13×13 mazes it peaks at 86% after about 40 loops. If it keeps looping, its accuracy collapses below 1% by loop 82. The maze transformer is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves every number as it is.</p>
 
 <div class="fig-pair">
-<figure class="reveal pair-wide" style="--hide: 89%">
+<figure class="reveal" style="--hide: 89%; flex-grow: 1.774">
   <div class="layers">
   <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
   <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
 </figure>
-<figure class="reveal" style="--hide: 88%">
+<figure class="reveal" style="--hide: 88%; flex-grow: 1.785">
   <div class="layers">
-  <img class="data" src="figures/hanoi_data.svg" width="557" height="309" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/hanoi_base.svg" width="557" height="309" loading="lazy" alt="Accuracy against disks, from 1 to 20. The transformer Claude wrote scores 100% at every size. Claude 3.7 Sonnet with thinking falls from 93.8% at 5 disks to 10.4% at 8 and 0% at 11. DeepSeek-R1 falls from 84.9% at 5 disks to 0% at 9. The paper tests up to 12 disks.">
+  <img class="data" src="figures/hanoi_data.svg" width="605" height="339" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/hanoi_base.svg" width="605" height="339" loading="lazy" alt="Accuracy against disks, from 1 to 20. The transformer Claude wrote scores 100% at every size. Claude 3.7 Sonnet with thinking falls from 93.8% at 5 disks to 10.4% at 8 and 0% at 11. DeepSeek-R1 falls from 84.9% at 5 disks to 0% at 9. The paper tests up to 12 disks.">
   </div>
   <figcaption><strong>Figure 7. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks. The reasoning models collapse past 5 to 7 disks. Their curves are read from the vector data of Figure 8 in Shojaee et al. (2025), with the paper's default prompts.</figcaption>
 </figure>
@@ -397,7 +397,7 @@
 <figure class="reveal" style="--hide: 85%">
   <div class="layers">
   <img class="data" src="figures/maze_size_data.svg" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_size_base.svg" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the written transformer has 90 times fewer weights than LDT.">
+  <img src="figures/maze_size_base.svg" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the written transformer has 90× fewer weights than LDT.">
   </div>
   <figcaption><strong>Figure 9. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>

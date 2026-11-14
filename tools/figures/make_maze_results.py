@@ -117,9 +117,9 @@ def size(plt) -> None:
                 va="top", fontsize=fs * 0.86, color=mf.YELLOW_TEXT, gid="data")
     # How much smaller the written transformer is.
     ax.annotate("", xy=(1.8e6, 95.4), xytext=(19936, 95.4),
-                arrowprops=dict(arrowstyle="<->", color=mf.MUTED, lw=1.0, shrinkA=0, shrinkB=0), gid="data")
-    ax.text((19936 * 1.8e6) ** 0.5, 96.0, "90 times fewer weights than LDT", fontsize=fs * 0.9, color=mf.MUTED,
-            ha="center", va="bottom", gid="data")
+                arrowprops=dict(arrowstyle="<->", color=mf.INK, lw=1.4, shrinkA=0, shrinkB=0), gid="data")
+    ax.text((19936 * 1.8e6) ** 0.5, 96.0, "90× fewer weights than LDT", fontsize=fs * 1.22, color=mf.INK,
+            fontweight="semibold", ha="center", va="bottom", gid="data")
     mf.save(fig, "maze_size", "Accuracy against size")
     plt.close(fig)
 

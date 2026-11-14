@@ -16,7 +16,7 @@ def main() -> None:
     rm = json.loads((HERE / "hanoi_reasoning_models.json").read_text(encoding="utf-8"))["models"]
     fs = F * 8.3
 
-    fig = plt.figure(figsize=(5.8, 3.75))
+    fig = plt.figure(figsize=(6.3, 4.24))
     ax = fig.add_axes([0.125, 0.17, 0.83, 0.66])
     ax.set_xlim(0.5, 20.5)
     ax.set_ylim(-5, 110)
@@ -40,14 +40,14 @@ def main() -> None:
             linespacing=1.3)
 
     # Reasoning models (default prompts).
-    styles = {"Claude 3.7 Sonnet (thinking)": (mf.YELLOW, mf.YELLOW_TEXT, "claude", (8.25, 76)),
-              "DeepSeek-R1": (mf.TRAINED, mf.TRAINED_TEXT, "deepseek", (8.55, 41))}
+    styles = {"Claude 3.7 Sonnet (thinking)": (mf.YELLOW, mf.YELLOW_TEXT, "claude", (8.25, 76), "o", 40),
+              "DeepSeek-R1": (mf.TRAINED, mf.TRAINED_TEXT, "deepseek", (8.55, 41), "D", 30)}
     labels = []
     for name, pts in rm.items():
-        col, tcol, logo, (lx, ly) = styles[name]
+        col, tcol, logo, (lx, ly), mk, ms = styles[name]
         xs, ys = zip(*pts)
         ax.plot(xs, ys, color=col, lw=2.1, zorder=3, solid_joinstyle="round", solid_capstyle="round", gid="data")
-        ax.scatter(xs, ys, s=22, color=col, edgecolor="white", linewidth=0.9, zorder=4, gid="data")
+        ax.scatter(xs, ys, s=ms, marker=mk, facecolor="white", edgecolor=col, linewidth=1.7, zorder=4, gid="data")
         t = ax.text(lx, ly, name, fontsize=fs, color=tcol, fontweight="semibold", ha="left", va="center",
                     gid="data")
         labels.append((t, logo))
@@ -55,8 +55,12 @@ def main() -> None:
     # The transformer Claude wrote: 100% at every size, 1 to 20 disks.
     ns = list(range(1, 21))
     ax.plot(ns, [100] * len(ns), color=mf.WRITTEN, lw=3.0, zorder=6, solid_capstyle="round", gid="data")
-    ax.scatter(ns, [100] * len(ns), s=34, color=mf.WRITTEN, edgecolor="white", linewidth=1.1, zorder=7,
+    from matplotlib.path import Path as MPath
+    check = MPath([(-0.55, 0.02), (-0.15, -0.38), (0.6, 0.42)], [MPath.MOVETO, MPath.LINETO, MPath.LINETO])
+    ax.scatter(ns, [100] * len(ns), s=92, color=mf.WRITTEN, edgecolor="white", linewidth=1.2, zorder=7,
                gid="data")
+    ax.plot(ns, [100] * len(ns), ls="none", marker=check, ms=5.6, mfc="none", mec="white", mew=1.6, zorder=8,
+            gid="data")
     t_ours = ax.text(20.45, 105, "Written by Claude", fontsize=fs * 1.04, color=mf.WRITTEN_TEXT,
                      fontweight="semibold", ha="right", va="bottom", gid="data")
     ax.annotate("1,048,575 moves at 20 disks,\nzero mistakes", xy=(20, 100), xytext=(20.45, 47),
