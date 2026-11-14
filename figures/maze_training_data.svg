@@ -1697,12 +1697,14 @@ L 373.248 27.193388
 " clip-path="url(#p618cdd4dfb)" style="fill: none; stroke: #154677; stroke-width: 2.6; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="data">
-    <path d="M 42.768 174.573223 
-L 154.879209 174.573223 
-L 154.879209 165.433388 
-L 42.768 165.433388 
-z
-" clip-path="url(#p618cdd4dfb)" style="fill: url(#hdcdb363670); stroke: #154677; stroke-linejoin: miter"/>
+    <path d="M 42.768 170.003306 
+L 154.879209 170.003306 
+" clip-path="url(#p618cdd4dfb)" style="fill: none; stroke: #ffffff; stroke-width: 3.4"/>
+   </g>
+   <g id="data">
+    <path d="M 42.768 170.003306 
+L 154.879209 170.003306 
+" clip-path="url(#p618cdd4dfb)" style="fill: none; stroke-dasharray: 7.92,5.28; stroke-dashoffset: 0; stroke: #154677; stroke-width: 2.2"/>
    </g>
    <g id="data">
     <defs>
@@ -1728,61 +1730,5 @@ z
   <clipPath id="p618cdd4dfb">
    <rect x="42.768" y="7.2" width="330.48" height="172.8"/>
   </clipPath>
- </defs>
- <defs>
-  <pattern id="hdcdb363670" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
-   <rect x="0" y="0" width="73" height="73" fill="#e6ecf4"/>
-   <path d="M -36 36 
-L 36 -36 
-M -33 39 
-L 39 -33 
-M -30 42 
-L 42 -30 
-M -27 45 
-L 45 -27 
-M -24 48 
-L 48 -24 
-M -21 51 
-L 51 -21 
-M -18 54 
-L 54 -18 
-M -15 57 
-L 57 -15 
-M -12 60 
-L 60 -12 
-M -9 63 
-L 63 -9 
-M -6 66 
-L 66 -6 
-M -3 69 
-L 69 -3 
-M 0 72 
-L 72 0 
-M 3 75 
-L 75 3 
-M 6 78 
-L 78 6 
-M 9 81 
-L 81 9 
-M 12 84 
-L 84 12 
-M 15 87 
-L 87 15 
-M 18 90 
-L 90 18 
-M 21 93 
-L 93 21 
-M 24 96 
-L 96 24 
-M 27 99 
-L 99 27 
-M 30 102 
-L 102 30 
-M 33 105 
-L 105 33 
-M 36 108 
-L 108 36 
-" style="fill: #154677; stroke: #154677; stroke-width: 1.0; stroke-linecap: butt; stroke-linejoin: miter"/>
-  </pattern>
  </defs>
 </svg>
