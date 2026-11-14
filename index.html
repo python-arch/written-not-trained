@@ -682,14 +682,6 @@
 </details>
 
 
-<h2 id="honest">How we kept it honest</h2>
-<ul>
-  <li>No training, no gradients and no fitting to data went into any hand-written network.</li>
-  <li>We locked each network before testing it, then tested it once.</li>
-  <li>The loop that runs a network is the same for every task, with all the computing happening in the weights. Only a small step per task turns the input text into tokens and the output tokens back into text, without solving anything.</li>
-  <li>Anyone can rerun the results with the public networks (<a href="#code">weights and demo</a>).</li>
-</ul>
-
 <h2 id="next">What's next</h2>
 
 <p>Two directions excite us most. The first is a single network for many tasks, in which the modules from this post live side by side while a hand-written router sends each input to the right one. The second is to use hand-written weights as a starting point for training. If training starts from a looped solution that already scores 100%, will it keep the ability to handle bigger inputs, or wash it out?</p>
