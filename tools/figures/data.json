@@ -1,0 +1,562 @@
+{
+ "_about": "Every result below is copied from index.html. make_figures.py stops with an error if any number here (in a value or inside a label) does not appear in the page's visible text. Values computed by formula (Hanoi's 2^N - 1 moves) and axis ticks are produced by the script, not stored here.",
+ "hanoi": {
+  "title": "In 2025 tests, reasoning models collapsed at 7–8 disks. The hand-written network doesn't fail at any size we tested.",
+  "checked_max": 6,
+  "solved_min": 7,
+  "solved_max": 20,
+  "pending": null,
+  "x_max": 20,
+  "moves_pending": 1048575,
+  "annotate_moves_at": [],
+  "paper_collapse": [
+   7,
+   8
+  ],
+  "paper_max_tested_revised": 12,
+  "label_collapse": "Reasoning models\nbegin to collapse",
+  "label_paper_range": "",
+  "label_checked": "Checked while\nbuilding",
+  "label_solved_max": "1,048,575 moves,\nzero mistakes",
+  "footnote": "Blue: one test per size. Every move legal, the fewest possible.\nReasoning models: Shojaee et al. (Apple), NeurIPS 2025."
+ },
+ "written_vs_trained": {
+  "title": "Trained models learn the range they see.\nThe hand-written one keeps going.",
+  "footnote": "Accuracy in %. Each line joins a model's score on the checking range to its\nscore on the longer test range. Sizes in between were not tested.",
+  "panels": [
+   {
+    "key": "graph",
+    "title": "Graph search",
+    "checking_label": "paths ≤ 4",
+    "test_label": "paths 8–16",
+    "written": {
+     "params_label": "6,966 weights",
+     "checking": 100,
+     "test": 100
+    },
+    "trained": [
+     {
+      "name": "Trained, looped",
+      "params": 26561,
+      "checking": 25.6,
+      "test": 0
+     },
+     {
+      "name": "Trained, ~10× size",
+      "params": 69905,
+      "checking": 46.2,
+      "test": 0
+     },
+     {
+      "name": "Trained, ~99× size",
+      "params": 690197,
+      "checking": 97.4,
+      "test": 0
+     }
+    ],
+    "trained_label": "3 trained models, up to 690,197 weights"
+   },
+   {
+    "key": "parity",
+    "title": "Parity",
+    "checking_label": "≤ 20 bits",
+    "test_label": "21–128 bits",
+    "chance": 50,
+    "written": {
+     "params_label": "~190 weights + table",
+     "checking": 100,
+     "test": 100
+    },
+    "trained": [
+     {
+      "name": "Trained, looped",
+      "params": 50434,
+      "checking": 100,
+      "test": 53.8
+     },
+     {
+      "name": "Trained, 1 layer",
+      "params": 50434,
+      "checking": 100,
+      "test": 52.6
+     },
+     {
+      "name": "Trained, 4 layers",
+      "params": 13234,
+      "checking": 100,
+      "test": 49.2
+     },
+     {
+      "name": "Trained, 8 layers",
+      "params": 101858,
+      "checking": 100,
+      "test": 49.5
+     },
+     {
+      "name": "Trained, 12 layers",
+      "params": 600258,
+      "checking": 100,
+      "test": 45.5
+     }
+    ],
+    "trained_label": "5 trained models, 13,234–600,258 weights"
+   },
+   {
+    "key": "chains",
+    "title": "Reasoning chains",
+    "checking_label": "≤ 8 steps",
+    "test_label": "12–32 steps",
+    "written": {
+     "params_label": "4,763 weights",
+     "checking": 100,
+     "test": 100
+    },
+    "trained": [
+     {
+      "name": "Trained, looped",
+      "params": 77924,
+      "checking": 69.1,
+      "test": [
+       2.2,
+       9.2
+      ]
+     },
+     {
+      "name": "Trained, 1 layer",
+      "params": 77924,
+      "checking": 7.0,
+      "test": 2.8
+     },
+     {
+      "name": "Trained, 4 layers",
+      "params": 51368,
+      "checking": 43.4,
+      "test": 2.8
+     },
+     {
+      "name": "Trained, 8 layers (~90×)",
+      "params": 427812,
+      "checking": 93.7,
+      "test": 3.5
+     },
+     {
+      "name": "Trained, 12 layers",
+      "params": 627748,
+      "checking": 49.6,
+      "test": 4.0
+     }
+    ],
+    "trained_label": "5 trained models, 51,368–627,748 weights"
+   }
+  ]
+ },
+ "ouro_clock": {
+  "title": "Ouro keeps time with its first tokens.\nPast 4 loops, the clock runs off the end.",
+  "trained_loops": 4,
+  "loops_shown": 8,
+  "label_tokens_clock": "first tokens",
+  "label_tokens_rest": "other tokens",
+  "label_trained_range": "trained range",
+  "label_out_of_range": "outside training",
+  "label_fix": "held in range",
+  "label_readout": "",
+  "footnote": "Schematic, not data. The fix adds no parameters and changes no weights."
+ },
+ "glance": {
+  "_source": "logs/blog_handoff/figures_data.json, fig2_accuracy_bars; for each benchmark: the written network and the strongest comparison the page reports",
+  "title": "On every benchmark here, the written network scores 100%. The best trained model or LLM doesn't.",
+  "line_label": "Written by Claude, 100%",
+  "tasks": [
+   {
+    "task": "Maze-Hard",
+    "test": "",
+    "bars": [
+     {
+      "label": "LDT, 1.8M weights",
+      "value": 99.8,
+      "text": "99.8%",
+      "kind": "trained"
+     },
+     {
+      "label": "Claude Opus 5.5, GPT-6 Astra",
+      "value": 26,
+      "text": "26%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "Sudoku-Extreme",
+    "test": "",
+    "bars": [
+     {
+      "label": "Sotaku v2, 800K weights",
+      "value": 98.96,
+      "text": "98.96%",
+      "kind": "trained"
+     },
+     {
+      "label": "GPT-6 Astra",
+      "value": 68,
+      "text": "68%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "GraphWalks",
+    "test": "",
+    "bars": [
+     {
+      "label": "Gemini 4 Carbon",
+      "value": 96.2,
+      "text": "96.2%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "Graph search",
+    "test": "",
+    "bars": [
+     {
+      "label": "Trained, 690,197 weights",
+      "value": 0.0,
+      "text": "0%",
+      "kind": "trained"
+     }
+    ]
+   },
+   {
+    "task": "Parity",
+    "test": "",
+    "bars": [
+     {
+      "label": "Trained, looped, 50,434 weights",
+      "value": 53.8,
+      "text": "53.8%",
+      "kind": "trained"
+     }
+    ]
+   },
+   {
+    "task": "Reasoning chains",
+    "test": "",
+    "bars": [
+     {
+      "label": "Trained, 8 layers, 427,812 weights",
+      "value": 3.5,
+      "text": "3.5%",
+      "kind": "trained"
+     }
+    ]
+   },
+   {
+    "task": "Boolean Expressions",
+    "test": "",
+    "bars": [
+     {
+      "label": "SmolLM2-360M",
+      "value": 69.6,
+      "text": "69.6%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "Dyck Languages",
+    "test": "",
+    "bars": [
+     {
+      "label": "Pythia-410M",
+      "value": 33.2,
+      "text": "33.2%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "Web of Lies",
+    "test": "",
+    "bars": [
+     {
+      "label": "Qwen3-235B-A22B",
+      "value": 81.2,
+      "text": "81.2%",
+      "kind": "llm"
+     }
+    ]
+   },
+   {
+    "task": "Shuffled Objects",
+    "test": "",
+    "bars": [
+     {
+      "label": "Qwen3-235B-A22B, program synthesis",
+      "value": 56.9,
+      "text": "56.9%",
+      "kind": "llm"
+     }
+    ]
+   }
+  ],
+  "footnote": "Accuracy in %. Trained maze models: best version, picked on the test set."
+ },
+ "maze_loops": {
+  "_source": "the curve is in figures/maze_loops.json (logs/blog_handoff/figures_data.json, fig4_test_time_compute_maze.ours)",
+  "title": "More loops: the written network locks in at 100% and stays there.",
+  "label_ramp": "",
+  "label_run": "",
+  "footnote": "Accuracy on the 1,000 test mazes, any shortest path."
+ },
+ "maze_size": {
+  "_source": "logs/blog_handoff/figures_data.json, fig3_accuracy_vs_size_maze",
+  "title": "Smaller and more accurate than every trained maze solver.",
+  "written": {
+   "label": "Written by Claude",
+   "weights": 19936,
+   "nonzero": 922,
+   "accuracy": 100.0
+  },
+  "trained": [
+   {
+    "label": "LDT, 512 paths per maze",
+    "weights": "1.8M",
+    "accuracy": 99.8
+   },
+   {
+    "label": "LDT, one path per maze",
+    "weights": "1.8M",
+    "accuracy": 99.0
+   },
+   {
+    "label": "TRM",
+    "weights": "7M",
+    "accuracy": 91.9
+   },
+   {
+    "label": "HRM",
+    "weights": "27M",
+    "accuracy": 84.6
+   }
+  ],
+  "footnote": "Accuracy on the 1,000 test mazes, any shortest path. Trained models:\nbest version, picked on the test set (Davis et al., NeurIPS 2026, Table 3)."
+ },
+ "maze_compute": {
+  "title": "Every maze solved, for a fraction of the trained solvers' compute.",
+  "xlabel": "Arithmetic operations to solve one maze (log scale)",
+  "label_ours": "Written by Claude, 100%",
+  "labels": [
+   {
+    "at": "hrm",
+    "text": "HRM, 84.6%",
+    "_offset": [
+     -9,
+     0
+    ],
+    "ha": "right",
+    "va": "center"
+   },
+   {
+    "at": "trm",
+    "text": "TRM, 91.9%",
+    "_offset": [
+     9,
+     0
+    ],
+    "ha": "left",
+    "va": "center"
+   },
+   {
+    "at": "ldt",
+    "text": "LDT, 99.0 and 99.8%",
+    "_offset": [
+     -5,
+     9
+    ],
+    "ha": "left",
+    "va": "bottom"
+   },
+   {
+    "at": "ldt_hi",
+    "text": "up to 1,000 rounds",
+    "_offset": [
+     0,
+     -24
+    ],
+    "ha": "right",
+    "va": "top"
+   }
+  ],
+  "footnote": "Accuracy in %. Trained models: best version, picked on the test set."
+ },
+ "maze_block": {
+  "title": "The maze layer, piece by piece",
+  "_height": 64,
+  "_y_bar": 12.3,
+  "_stair": 1.6,
+  "_y_heads": 33.1,
+  "_y_units": 44,
+  "_y_readout": 58.5,
+  "bar_label": "A cell's 35 numbers",
+  "groups": [
+   {
+    "key": "const",
+    "n": 1,
+    "_colour": "#dfe3e9",
+    "label": "constant 1"
+   },
+   {
+    "key": "pos",
+    "n": 3,
+    "_colour": "#b4bcc8",
+    "label": "position"
+   },
+   {
+    "key": "input",
+    "n": 3,
+    "_colour": "#34383f",
+    "label": "type"
+   },
+   {
+    "key": "phase",
+    "n": 3,
+    "_colour": "#7aa0c7",
+    "label": "distance, in threes"
+   },
+   {
+    "key": "ptr",
+    "n": 4,
+    "_colour": "#b38b2d",
+    "label": "pointer"
+   },
+   {
+    "key": "on",
+    "n": 1,
+    "_colour": "#154677",
+    "label": "on the path"
+   },
+   {
+    "key": "copied",
+    "n": 20,
+    "_colour": "#d66e1a",
+    "label": "copied from neighbours",
+    "sub": [
+     "down",
+     "left",
+     "right",
+     "up"
+    ]
+   }
+  ],
+  "heads_label": "Four heads, one per neighbour",
+  "cell_label": "cell",
+  "heads": [
+   {
+    "dir": "up",
+    "name": "Up head",
+    "carries": ""
+   },
+   {
+    "dir": "left",
+    "name": "Left head",
+    "carries": ""
+   },
+   {
+    "dir": "right",
+    "name": "Right head",
+    "carries": ""
+   },
+   {
+    "dir": "down",
+    "name": "Down head",
+    "carries": ""
+   }
+  ],
+  "heads_note": "",
+  "units_label": "Neurons by job",
+  "units": [
+   {
+    "name": "Wave, 6 neurons",
+    "writes": "phase",
+    "job": ""
+   },
+   {
+    "name": "Pointer, 24 neurons",
+    "writes": "ptr",
+    "job": ""
+   },
+   {
+    "name": "Pointer clear, 8 neurons",
+    "writes": "ptr",
+    "job": ""
+   },
+   {
+    "name": "Chain, 8 neurons",
+    "writes": "on",
+    "job": ""
+   },
+   {
+    "name": "Clean-up, 40 neurons",
+    "writes": "copied",
+    "job": ""
+   },
+   {
+    "name": "Pairs give 0 or 1",
+    "note": true,
+    "job": ""
+   }
+  ],
+  "readout_label": "Each cell writes",
+  "readout": [
+   {
+    "char": "#",
+    "from": "wall"
+   },
+   {
+    "char": " ",
+    "from": "open"
+   },
+   {
+    "char": "S",
+    "from": "start"
+   },
+   {
+    "char": "G",
+    "from": "goal"
+   },
+   {
+    "char": "o",
+    "from": "path"
+   }
+  ],
+  "readout_note": ""
+ },
+ "maze_training": {
+  "_source": "loopws logs/blog_handoff/fig1_time_notes.md and logs/fig1_gd/fig1_time_data.json (2026-11-14)",
+  "title": "Claude wrote a network that solves every maze.\nTrained by gradient descent, it solves none.",
+  "xlabel": "Hours",
+  "label_claude": "Written by Claude, 100%",
+  "label_claude_sub": "no training",
+  "label_trm": "TRM, best 77.4%",
+  "label_trm_released": "TRM as released, 85.3%",
+  "label_trm_tall": "TRM, best 77.4%",
+  "label_std": "Standard transformer,\nbest 42%",
+  "label_std_tall": "Standard transformer,\nbest 42%",
+  "label_gd": "Written architecture,\ntrained from random weights, 0%",
+  "label_gd_sub": "",
+  "footnote": "1,000 Maze-Hard test mazes. A maze counts only if its whole path is right.\nTraining hours are on one GPU.",
+  "footnote_tall": "1,000 Maze-Hard test mazes. A maze counts only\nif its whole path is right. Training hours are on one GPU."
+ },
+ "social": {
+  "title": "Written, Not Trained",
+  "subtitle": "Claude hand-wrote a tiny transformer\nthat beats Claude at mazes.",
+  "result_task": "Tower of Hanoi, 20 disks",
+  "result": "1,048,575 moves.\nZero mistakes.",
+  "byline": "Abdelrahman Elsayed, Ahmed Heakl, Salman Khan · MBZUAI",
+  "url": "python-arch.github.io/written-not-trained"
+ },
+ "chains_loops": {
+  "_about": "values are set in make_figures.py, chains_loops()"
+ }
+}
