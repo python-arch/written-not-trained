@@ -308,7 +308,7 @@
   <summary>The layer piece by piece, and what breaks when you switch parts off</summary>
   <p>Nothing in the network runs as a sequence of instructions. All cells update at the same moment on every loop, each knowing only its own 35 numbers and what it reads from its four neighbours. The path is not computed somewhere else and then written out. Instead, it lights up across the grid one cell per loop, from the start to the goal.</p>
   <figure>
-    <img src="figures/maze_block.svg" width="518" height="739" loading="lazy" alt="Diagram of the maze network's one layer. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
+    <img src="figures/maze_block.svg" width="518" height="552" loading="lazy" alt="Diagram of the maze network's one layer. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
     <figcaption>The maze network's one layer, read from its weights. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</figcaption>
   </figure>
 
@@ -328,8 +328,8 @@
 
 <figure class="reveal" style="--hide: 89%">
   <div class="layers">
-  <img class="data" src="figures/maze_loops_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_loops_base.svg" width="518" height="346" loading="lazy" alt="Accuracy on the 1,000 test mazes against the number of loops. It is 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
+  <img class="data" src="figures/maze_loops_data.svg" width="518" height="254" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_loops_base.svg" width="518" height="254" loading="lazy" alt="Accuracy on the 1,000 test mazes against the number of loops. It is 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
   <figcaption>Test mazes solved against the number of loops. A maze is solved only once the loops reach twice its path length. A solved maze stays solved.</figcaption>
 </figure>
@@ -367,8 +367,8 @@
   <summary>Accuracy against size, stricter scoring, TRM's three scores, and a re-run check</summary>
 <figure class="reveal" style="--hide: 85%">
   <div class="layers">
-  <img class="data" src="figures/maze_size_data.svg" width="518" height="360" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_size_base.svg" width="518" height="360" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written network has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
+  <img class="data" src="figures/maze_size_data.svg" width="518" height="271" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_size_base.svg" width="518" height="271" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written network has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
   </div>
   <figcaption>The vertical axis starts at 80%. LDT is shown both trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
@@ -425,12 +425,12 @@
 
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
-  <img class="data" src="figures/maze_training_data.svg" width="518" height="384" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg" width="518" height="384" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+  <img class="data" src="figures/maze_training_data.svg" width="518" height="270" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_base.svg" width="518" height="270" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
   </div>
   <div class="layers tall">
-  <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="442" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg" width="355" height="442" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+  <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="298" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_tall_base.svg" width="355" height="298" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
   </div>
   <figcaption>Test mazes solved against training time. Claude's network needed no training, so it is placed at 1 hour. The dashed line is TRM as released by its authors.</figcaption>
 </figure>
@@ -464,8 +464,8 @@
 
 <figure class="reveal" style="--hide: 82%">
   <div class="layers">
-  <img class="data" src="figures/written_vs_trained_data.svg" width="518" height="749" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/written_vs_trained_base.svg" width="518" height="749" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written network scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written network scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written network scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
+  <img class="data" src="figures/written_vs_trained_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/written_vs_trained_base.svg" width="518" height="606" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written network scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written network scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written network scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
   </div>
   <figcaption>Accuracy within the checking range (shaded) and on longer inputs, for graph search, parity and reasoning chains.</figcaption>
 </figure>
@@ -496,8 +496,8 @@
 
 <figure class="reveal" style="--hide: 45%">
   <div class="layers">
-  <img class="data" src="figures/glance_data.svg" width="518" height="675" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/glance_base.svg" width="518" height="675" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
+  <img class="data" src="figures/glance_data.svg" width="518" height="558" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="558" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written network, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
   <figcaption>The written networks score 100% on every task here. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
 </figure>
@@ -550,10 +550,10 @@
 
 <figure class="reveal" style="--hide: 62%">
   <div class="layers">
-  <img class="data" src="figures/hanoi_data.svg" width="518" height="538" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/hanoi_base.svg" width="518" height="538" loading="lazy" alt="Moves needed versus number of disks, on a log scale. The hand-written network solves every size from 7 to 20 disks, up to 1,048,575 moves, with no mistakes. Reasoning models began to collapse at 7–8 disks in 2025 tests, and Apple's paper tests up to 12 disks.">
+  <img class="data" src="figures/hanoi_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/hanoi_base.svg" width="518" height="346" loading="lazy" alt="Moves needed versus number of disks, on a log scale. The hand-written network solves every size from 7 to 20 disks, up to 1,048,575 moves, with no mistakes. Reasoning models began to collapse at 7–8 disks in 2025 tests, and Apple's paper tests up to 12 disks.">
   </div>
-  <figcaption>Each blue dot is one size the network solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse. Apple's paper tests up to 12 disks.</figcaption>
+  <figcaption>Each blue dot is one size the network solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse. The dashed line marks 12 disks, the largest size Apple's paper tests.</figcaption>
 </figure>
 
 <p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. Claude's Hanoi network needs none of that. A single small layer makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
@@ -748,8 +748,8 @@
 
 <figure class="reveal" style="--hide: 88%">
   <div class="layers">
-  <img class="data" src="figures/maze_compute_data.svg" width="518" height="374" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_compute_base.svg" width="518" height="374" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
+  <img class="data" src="figures/maze_compute_data.svg" width="518" height="277" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_compute_base.svg" width="518" height="277" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written network rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
   <figcaption>The blue curve is the written network after each number of loops, with a dot at the 1,800 we run.</figcaption>
 </figure>
@@ -775,7 +775,7 @@
 <p><strong>The fix.</strong> The first few tokens are set on a schedule that keeps the clock in its trained range. The answer is then taken from a mix of loops, weighted by Ouro's own "am I done?" signal. Since the fix adds no new weights and changes none, Ouro's weights stay as trained, yet extra loops stop hurting.</p>
 
 <figure>
-  <img src="figures/ouro_clock.svg" width="518" height="451" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states outside its training range. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's own exit signal.">
+  <img src="figures/ouro_clock.svg" width="518" height="328" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states outside its training range. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's own exit signal.">
   <figcaption>A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
 </figure>
 
