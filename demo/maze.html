@@ -72,7 +72,7 @@
   <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="index.html">Tower of Hanoi demo</a></div>
   <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
   <h1>Run the maze transformer</h1>
-  <p class="lede">This page runs the Maze-Hard transformer from the post, in your browser, on real test mazes. It loads the transformer's weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each cell, run the same transformer layer again and again, and read off every cell. The loop knows nothing about mazes. The grid shows the numbers inside the transformer after each loop.</p>
+  <p class="lede">This page runs the Maze-Hard transformer from the post, in your browser, on real test mazes. It loads the transformer's weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each cell, run the same transformer block again and again, and read off every cell. The loop knows nothing about mazes. The grid shows the numbers inside the transformer after each loop.</p>
 
   <div class="panel">
     <div class="controls">
@@ -106,7 +106,7 @@
   <h2>What happens when you press Run</h2>
   <ol>
     <li>Each of the 900 cells becomes one token: its row, its column, and what is there (wall, open, start or goal).</li>
-    <li>In every loop, the same transformer layer runs over all the cells. Each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal.</li>
+    <li>In every loop, the same transformer block runs over all the cells. Each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal.</li>
     <li>After every loop, the transformer reads off a character for every cell. The cells it marks as path are drawn in blue.</li>
     <li>When it stops, the page compares the transformer's grid with the dataset's answer, character by character.</li>
   </ol>

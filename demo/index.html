@@ -77,7 +77,7 @@
   <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="maze.html">Maze demo</a></div>
   <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
   <h1>Run the hand-written transformer</h1>
-  <p class="lede">This page runs the Tower of Hanoi transformer from the post, in your browser. It loads the transformer's real weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each token, run the same transformer layer again and again, and read off the next move. The loop knows nothing about the puzzle. A separate checker on this page replays every move.</p>
+  <p class="lede">This page runs the Tower of Hanoi transformer from the post, in your browser. It loads the transformer's real weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each token, run the same transformer block again and again, and read off the next move. The loop knows nothing about the puzzle. A separate checker on this page replays every move.</p>
 
   <div class="panel">
     <div class="controls">
@@ -123,7 +123,7 @@
   <h2>What happens when you press Run</h2>
   <ol>
     <li>The puzzle becomes tokens: the number of disks, where each disk starts, where it should end, and a separator.</li>
-    <li>For every new token, the transformer looks it up in its embedding table, runs the same transformer layer a few times, and reads off a score for each possible next token. The highest score is the next move.</li>
+    <li>For every new token, the transformer looks it up in its embedding table, runs the same transformer block a few times, and reads off a score for each possible next token. The highest score is the next move.</li>
     <li>That move is added to the input, and the loop goes again, until the transformer writes its end token.</li>
     <li>Separately, a small checker replays each move on the pegs: the disk must be on top of its peg and may never land on a smaller one.</li>
   </ol>

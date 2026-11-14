@@ -267,25 +267,25 @@
 
 <main class="wrap">
 
-<p>Deep learning models normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices. If you know the program you want, you can skip training and write the matrices yourself. People have done this by hand for small problems (<a href="#related">related work</a>). Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. Recently, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a model's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, but only for toy tasks (<a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a>, <a href="https://github.com/anadim/AdderBoard">AdderBoard</a>). In those transformers, every step of a computation takes a separate layer. Scaling one up to a hard problem would mean a far bigger transformer and a far bigger Claude bill, since Claude would have to write every one of those extra weights.</p>
+<p>Deep learning models normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices. If you know the program you want, you can skip training and write the matrices yourself. People have done this by hand for small problems (<a href="#related">related work</a>). Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. Recently, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a model's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, but only for toy tasks (<a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a>, <a href="https://github.com/anadim/AdderBoard">AdderBoard</a>). In those transformers, every step of a computation takes a separate block. Scaling one up to a hard problem would mean a far bigger transformer and a far bigger Claude bill, since Claude would have to write every one of those extra weights.</p>
 
 <p>We wanted to know whether LLM-written weights hold up on problems that are genuinely hard. Our main test is <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. Frontier LLMs struggle with it. For example, when Claude Opus 5.5 is asked for the shortest path, it solves only 26% of the test mazes it is given (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>). So instead of asking Claude to solve the mazes, we asked it to build a model that solves them, namely a looped transformer whose every weight Claude sets by hand.</p>
 
-<p>The transformer Claude wrote is surprisingly small, a single layer with 19,936 weights. The trick is that this one layer runs in a loop. Each forward pass moves a shortest-path search one step further, so the transformer keeps feeding the maze back through the same layer until the path is complete. With enough passes, it solves 100% of the test mazes. Since a bigger maze only needs more passes, the very same weights also solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes.</p>
+<p>The transformer Claude wrote is surprisingly small, a single block with 19,936 weights. The trick is that this one block runs in a loop. Each forward pass moves a shortest-path search one step further, so the transformer keeps feeding the maze back through the same block until the path is complete. With enough passes, it solves 100% of the test mazes. Since a bigger maze only needs more passes, the very same weights also solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes.</p>
 
-<p>That loop is what this post adds to earlier work on writing weights. With it, one small layer can carry out thousands or even a million steps, so Claude writes the transformer once, whatever the size of the problem. We call this approach <em>looped weight-space programming</em>.</p>
+<p>That loop is what this post adds to earlier work on writing weights. With it, one small block can carry out thousands or even a million steps, so Claude writes the transformer once, whatever the size of the problem. We call this approach <em>looped weight-space programming</em>.</p>
 
 <p>What makes this result striking is who wrote the transformer. Claude itself struggles to carry out a search of more than a hundred steps in text, even when we spell the algorithm out (<a href="#maze-claude">section 3</a>). Yet it can write a single step of that search into weights, leaving the loop to repeat the step for as long as the maze requires. Programmers rely on the same trick whenever they write code for arithmetic they could not do in their heads. Language models gain from it too. On math word problems, they get more answers right when they write a short program that does the arithmetic than when they do the arithmetic in text (<a href="https://arxiv.org/abs/2211.10435">Gao et al., ICML 2023</a>; <a href="https://arxiv.org/abs/2211.12588">Chen et al., TMLR 2023</a>).</p>
 
 <div class="hero-pair">
 <figure class="hero-video">
   <div class="player">
-    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. On one side, a diagram of the transformer Claude wrote. Maze cells feed an embed step and one layer with 4 attention heads and 86 neurons, which loops back on itself while a counter climbs to 1,800. After loop 222, the readout is marked done. On the other side, the whole maze fills in, first with a wave of distances from the goal, then with the path from the start to the goal. A numbered, colored banner above the diagram names each stage as it happens.">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/maze_hero_poster.png" width="1280" height="720" data-tall="figures/maze_hero_tall" data-tall-size="720x850" aria-label="Animation. On one side, a diagram of the transformer Claude wrote. Maze cells feed an embed step and one block with 4 attention heads and 86 neurons, which loops back on itself while a counter climbs to 1,800. After loop 222, the readout is marked done. On the other side, the whole maze fills in, first with a wave of distances from the goal, then with the path from the start to the goal. A numbered, colored banner above the diagram names each stage as it happens.">
       <source src="figures/maze_hero.mp4" type="video/mp4">
       <source src="figures/maze_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 2. The transformer at work.</strong> The transformer Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single layer running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
+  <figcaption><strong>Figure 2. The transformer at work.</strong> The transformer Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single block running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
 </figure>
 <!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
@@ -301,16 +301,16 @@
 </figure>
 </div>
 
-<p>We hope these hand-written transformers help advance research on looped models, by showing how much a single small layer can compute when it runs in a loop and by giving training methods concrete solutions to aim for. The weights and two in-browser demos are <a href="#code">public</a>.</p>
+<p>We hope these hand-written transformers help advance research on looped models, by showing how much a single small block can compute when it runs in a loop and by giving training methods concrete solutions to aim for. The weights and two in-browser demos are <a href="#code">public</a>.</p>
 
 
 <h2 id="inside"><span class="qn">1.</span> How the maze transformer works</h2>
 
-<p>To write a transformer by hand, it helps to picture it as a row of tiny computers, one per token. Each computer has a small memory, which is the vector of numbers the transformer carries for that token from layer to layer. In every layer, attention lets each token read from other tokens. The feed-forward neurons then update the token's memory based on what it already held and what it just read. Writing a transformer therefore comes down to two decisions. You decide what each number in the memory stands for, then you choose weights that make every update do what you intend.</p>
+<p>To write a transformer by hand, it helps to picture it as a row of tiny computers, one per token. Each computer has a small memory, which is the vector of numbers the transformer carries for that token from block to block. In every block, attention lets each token read from other tokens. The feed-forward neurons then update the token's memory based on what it already held and what it just read. Writing a transformer therefore comes down to two decisions. You decide what each number in the memory stands for, then you choose weights that make every update do what you intend.</p>
 
-<p>For mazes, Claude made each cell of the maze one token, so a 30×30 maze becomes 900 tokens. Each cell gets a memory of 35 numbers. A few of these numbers record what the cell is (a wall, the start or the goal) and where it sits in the grid. Other numbers track the search, namely the cell's distance from the goal, which neighbour is its next step, and whether it lies on the path. The remaining 20 numbers serve as scratch space for whatever the cell reads from its neighbours. The transformer's single layer has four attention heads, each with a single job. One lets every cell read the cell below it, while the other three read the cell to its left, to its right and above it.</p>
+<p>For mazes, Claude made each cell of the maze one token, so a 30×30 maze becomes 900 tokens. Each cell gets a memory of 35 numbers. A few of these numbers record what the cell is (a wall, the start or the goal) and where it sits in the grid. Other numbers track the search, namely the cell's distance from the goal, which neighbour is its next step, and whether it lies on the path. The remaining 20 numbers serve as scratch space for whatever the cell reads from its neighbours. The transformer's single block has four attention heads, each with a single job. One lets every cell read the cell below it, while the other three read the cell to its left, to its right and above it.</p>
 
-<p>With this layout, each pass through the layer performs one step of a standard shortest-path search.</p>
+<p>With this layout, each pass through the block performs one step of a standard shortest-path search.</p>
 
 <p><strong>A wave from the goal.</strong> The goal starts at distance 0. On every loop, each open cell that has not been reached yet but borders a reached cell takes that neighbour's distance plus one. The reached area therefore spreads outward from the goal one step per loop, like a ripple across a pond.</p>
 
@@ -336,11 +336,11 @@
 
 
 <details>
-  <summary>The layer piece by piece, and what breaks when you switch parts off</summary>
+  <summary>The block piece by piece, and what breaks when you switch parts off</summary>
   <p>Nothing in the transformer runs as a sequence of instructions. All cells update at the same moment on every loop, each knowing only its 35 numbers and what it reads from its four neighbours. The path is not computed somewhere else and then written out. Instead, it lights up across the grid one cell per loop, from the start to the goal.</p>
   <figure>
-    <img src="figures/maze_block.svg" width="518" height="552" loading="lazy" alt="Diagram of the maze transformer's one layer. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
-    <figcaption><strong>Figure 5. The maze layer.</strong> The maze transformer's one layer, read from its weights. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</figcaption>
+    <img src="figures/maze_block.svg" width="518" height="552" loading="lazy" alt="Diagram of the maze transformer's one block. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
+    <figcaption><strong>Figure 5. The maze block.</strong> The maze transformer's one block, read from its weights. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</figcaption>
   </figure>
 
   <div class="ablate">
@@ -367,7 +367,7 @@
 
 <details>
   <summary>The loop in numbers</summary>
-  <p>Without the loop, every step would need a separate copy of the layer. The maze transformer would then need 306 layers and 3,259,341 weights for the longest test maze, rising to 834 layers and 8,867,229 weights for the largest 100×100 maze.</p>
+  <p>Without the loop, every step would need a separate copy of the block. The maze transformer would then need 306 blocks and 3,259,341 weights for the longest test maze, rising to 834 blocks and 8,867,229 weights for the largest 100×100 maze.</p>
   <p>In the curve above, any shortest path counts. We verified the twice-the-path-length rule at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
 </details>
 
@@ -450,11 +450,11 @@
 
 <p>If a transformer of 20,000 weights can solve every maze, why don't trained models of that size? Perhaps the architecture is the secret, in which case training would find the solution too if it had the same one. So we gave gradient descent the same starting point Claude had. We took the transformer Claude wrote, reset its weights to random, and trained it on the same 1,000 training mazes.</p>
 
-<p>Every single run ended with 0% of mazes solved. As written, the transformer has no normalisation, which made all six of our first runs break down within 30 training steps. Once we added RMSNorm, training ran smoothly, but each transformer learned only to copy the maze back unchanged. Longer runs on six versions of the transformer, ranging from the original size up to 2.8 million weights with more loops, more layers per loop or up to 16 times the width, also ended at 0%. So did runs with a curriculum that started on 10×10 mazes and worked upward. After 8 hours each, none of them had solved a single maze of any size.</p>
+<p>Every single run ended with 0% of mazes solved. As written, the transformer has no normalisation, which made all six of our first runs break down within 30 training steps. Once we added RMSNorm, training ran smoothly, but each transformer learned only to copy the maze back unchanged. Longer runs on six versions of the transformer, ranging from the original size up to 2.8 million weights with more loops, more blocks per loop or up to 16 times the width, also ended at 0%. So did runs with a curriculum that started on 10×10 mazes and worked upward. After 8 hours each, none of them had solved a single maze of any size.</p>
 
 <p>Copying turns out to be a trap. Path cells make up only about one cell in eight, so a model that simply copies the maze back already gets 87.4% of cells right. Every run ended at or just below that level, with none getting past 87.5%. To do any better, a transformer has to mark path cells. In the written transformer, though, a path cell is marked only after the wave has crossed the maze, which takes a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way to follow.</p>
 
-<p>A standard transformer does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 layers, 6.4 million weights, 320 times the transformer Claude wrote) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. TRM itself, a looped model built for this benchmark, reached 77.4% when we trained it with its authors' recipe on one GPU. Figure 3 shows every run against training time.</p>
+<p>A standard transformer does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 blocks, 6.4 million weights, 320 times the transformer Claude wrote) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. TRM itself, a looped model built for this benchmark, reached 77.4% when we trained it with its authors' recipe on one GPU. Figure 3 shows every run against training time.</p>
 
 
 <p>Our runs used far less compute than the models built for Maze-Hard. Each of our first runs inside the transformer Claude wrote took about 5 PFLOPs, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs. These runs therefore show that gradient descent did not find these weights in our setup, without proving the weights unlearnable. Still, the contrast is hard to ignore. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
@@ -467,7 +467,7 @@
 
 <details id="maze-gd-details">
   <summary>Every run in Figure 3, and why we didn't train them longer</summary>
-  <p>The six versions in Figure 3 are the transformer Claude wrote at its original size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, Figure 3 places each one at its number of updates times its time per update with the GPU to itself.</p>
+  <p>The six versions in Figure 3 are the transformer Claude wrote at its original size (with 3 learning rates), with twice the loops, with 2 or 4 blocks per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, Figure 3 places each one at its number of updates times its time per update with the GPU to itself.</p>
   <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. All 111 checkpoints we scored on the test mazes sit at 0%.</p>
   <p><strong>The standard transformer</strong> has width 256 and 8 heads. It has no loop, so one pass fills in all 900 cells. It trained with a standard recipe (AdamW, learning rate 3e-4, batch 64), with nothing tuned, on the 1,000 training mazes plus 2,000 we generated in the same style. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 new mazes of the same style, it levelled off at 45%.</p>
   <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%, between 15,210 and 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. Nor was any of them slowly getting better. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
@@ -511,7 +511,7 @@
   </tbody>
 </table>
 </div>
-  <p class="note"><strong>Table 3. Graph search in full.</strong> Accuracy in %. The written transformer has three looped layers with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
+  <p class="note"><strong>Table 3. Graph search in full.</strong> Accuracy in %. The written transformer has three looped blocks with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
   <p>The full parity and chains tables, along with how those two transformers work, are in <a href="#app-parity">appendix A</a>.</p>
 </details>
 
@@ -532,7 +532,7 @@
 
 <p>The maze transformer has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the puzzles it was given when asked directly.</p>
 
-<p>The Sudoku transformer Claude wrote does what a person would do, except for all 81 cells at once. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the transformer has to guess. It first saves a copy of the whole grid in memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the transformer restores the saved grid, in which that guess is now ruled out. One step of this search takes a block of five layers, which the transformer runs for 40,000 loops with room for 24 saved grids.</p>
+<p>The Sudoku transformer Claude wrote does what a person would do, except for all 81 cells at once. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the transformer has to guess. It first saves a copy of the whole grid in memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the transformer restores the saved grid, in which that guess is now ruled out. One step of this search takes five blocks, which the transformer runs for 40,000 loops with room for 24 saved grids.</p>
 
 <p>The Sudoku transformer solved every one of the 141,040 test puzzles we ran, including the first 10,000 on which HRM, TRM and Sotaku v2 are scored. On those puzzles, the best trained model, <a href="https://github.com/chenglou/sotaku">Sotaku v2</a>, reaches 98.96%. This reliability does cost compute. Because the transformer runs all 40,000 loops on every puzzle, it does about 50 times more arithmetic per puzzle than TRM, even though most puzzles are solved within the first few thousand loops.</p>
 
@@ -562,11 +562,11 @@
 
 <p>Tower of Hanoi became a famous test of long reasoning after <a href="https://arxiv.org/abs/2506.06941">The Illusion of Thinking</a> (Shojaee et al., Apple, NeurIPS 2025) showed reasoning models collapsing on it. When o3-mini, DeepSeek-R1 and Claude 3.7 Sonnet Thinking wrote out every move without tools, they began to fail at 7 to 8 disks, even when given the solution algorithm. The goal is to move a stack of disks from the first peg to the third, one disk at a time, with no larger disk placed on a smaller one. Each extra disk roughly doubles the number of moves. Twenty disks take 1,048,575 moves, any one of which can ruin the answer.</p>
 
-<p>The Hanoi transformer Claude wrote outputs one move at a time, the way a language model writes text, feeding each move back in as input. Before every move, its attention reads the starting position and every move written so far, which tells it where each disk is now. The rest of the layer turns that position into the next move. Because the transformer works out the position from scratch at every move instead of keeping a running tally, errors have nothing to build up on. The Hanoi transformer is a single looped layer with 427,654 weights, of which only 3,686 are not zero. Claude checked it on up to 6 disks. On every size from 7 to 20 disks, a separate program replayed its moves and confirmed that every move was legal and the total was the fewest possible.</p>
+<p>The Hanoi transformer Claude wrote outputs one move at a time, the way a language model writes text, feeding each move back in as input. Before every move, its attention reads the starting position and every move written so far, which tells it where each disk is now. The rest of the block turns that position into the next move. Because the transformer works out the position from scratch at every move instead of keeping a running tally, errors have nothing to build up on. The Hanoi transformer is a single looped block with 427,654 weights, of which only 3,686 are not zero. Claude checked it on up to 6 disks. On every size from 7 to 20 disks, a separate program replayed its moves and confirmed that every move was legal and the total was the fewest possible.</p>
 
 <figure class="video-fig">
   <div class="player">
-    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/hanoi_hero_poster.png" width="1280" height="720" data-tall="figures/hanoi_hero_tall" aria-label="Animation. On the left, the hand-written transformer reads every token so far, runs the same transformer layer four times, and writes the next move, which goes back in as input. On the right, that disk moves on the pegs. Then playback speeds up through all 1,048,575 moves and slows down for the last few. The mistake counter stays at 0.">
+    <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/hanoi_hero_poster.png" width="1280" height="720" data-tall="figures/hanoi_hero_tall" aria-label="Animation. On the left, the hand-written transformer reads every token so far, runs the same transformer block four times, and writes the next move, which goes back in as input. On the right, that disk moves on the pegs. Then playback speeds up through all 1,048,575 moves and slows down for the last few. The mistake counter stays at 0.">
       <source src="figures/hanoi_hero.mp4" type="video/mp4">
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
@@ -582,16 +582,16 @@
   <figcaption><strong>Figure 11. Moves against disks.</strong> Each blue dot is one size the transformer solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse. The dashed line marks 12 disks, the largest size Apple's paper tests.</figcaption>
 </figure>
 
-<p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The Hanoi transformer Claude wrote needs none of that. A single small layer makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
+<p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The Hanoi transformer Claude wrote needs none of that. A single small block makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
 
 <p><strong>Checker Jumping</strong>, the second puzzle in the Apple study, tells the same story. Red and blue checkers sit in a row with one gap and must swap sides. They can only move forward, either by sliding into the gap or by jumping a single checker of the other colour. In the paper's tests, Claude 3.7 Sonnet Thinking and DeepSeek-R1 failed from about 3 checkers per side, while o3-mini on its high setting held about 50% or better up to 8 per side (read from the paper's figures). Although Claude checked its transformer only on boards of up to 3 per side, the transformer solves every size from 4 to 40 per side in the fewest possible moves, which comes to 1,680 moves at 40 per side.</p>
 
 <details>
   <summary>Newer models, the transformer's limits, and Checker Jumping</summary>
-  <p>Extra loops don't change the Hanoi transformer either. Running its layer 4 or 8 times per move instead of 2 produces the same moves.</p>
+  <p>Extra loops don't change the Hanoi transformer either. Running its block 4 or 8 times per move instead of 2 produces the same moves.</p>
   <p>Some newer models still fail early. In 2026 tests, o4-mini failed from 6 disks, while Qwen3-235B-Thinking fell to about 52% at 7 disks and 20% at 8 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
   <p>The Hanoi transformer only moves the stack from the first peg to the third. When it starts from any other position, it does not finish. It needs 64-bit numbers, because with 32-bit numbers rounding errors could pile up over a million moves. Its context window, the number of tokens it can read, is sized so that 20 disks is the most it can handle.</p>
-  <p><strong>Checker Jumping.</strong> The Checker Jumping transformer works like the Hanoi transformer. Its attention reads the board and every move so far, from which its layer computes the next move. It stops when no move is left. The transformer is built for boards of up to 40 checkers per side and has 10,008,568 weights, of which only 11,062 are not zero. Sizes above 15 per side lie beyond the Apple paper's range. In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
+  <p><strong>Checker Jumping.</strong> The Checker Jumping transformer works like the Hanoi transformer. Its attention reads the board and every move so far, from which its block computes the next move. It stops when no move is left. The transformer is built for boards of up to 40 checkers per side and has 10,008,568 weights, of which only 11,062 are not zero. Sizes above 15 per side lie beyond the Apple paper's range. In 2026 tests, GPT-5.2 at low effort fell below 20% from 9 per side and to about zero by 11 (<a href="https://arxiv.org/abs/2603.06870">Pushkin and Abbe, 2026</a>, read from a plot).</p>
 </details>
 
 <h3 id="graphwalks">GraphWalks, where the question sits in a million-token prompt</h3>
@@ -618,7 +618,7 @@
 </table>
 </div>
 <p class="note"><strong>Table 5. GraphWalks results.</strong> F1, the standard GraphWalks score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores are Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
-  <p>The transformer is one block of 2 layers, looped 400 times, with nothing trained. The first layer has one attention head and 811 neurons, while the second has 12 neurons. Its 400 loops are enough for any N up to 397.</p>
+  <p>The transformer is two blocks, looped 400 times, with nothing trained. The first block has one attention head and 811 neurons, while the second has 12 neurons. Its 400 loops are enough for any N up to 397.</p>
 </details>
 
 <h3 id="bbeh">BIG-Bench reasoning questions, written in plain English</h3>
@@ -645,7 +645,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 6. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped block is two layers with 89 neurons.</p>
+<p class="note"><strong>Table 6. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped part is two blocks with 89 neurons.</p>
 
 <div class="table-wrap">
 <table>
@@ -720,10 +720,10 @@
   <tbody>
     <tr class="written"><td>Hand-written (looped)</td><td class="num">~190 + table</td><td class="num">100</td><td class="num">100</td></tr>
     <tr><td>Trained, looped</td><td class="num">50,434</td><td class="num">100</td><td class="num">53.8</td></tr>
-    <tr><td>Trained, 1 layer</td><td class="num">50,434</td><td class="num">100</td><td class="num">52.6</td></tr>
-    <tr><td>Trained, 4 layers</td><td class="num">13,234</td><td class="num">100</td><td class="num">49.2</td></tr>
-    <tr><td>Trained, 8 layers</td><td class="num">101,858</td><td class="num">100</td><td class="num">49.5</td></tr>
-    <tr><td>Trained, 12 layers</td><td class="num">600,258</td><td class="num">100</td><td class="num">45.5</td></tr>
+    <tr><td>Trained, 1 block</td><td class="num">50,434</td><td class="num">100</td><td class="num">52.6</td></tr>
+    <tr><td>Trained, 4 blocks</td><td class="num">13,234</td><td class="num">100</td><td class="num">49.2</td></tr>
+    <tr><td>Trained, 8 blocks</td><td class="num">101,858</td><td class="num">100</td><td class="num">49.5</td></tr>
+    <tr><td>Trained, 12 blocks</td><td class="num">600,258</td><td class="num">100</td><td class="num">45.5</td></tr>
   </tbody>
 </table>
 </div>
@@ -734,14 +734,14 @@
   <tbody>
     <tr class="written"><td>Hand-written (looped)</td><td class="num">4,763</td><td class="num">100</td><td class="num">100</td></tr>
     <tr><td>Trained, looped</td><td class="num">77,924</td><td class="num">69.1</td><td class="num">2.2 – 9.2</td></tr>
-    <tr><td>Trained, 1 layer</td><td class="num">77,924</td><td class="num">7.0</td><td class="num">2.8</td></tr>
-    <tr><td>Trained, 4 layers</td><td class="num">51,368</td><td class="num">43.4</td><td class="num">2.8</td></tr>
-    <tr><td>Trained, 8 layers (~90× the hand-written size)</td><td class="num">427,812</td><td class="num">93.7</td><td class="num">3.5</td></tr>
-    <tr><td>Trained, 12 layers</td><td class="num">627,748</td><td class="num">49.6</td><td class="num">4.0</td></tr>
+    <tr><td>Trained, 1 block</td><td class="num">77,924</td><td class="num">7.0</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 4 blocks</td><td class="num">51,368</td><td class="num">43.4</td><td class="num">2.8</td></tr>
+    <tr><td>Trained, 8 blocks (~90× the hand-written size)</td><td class="num">427,812</td><td class="num">93.7</td><td class="num">3.5</td></tr>
+    <tr><td>Trained, 12 blocks</td><td class="num">627,748</td><td class="num">49.6</td><td class="num">4.0</td></tr>
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 9. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-layer model, at 93.7% on the checking range and 3.5% beyond it.</p>
+<p class="note"><strong>Table 9. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
 
 
 </details>
@@ -773,7 +773,7 @@
 <details class="appendix">
   <summary>Read the appendix</summary>
 
-<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> runs its 24 layers 4 times. It also has a built-in "am I done?" signal that it uses to decide when to stop looping.</p>
+<p><a href="https://huggingface.co/ByteDance/Ouro-1.4B">Ouro-1.4B</a> runs its 24 blocks 4 times. It also has a built-in "am I done?" signal that it uses to decide when to stop looping.</p>
 
 <p><strong>The clock.</strong> Claude found the cause by reading the model's internal states. Ouro adds no start token, so its first token can only attend to itself. Loop after loop, that token's state therefore steps through a fixed sequence that every other token reads, like a clock. Past loop 4, the clock shows values outside the range Ouro saw in training.</p>
 
