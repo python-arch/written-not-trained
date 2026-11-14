@@ -94,7 +94,9 @@
   .hero-pair { display: grid; grid-template-columns: 1fr; gap: 6px 28px; margin: 16px 0 18px; align-items: start; }
   .hero-pair > figure { margin: 0 0 12px; }
   .hero-pair .layers { max-width: none; }
-  @media (min-width: 760px) { .hero-pair { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 760px) {
+    .hero-pair { grid-template-columns: 1fr 1fr; --bw: min(1500px, calc(100vw - 32px)); width: var(--bw); margin-left: calc((100% - var(--bw)) / 2); margin-right: calc((100% - var(--bw)) / 2); }
+  }
   .video-fig { margin: 18px 0 26px; }
   .anatomy { margin: 18px 0 26px; }
   .anat-grid { display: grid; grid-template-columns: 1fr; gap: 10px; font-family: var(--sans); }
