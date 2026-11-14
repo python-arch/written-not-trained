@@ -317,6 +317,11 @@
 
 <p>With this layout, each pass through the block performs one step of a standard shortest-path search.</p>
 
+<figure class="block-fig">
+  <img src="figures/maze_block.svg" width="920" height="352" loading="lazy" alt="Diagram of the maze transformer's one block, read from left to right. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it. An arrow from the output back to the input marks the 1,800 loops.">
+  <figcaption><strong>Figure 4. The maze block.</strong> The maze transformer's one block, read from its weights. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</figcaption>
+</figure>
+
 <p><strong>A wave from the goal.</strong> The goal starts at distance 0. On every loop, each open cell that has not been reached yet but borders a reached cell takes that neighbour's distance plus one. The reached area therefore spreads outward from the goal one step per loop, like a ripple across a pond.</p>
 
 <p><strong>Counting in threes.</strong> Claude kept every number in a cell's memory, apart from its position, as a switch that is either on or off, for a reason explained below. A switch cannot hold a distance like 117, so each cell stores its distance modulo 3 instead, counting 0, 1, 2, 0, 1, 2 and so on. That turns out to be all the search needs. Two reachable cells next to each other differ in distance from the goal by one, so the count modulo 3 is enough to tell which neighbours lie one step closer to the goal. As a bonus, nothing in the transformer grows with the size of the maze.</p>
@@ -327,7 +332,7 @@
 
 <p><strong>Snapping back.</strong> At the end of every loop, each switch is pushed back to 0 or 1. Any small numerical error is wiped out before the next loop can build on it, which is why the transformer stays accurate through thousands of loops.</p>
 
-<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The transformer runs 1,800 loops in total, far more than any test maze needs. Figure 4 draws the numbers every cell holds after each loop.</p>
+<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The transformer runs 1,800 loops in total, far more than any test maze needs. Figure 5 draws the numbers every cell holds after each loop.</p>
 
 <figure class="video-fig smaller">
   <div class="player">
@@ -336,18 +341,13 @@
       <source src="figures/maze_inside.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 4. Inside the transformer.</strong> Inside the transformer on the same maze as in Figure 2. The thought bubble shows what the transformer Claude wrote holds for the cells near the goal, read from its numbers after each loop. Each digit is a cell's distance from the goal, counted in threes, and each arrow points to the next step. The orange arrows at the start mark the four neighbours each cell reads.</figcaption>
+  <figcaption><strong>Figure 5. Inside the transformer.</strong> Inside the transformer on the same maze as in Figure 2. The thought bubble shows what the transformer Claude wrote holds for the cells near the goal, read from its numbers after each loop. Each digit is a cell's distance from the goal, counted in threes, and each arrow points to the next step. The orange arrows at the start mark the four neighbours each cell reads.</figcaption>
 </figure>
 
 
 <details>
   <summary>The block piece by piece, and what breaks when you switch parts off</summary>
   <p>Nothing in the transformer runs as a sequence of instructions. All cells update at the same moment on every loop, each knowing only its 35 numbers and what it reads from its four neighbours. The path is not computed somewhere else and then written out. Instead, it lights up across the grid one cell per loop, from the start to the goal.</p>
-  <figure>
-    <img src="figures/maze_block.svg" width="518" height="552" loading="lazy" alt="Diagram of the maze transformer's one block. A bar shows a cell's memory of 35 numbers, grouped by meaning. They are a constant 1, where the cell is (row, column, r² + c²), what it is (wall, start or goal), its distance to the goal counted in threes, the next step, whether it is on the path, and 20 numbers copied from the neighbours each loop, 5 from each. Four attention heads, one per neighbour, each copy that neighbour's distance and path flag and whether it points at this cell. The neurons are grouped by job into wave (6 neurons), pointer (24), pointer clear (8), chain (8) and clean-up (40), and the wave, pointer and chain neurons work in pairs that give 0 or 1. At the end, each cell writes a wall, an open cell, the start, the goal or a path cell, and the distance, pointer and copied numbers play no part in it.">
-    <figcaption><strong>Figure 5. The maze block.</strong> The maze transformer's one block, read from its weights. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</figcaption>
-  </figure>
-
   <div class="ablate">
     <p class="label">Switch one part off, on the 1,000 training mazes</p>
     <ul>
@@ -675,7 +675,7 @@
   <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe on other hard tasks. One transformer solves Sudoku-Extreme by guessing and backtracking. Another plays out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake. A third answers graph questions buried in prompts of up to a million tokens (GraphWalks). Four more solve reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these transformers scored 100% on its test problems.</li>
   <li><strong>The loop keeps the transformers small and lets them scale.</strong> Every weight is one more thing Claude has to get right. With a loop, a bigger problem needs more passes rather than more weights, which keeps the maze transformer 163 times smaller than it would be without one. The same loop lets each transformer keep working far beyond the sizes Claude checked it on (<a href="#beyond">section 4</a>).</li>
   <li><strong>Gradient descent did not find these solutions in our runs.</strong> When we reset the maze transformer Claude wrote to random weights and trained it on the same 1,000 mazes, every run ended with 0% of mazes solved, on budgets far smaller than those of the models built for this benchmark (<a href="#training">section 4</a>).</li>
-  <li><strong>Every number inside has a meaning.</strong> Claude decided what each number inside a transformer stands for, so we can read those numbers after any loop and watch the algorithm run, as Figure 4 shows.</li>
+  <li><strong>Every number inside has a meaning.</strong> Claude decided what each number inside a transformer stands for, so we can read those numbers after any loop and watch the algorithm run, as Figure 5 shows.</li>
 </ul>
 
 <h2 id="next">What's next</h2>

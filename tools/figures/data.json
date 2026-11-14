@@ -392,12 +392,6 @@
  },
  "maze_block": {
   "title": "The maze block, piece by piece",
-  "_height": 64,
-  "_y_bar": 12.3,
-  "_stair": 1.6,
-  "_y_heads": 33.1,
-  "_y_units": 44,
-  "_y_readout": 58.5,
   "bar_label": "A cell's 35 numbers",
   "groups": [
    {
@@ -449,8 +443,8 @@
     ]
    }
   ],
-  "heads_label": "Four heads, one per neighbour",
-  "cell_label": "cell",
+  "block_label": "One block",
+  "attn_label": "Attention, 4 heads",
   "heads": [
    {
     "dir": "up",
@@ -473,40 +467,36 @@
     "carries": ""
    }
   ],
-  "heads_note": "",
-  "units_label": "Neurons by job",
+  "mlp_label": "MLP",
   "units": [
    {
-    "name": "Wave, 6 neurons",
-    "writes": "phase",
-    "job": ""
+    "name": "Wave",
+    "n": 6,
+    "writes": "phase"
    },
    {
-    "name": "Pointer, 24 neurons",
+    "name": "Pointer",
+    "n": 24,
+    "writes": "ptr"
+   },
+   {
+    "name": "Pointer clear",
+    "n": 8,
     "writes": "ptr",
-    "job": ""
+    "_tint": 0.5
    },
    {
-    "name": "Pointer clear, 8 neurons",
-    "writes": "ptr",
-    "job": ""
+    "name": "Chain",
+    "n": 8,
+    "writes": "on"
    },
    {
-    "name": "Chain, 8 neurons",
-    "writes": "on",
-    "job": ""
-   },
-   {
-    "name": "Clean-up, 40 neurons",
-    "writes": "copied",
-    "job": ""
-   },
-   {
-    "name": "Pairs give 0 or 1",
-    "note": true,
-    "job": ""
+    "name": "Clean-up",
+    "n": 40,
+    "writes": "copied"
    }
   ],
+  "pairs_note": "Wave, pointer and chain neurons\nwork in pairs that give 0 or 1",
   "readout_label": "Each cell writes",
   "readout": [
    {
@@ -530,7 +520,7 @@
     "from": "path"
    }
   ],
-  "readout_note": ""
+  "loop_label": "× 1,800 loops"
  },
  "maze_training": {
   "_source": "loopws logs/blog_handoff/fig1_time_notes.md and logs/fig1_gd/fig1_time_data.json (2026-11-14)",

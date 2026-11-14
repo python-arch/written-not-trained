@@ -1008,115 +1008,151 @@ def maze_compute(plt, d) -> None:
 
 # --------------------------------------------------------------------------- maze: the block, piece by piece
 def maze_block(plt, d) -> None:
-    """A map of the maze network's one block, from maze_block_map.md: the 35 numbers per cell, the four heads, the
-    unit groups and the readout. A diagram, not a chart: no data layer."""
+    """The maze transformer's one block as a left-to-right model figure, from maze_block_map.md: a cell's 35 numbers
+    (the input token), attention with four heads (one per neighbour), the MLP's 86 neurons by job, the character each
+    cell writes, and the loop back to the input. A diagram, not a chart: no data layer."""
     from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
 
-    H = d["_height"]
-    fig = plt.figure(figsize=(5.4, H / 10))
+    W_CSS, XU = 920, 96.0                              # 920 CSS px wide, 96 drawing units across
+    H = 38.0
+    u_in = W_CSS / CSS_DPI / XU                        # inches per unit
+    fig = plt.figure(figsize=(XU * u_in, H * u_in))
     ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_xlim(0, 54)
+    ax.set_xlim(0, XU)
     ax.set_ylim(0, H)
     ax.axis("off")
     col = {g["key"]: g["_colour"] for g in d["groups"]}
-    edge, soft = "#cfcdc5", "#f6f5f1"
+    edge, soft, block_fc = "#cfcdc5", "#f6f5f1", "#fdf1eb"
+    f_title, f_lab, f_small = F * 9.2, F * 7.8, F * 7.2
+    y_title = 36.4
 
-    def head(y, text):
-        ax.text(2.2, y, text, fontsize=F * 8.6, fontweight="semibold", color=INK, va="baseline")
+    def box(x0, y0, x1, y1, fc, ec, lw=1.0, r=0.9, z=1):
+        ax.add_patch(FancyBboxPatch((x0, y0), x1 - x0, y1 - y0, boxstyle=f"round,pad=0,rounding_size={r}",
+                                    fc=fc, ec=ec, lw=lw, zorder=z))
 
-    # ---- 1. the numbers in every cell: one bar, grouped by meaning
-    y = H - d["_y_bar"]
-    head(y + 5.0, d["bar_label"])
-    x0, x1, gap, sub_gap, bh = 2.2, 51.8, 0.5, 0.3, 2.3
-    n = sum(g["n"] for g in d["groups"])
-    n_sub = sum(len(g["sub"]) - 1 for g in d["groups"] if g.get("sub"))
-    w = (x1 - x0 - gap * (len(d["groups"]) - 1) - sub_gap * n_sub) / n
-    spans, x = {}, x0
+    def arrow(p0, p1, c=MUTED, lw=1.3, ms=10, z=3):
+        ax.add_patch(FancyArrowPatch(p0, p1, arrowstyle="-|>", mutation_scale=ms, color=c, lw=lw,
+                                     shrinkA=0, shrinkB=0, zorder=z))
+
+    # ---- the input token: a cell's 35 numbers, top to bottom, grouped by meaning
+    ax.text(1.0, y_title, d["bar_label"], fontsize=f_title, fontweight="semibold", color=INK, va="baseline")
+    bx0, bx1, ch, gap, sub_gap = 15.6, 17.6, 0.68, 0.5, 0.25
+    y = 34.4
+    spans = {}
     for g in d["groups"]:
-        a, every = x, g["n"] // len(g["sub"]) if g.get("sub") else 0
+        top, every = y, g["n"] // len(g["sub"]) if g.get("sub") else 0
+        subs = []
         for i in range(g["n"]):
-            if every and i and i % every == 0:
-                x += sub_gap
-            ax.add_patch(Rectangle((x, y), w, bh, fc=g["_colour"], ec="white", lw=0.6))
-            x += w
-        spans[g["key"]] = (a, x)
-        x += gap
-    for g in d["groups"]:                       # the wide group: label and its parts above the bar
+            if every and i % every == 0:
+                if i:
+                    y -= sub_gap
+                subs.append(y)
+            ax.add_patch(Rectangle((bx0, y - ch), bx1 - bx0, ch, fc=g["_colour"], ec="white", lw=0.6, zorder=2))
+            y -= ch
+        spans[g["key"]] = (top, y, subs, every)
+        y -= gap
+    bar_bottom = y + gap
+    for g in d["groups"]:
+        top, bot, subs, every = spans[g["key"]]
         if not g.get("sub"):
+            ax.text(14.9, (top + bot) / 2, g["label"], fontsize=f_small, color=INK, ha="right", va="center")
             continue
-        a, b = spans[g["key"]]
-        k = g["n"] // len(g["sub"])
-        ax.text(a, y + bh + 2.25, g["label"], fontsize=F * 7.4, color=INK, va="bottom")
-        for j, name in enumerate(g["sub"]):
-            sa = a + j * (k * w + sub_gap)
-            sb = sa + k * w
-            ax.plot([sa + 0.12, sa + 0.12, sb - 0.12, sb - 0.12], [y + bh + 0.3, y + bh + 0.7, y + bh + 0.7,
-                                                                   y + bh + 0.3], color=MUTED, lw=0.7)
-            ax.text((sa + sb) / 2, y + bh + 0.9, name, fontsize=F * 6.8, color=MUTED, ha="center", va="bottom")
-    small = [g for g in d["groups"] if not g.get("sub")]
-    for r, g in enumerate(reversed(small)):    # narrow groups: a staircase below, leftmost deepest
-        a, b = spans[g["key"]]
-        cx = (a + b) / 2
-        yy = y - 1.3 - d["_stair"] * r
-        ax.plot([a + 0.08, b - 0.08], [y - 0.35, y - 0.35], color=g["_colour"], lw=1.4, solid_capstyle="butt")
-        ax.plot([cx, cx], [y - 0.35, yy], color=g["_colour"], lw=0.9)
-        ax.text(cx + 0.5, yy, g["label"], fontsize=F * 7.4, color=INK, va="center")
+        for name, st in zip(g["sub"], subs):
+            ax.text(14.9, st - every * ch / 2, name, fontsize=f_small, color=MUTED, ha="right", va="center")
+        xb = 10.9
+        ax.plot([xb + 0.45, xb, xb, xb + 0.45], [top - 0.1, top - 0.1, bot + 0.1, bot + 0.1], color=MUTED, lw=0.8)
+        ax.text(xb - 0.6, (top + bot) / 2, g["label"].replace(" from ", " from\n"), fontsize=f_small, color=INK,
+                ha="right", va="center", linespacing=1.25)
 
-    # ---- 2. the four heads, one per neighbour
-    yc = H - d["_y_heads"]
-    head(yc + 8.6, d["heads_label"])
-    cx, s = 27, 3.4
-    ax.add_patch(Rectangle((cx - s / 2, yc - s / 2), s, s, fc="white", ec=INK, lw=1.3))
-    ax.text(cx, yc, d["cell_label"], fontsize=F * 6.8, color=INK, ha="center", va="center")
-    step = {"down": (0, -1), "left": (-1, 0), "right": (1, 0), "up": (0, 1)}
-    for h in d["heads"]:
+    # ---- the block: attention, then the MLP
+    y_mid = 20.6
+    blk = (21.0, 6.4, 77.0, 34.9)
+    box(*blk, fc=block_fc, ec=WRITTEN, lw=1.5, r=1.4, z=0)
+    ax.text(blk[0], y_title, d["block_label"], fontsize=f_title, fontweight="semibold", color=WRITTEN_TEXT,
+            va="baseline")
+    arrow((bx1 + 0.3, y_mid), (23.0, y_mid))
+
+    # attention: four heads, each a 3x3 patch with the neighbour it reads
+    ax0, ax1 = 23.0, 44.0
+    box(ax0, 8.0, ax1, 33.4, "white", edge)
+    ax.text(ax0 + 1.2, 32.3, d["attn_label"], fontsize=f_lab, fontweight="semibold", color=INK, va="top")
+    s = 2.0
+    step = {"up": (0, 1), "left": (-1, 0), "right": (1, 0), "down": (0, -1)}
+    centres = [(28.4, 25.0), (38.6, 25.0), (28.4, 14.4), (38.6, 14.4)]
+    for h, (cx, cy) in zip(d["heads"], centres):
         dx, dy = step[h["dir"]]
-        nx, ny = cx + dx * s * 1.65, yc + dy * s * 1.65
-        ax.add_patch(Rectangle((nx - s / 2, ny - s / 2), s, s, fc=soft, ec=edge, lw=0.9))
-        ax.add_patch(FancyArrowPatch((nx - dx * s * 0.2, ny - dy * s * 0.2), (cx + dx * s * 0.56, yc + dy * s * 0.56),
-                                     arrowstyle="-|>", mutation_scale=9, color=col["copied"], lw=1.6))
-        side = -1 if h["dir"] in ("up", "left") else 1
-        tx, ha = nx + side * (s / 2 + 0.8), ("right" if side < 0 else "left")
-        ax.text(tx, ny + 0.25, h["name"], fontsize=F * 7.4, fontweight="semibold", color=AQUA_TEXT, ha=ha,
-                va="bottom")
-        if h["carries"]:
-            ax.text(tx, ny + 0.05, h["carries"], fontsize=F * 6.8, color=MUTED, ha=ha, va="top", linespacing=1.25)
-    if d["heads_note"]:
-        ax.text(2.2, yc - 9.3, d["heads_note"], fontsize=F * 6.8, color=MUTED, va="top")
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                x, yy = cx + i * s - s / 2, cy + j * s - s / 2
+                if (i, j) == (0, 0):
+                    fc_, ec_, lw_ = "white", INK, 1.2
+                elif (i, j) == (dx, dy):
+                    fc_, ec_, lw_ = "#c6eadb", col["copied"], 1.0
+                else:
+                    fc_, ec_, lw_ = soft, "#dcdad2", 0.6
+                ax.add_patch(Rectangle((x, yy), s, s, fc=fc_, ec=ec_, lw=lw_, zorder=2 + (lw_ > 0.7)))
+        arrow((cx + dx * s * 1.3, cy + dy * s * 1.3), (cx + dx * s * 0.56, cy + dy * s * 0.56), c=AQUA_TEXT,
+              lw=1.5, ms=8, z=5)
+        ax.text(cx, cy - 1.5 * s - 0.55, h["name"], fontsize=f_small, fontweight="semibold", color=AQUA_TEXT,
+                ha="center", va="top")
+    arrow((ax1 + 0.2, y_mid), (46.3, y_mid))
 
-    # ---- 3. the units, by job
-    yu = H - d["_y_units"]
-    head(yu + 1.6, d["units_label"])
-    bw, bh2, gx, gy = 24.2, 2.8, 1.2, 0.8
-    for i, u in enumerate(d["units"]):
-        r, c = divmod(i, 2)
-        bx, by = 2.2 + c * (bw + gx), yu - (r + 1) * bh2 - r * gy
-        note = u.get("note", False)
-        ax.add_patch(FancyBboxPatch((bx, by), bw, bh2, boxstyle="round,pad=0,rounding_size=0.5",
-                                    fc=soft if note else "white", ec=edge, lw=0.9, ls=(0, (3, 2)) if note else "-"))
-        if not note:
-            ax.add_patch(Rectangle((bx, by), 0.7, bh2, fc=col[u["writes"]], ec="none"))
-        ax.text(bx + 1.5, by + bh2 / 2, u["name"], fontsize=F * 7.6, fontweight="semibold",
-                color=MUTED if note else INK, va="center")
-        if u["job"]:
-            ax.text(bx + 1.5, by + bh2 - 2.45, u["job"], fontsize=F * 6.8, color=MUTED, va="top", linespacing=1.25)
+    # MLP: 86 neurons as chips, one row block per job, labelled directly
+    mx0, mx1 = 46.5, 75.0
+    box(mx0, 8.0, mx1, 33.4, "white", edge)
+    n_mlp = sum(u["n"] for u in d["units"])           # the total is computed from the jobs, not stored
+    ax.text(mx0 + 1.2, 32.3, f'{d["mlp_label"]}, {n_mlp} neurons', fontsize=f_lab, fontweight="semibold", color=INK,
+            va="top")
+    chip, pitch, job_gap, per_row = 0.95, 1.22, 0.62, 10
+    y = 29.4
+    for u in d["units"]:
+        c = col[u["writes"]]
+        if u.get("_tint"):
+            c = mix_hex(c, "#ffffff", u["_tint"])
+        rows = -(-u["n"] // per_row)
+        for i in range(u["n"]):
+            r, k = divmod(i, per_row)
+            ax.add_patch(FancyBboxPatch((48.0 + k * pitch, y - r * pitch - chip), chip, chip,
+                                        boxstyle="round,pad=0,rounding_size=0.18", fc=c, ec="none", zorder=2))
+        yc = y - ((rows - 1) * pitch + chip) / 2
+        ax.text(48.0 + (per_row - 1) * pitch + chip + 1.2, yc, f'{u["name"]}, {u["n"]}', fontsize=f_small,
+                color=INK, va="center")
+        y -= rows * pitch + job_gap
+    ax.text(48.0, y - 0.2, d["pairs_note"], fontsize=f_small, color=MUTED, va="top", linespacing=1.3)
+    arrow((mx1 + 0.2, y_mid), (79.0, y_mid))
 
-    # ---- 4. the readout
-    yr = H - d["_y_readout"]
-    head(yr + 1.6, d["readout_label"])
-    tw = 9.92
+    # ---- what each cell writes
+    ox0, ox1 = 79.2, 95.4
+    ax.text(ox0, y_title, d["readout_label"], fontsize=f_title, fontweight="semibold", color=INK, va="baseline")
+    box(ox0, 8.0, ox1, 33.4, "white", edge)
     for i, r in enumerate(d["readout"]):
-        bx = 2.2 + i * tw
-        ax.add_patch(Rectangle((bx, yr - 2.9), 2.4, 2.4, fc=soft, ec=edge, lw=0.8))
-        ax.text(bx + 1.2, yr - 1.7, r["char"], fontsize=F * 8.6, fontweight="semibold", color=INK, ha="center",
-                va="center")
-        ax.text(bx + 3.0, yr - 1.7, r["from"], fontsize=F * 6.8, color=MUTED, va="center", linespacing=1.2)
-    if d["readout_note"]:
-        ax.text(2.2, yr - 4.3, d["readout_note"], fontsize=F * 6.8, color=MUTED, va="top")
+        cy = 29.6 - i * 4.4
+        path = r["from"] == "path"
+        ax.add_patch(Rectangle((ox0 + 1.4, cy - 1.25), 2.5, 2.5, fc="#fbe1d6" if path else soft,
+                               ec=WRITTEN if path else edge, lw=0.9, zorder=2))
+        ax.text(ox0 + 2.65, cy, r["char"], fontsize=f_lab, fontweight="semibold", color=INK, ha="center",
+                va="center", zorder=3)
+        ax.text(ox0 + 5.0, cy, r["from"], fontsize=f_lab, color=INK, va="center")
+
+    # ---- the loop: the block's output is the next loop's input
+    yl = 3.0
+    lx0, lx1 = (bx0 + bx1) / 2, (ox0 + ox1) / 2
+    ax.plot([lx1, lx1, lx0], [8.0, yl, yl], color=WRITTEN, lw=1.7, solid_joinstyle="round", zorder=1)
+    arrow((lx0, yl), (lx0, bar_bottom - 0.35), c=WRITTEN, lw=1.7, ms=11, z=1)
+    ax.text((blk[0] + blk[2]) / 2, yl, d["loop_label"], fontsize=f_lab, fontweight="semibold", color=WRITTEN_TEXT,
+            ha="center", va="center", zorder=4,
+            bbox=dict(boxstyle="round,pad=0.35,rounding_size=0.6", fc="white", ec="none"))
 
     fig_title(fig, d["title"], 1 - 1.5 / H, width=46)
     save(fig, "maze_block", d["title"])
     plt.close(fig)
+
+
+def mix_hex(a: str, b: str, t: float) -> str:
+    ca = [int(a[i:i + 2], 16) for i in (1, 3, 5)]
+    cb = [int(b[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(p + (q - p) * t):02x}" for p, q in zip(ca, cb))
+
 
 
 # --------------------------------------------------------------------------- maze: Claude as the optimizer
