@@ -111,7 +111,7 @@ class Timeline:
             ("Each token holds 35 numbers", "embed", w, 2 * w),
             ("Attention lets each cell read its four neighbours", "attn", 2 * w, 3 * w),
             ("Neurons update each cell's distance, pointer and path", "mlp", 3 * w, 4 * w),
-            ("The same layer runs again, loop after loop", "loop", 4 * w, 5 * w),
+            ("The same block runs again, loop after loop", "loop", 4 * w, 5 * w),
             ("A wave of distances spreads out from the goal", "maze_goal", t2, t3),
             (f"The wave reaches the start at loop {self.D}", "maze_start", t3, t3 + w),
             ("The path grows from the start back to the goal", "maze", t3 + w, t4),
@@ -437,7 +437,7 @@ class Scene:
         dr.rounded_rectangle((bx0 * k, by0 * k, bx1 * k, by1 * k), radius=16 * k,
                              fill=mix(ACCENT_SOFT, GLOW, glow), outline=ACCENT, width=round((2.2 + 1.6 * glow) * k))
         tx, ty = g["tag"]
-        dr.text((tx * k, ty * k), "one layer", font=f["small"], fill=MUTED, anchor="ls")
+        dr.text((tx * k, ty * k), "one block", font=f["small"], fill=MUTED, anchor="ls")
         # attention: four heads, one per neighbour
         dr.text((cx * k, g["attn_label"] * k), "attention, 4 heads", font=f["lab"], fill=FG, anchor="ms")
         hy, hs, hg = g["heads"]

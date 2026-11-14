@@ -429,7 +429,7 @@ class Scene:
         reading = traced * ramp(u, U_PASS[0], U_PASS[0] + 0.04) * (1 - ramp(u, U_DONE, U_DONE + 0.05))
         g = self.g
         # ---- lane labels
-        for key, name in (("in", "Input"), ("blk", "Layer")):
+        for key, name in (("in", "Input"), ("blk", "Block")):
             col = mix(BG, MUTED, dim)
             if g["labels"] == "left":
                 dr.text((self.left, self.y[key]), name, font=F["lane"], fill=col, anchor="lm")
