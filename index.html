@@ -556,7 +556,7 @@
 
 <p>The Hanoi transformer Claude wrote outputs one move at a time, the way a language model writes text, feeding each move back in as input. Before every move, its attention reads the starting position and every move written so far, which tells it where each disk is now. The rest of the block turns that position into the next move. Because the transformer works out the position from scratch at every move instead of keeping a running tally, errors have nothing to build up on. The Hanoi transformer is a single looped block with 427,654 weights, of which only 3,686 are not zero. Claude checked it on up to 6 disks. On every size from 7 to 20 disks, a separate program replayed its moves and confirmed that every move was legal and the total was the fewest possible.</p>
 
-<figure class="video-fig">
+<figure class="video-fig smaller">
   <div class="player">
     <video class="loop-video" muted loop playsinline preload="metadata" poster="figures/hanoi_hero_poster.png" width="1280" height="720" data-tall="figures/hanoi_hero_tall" aria-label="Animation. On the left, the hand-written transformer reads every token so far, runs the same transformer block four times, and writes the next move, which goes back in as input. On the right, that disk moves on the pegs. Then playback speeds up through all 1,048,575 moves and slows down for the last few. The mistake counter stays at 0.">
       <source src="figures/hanoi_hero.mp4" type="video/mp4">
