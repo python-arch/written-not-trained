@@ -392,7 +392,7 @@
  },
  "maze_block": {
   "title": "The maze block, piece by piece",
-  "bar_label": "A cell's 35 numbers",
+  "bar_label": "Maze cell hidden state",
   "groups": [
    {
     "key": "const",
