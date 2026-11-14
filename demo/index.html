@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Run the network · Written, Not Trained</title>
-<meta name="description" content="Run the hand-written Tower of Hanoi network in your browser: its real weights, one generic loop, every move checked.">
+<title>Run the transformer · Written, Not Trained</title>
+<meta name="description" content="Run the hand-written Tower of Hanoi transformer in your browser: its real weights, one generic loop, every move checked.">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
@@ -76,8 +76,8 @@
 <div class="wrap">
   <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="maze.html">Maze demo</a></div>
   <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
-  <h1>Run the hand-written network</h1>
-  <p class="lede">This page runs the Tower of Hanoi network from the post, in your browser. It loads the network's real weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each token, run the same transformer layer again and again, and read off the next move. The loop knows nothing about the puzzle. A separate checker on this page replays every move.</p>
+  <h1>Run the hand-written transformer</h1>
+  <p class="lede">This page runs the Tower of Hanoi transformer from the post, in your browser. It loads the transformer's real weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each token, run the same transformer layer again and again, and read off the next move. The loop knows nothing about the puzzle. A separate checker on this page replays every move.</p>
 
   <div class="panel">
     <div class="controls">
@@ -104,15 +104,15 @@
         <button id="pause" type="button" disabled>Pause</button>
       </div>
     </div>
-    <canvas id="pegs" width="1456" height="560" aria-label="The three pegs and the disks, updated as the network writes each move."></canvas>
+    <canvas id="pegs" width="1456" height="560" aria-label="The three pegs and the disks, updated as the transformer writes each move."></canvas>
     <div class="stats">
       <div class="stat"><div class="k">Moves</div><div class="v" id="s-moves">0</div></div>
       <div class="stat"><div class="k">Mistakes</div><div class="v" id="s-mistakes">0</div></div>
       <div class="stat"><div class="k">Tokens it reads</div><div class="v" id="s-tokens">0</div></div>
-      <div class="stat"><div class="k">Network time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
+      <div class="stat"><div class="k">Transformer time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
     </div>
     <div class="passes">
-      <div class="k">What the network wrote after each loop, for the latest move</div>
+      <div class="k">What the transformer wrote after each loop, for the latest move</div>
       <div class="cells" id="cells"></div>
       <p class="note">The move is read after the last loop. With 4 or 8 loops, every move stays exactly the same.</p>
     </div>
@@ -123,25 +123,25 @@
   <h2>What happens when you press Run</h2>
   <ol>
     <li>The puzzle becomes tokens: the number of disks, where each disk starts, where it should end, and a separator.</li>
-    <li>For every new token, the network looks it up in its embedding table, runs the same transformer layer a few times, and reads off a score for each possible next token. The highest score is the next move.</li>
-    <li>That move is added to the input, and the loop goes again, until the network writes its end token.</li>
+    <li>For every new token, the transformer looks it up in its embedding table, runs the same transformer layer a few times, and reads off a score for each possible next token. The highest score is the next move.</li>
+    <li>That move is added to the input, and the loop goes again, until the transformer writes its end token.</li>
     <li>Separately, a small checker replays each move on the pegs: the disk must be on top of its peg and may never land on a smaller one.</li>
   </ol>
   <p>Each step reads every earlier token, so bigger puzzles take longer. Up to 13 disks finishes in about a second. 15 disks, 32,767 moves, takes several seconds on a laptop.</p>
 
   <details>
-    <summary>The whole runner: the loop that runs the network</summary>
+    <summary>The whole runner: the loop that runs the transformer</summary>
     <pre id="runner-src"></pre>
   </details>
-  <p class="note">The same loop in Python, and the weights of all the hand-written networks, are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>. This page uses <a href="hanoi_network.js">hanoi_network.js</a>, the same numbers as <code>weights/networks/hanoi.npz</code>.</p>
+  <p class="note">The same loop in Python, and the weights of all the hand-written transformers, are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>. This page uses <a href="hanoi_model.js">hanoi_model.js</a>, the same numbers as the Hanoi weights file there.</p>
 </div>
 
-<script src="hanoi_network.js"></script>
+<script src="hanoi_model.js"></script>
 <script id="runner">
 // The generic loop, the same as weights/run.py. It knows nothing about Tower of Hanoi:
-// it only reads the config and the weights. Numbers are 64-bit, as the network needs.
+// it only reads the config and the weights. Numbers are 64-bit, as the transformer needs.
 
-function loadNetwork(net) {
+function loadModel(net) {
   const cfg = net.config, T = net.tensors;
   const size = (k) => T[k].shape.reduce((a, b) => a * b, 1);
   const dense = (k) => { const a = new Float64Array(size(k)); T[k].idx.forEach((i, j) => { a[i] = T[k].val[j]; }); return a; };
@@ -226,7 +226,7 @@ class Decoder {                                 // causal mask: keys and values 
 <script>
 (function () {
   // ---------------- task-specific input and output (as in weights/run.py): prompt -> token ids, ids -> moves
-  const net = loadNetwork(window.HANOI_NETWORK);
+  const net = loadModel(window.HANOI_MODEL);
   const vocab = net.cfg.io.vocab, ix = Object.fromEntries(vocab.map((s, i) => [s, i]));
   const promptIds = (n) => ["N=" + n, ...Array.from({ length: n }, (_, k) => `INIT(${n - k},0)`),
                             ...Array.from({ length: n }, (_, k) => `GOAL(${n - k},2)`), "SEP"].map(w => [ix[w]]);
@@ -272,7 +272,7 @@ class Decoder {                                 // causal mask: keys and values 
     }
   }
 
-  // ---------------- run: the network computes moves, the page plays them, the checker replays them
+  // ---------------- run: the transformer computes moves, the page plays them, the checker replays them
   const el = (id) => document.getElementById(id);
   let dec = null, queue = [], written = 0, played = 0, mistakes = 0, done = false, ended = false, running = false;
   let t0 = 0, tSpent = 0, lastMove = 0, moves = [], tokens = 0, passes = 2, flyStart = 0;
@@ -284,12 +284,12 @@ class Decoder {                                 // causal mask: keys and values 
     moves = []; tSpent = 0; tokens = 0;
     let last = null;
     for (const tk of promptIds(n)) { last = dec.step(tk); tokens++; }
-    queue.pending = last;                       // the network's answer for the first move
+    queue.pending = last;                       // the transformer's answer for the first move
     el("cells").innerHTML = ""; el("out").textContent = "moves = []";
     el("status").className = "status"; el("status").textContent = "Running…";
     show(); draw();
   }
-  function compute(budget) {                    // let the network write moves for at most `budget` ms
+  function compute(budget) {                    // let the transformer write moves for at most `budget` ms
     const start = performance.now();
     while (!ended && performance.now() - start < budget && queue.length < 4000) {
       const r = queue.pending;
@@ -331,7 +331,7 @@ class Decoder {                                 // causal mask: keys and values 
     const best = 2 ** n - 1;
     el("status").className = "status" + (goal && !mistakes ? " done" : "");
     el("status").textContent = goal && !mistakes && played === best
-      ? `Solved. ${fmt(played)} moves, every one legal, the fewest possible (2^${n} − 1 = ${fmt(best)}). The network wrote its end token, and the checker found no mistake.`
+      ? `Solved. ${fmt(played)} moves, every one legal, the fewest possible (2^${n} − 1 = ${fmt(best)}). The transformer wrote its end token, and the checker found no mistake.`
       : `Stopped after ${fmt(played)} moves. Goal reached: ${goal ? "yes" : "no"}. Mistakes: ${fmt(mistakes)}.`;
     el("run").textContent = "Run again"; el("pause").disabled = true;
   }

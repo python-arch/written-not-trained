@@ -23,13 +23,21 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_hero import (ACCENT, BG, FG, LINE, MUTED, MP4, SS, TAG, WEBM, clamp, font, mix, smooth, text_fixed)  # noqa: E402
+from make_hero import (BG, MP4, SS, WEBM, clamp, font, mix, smooth, text_fixed)  # noqa: E402
+
+# The blog palette (as in make_figures.py): the transformer Claude wrote and its path in orange, the wave in the blue ramp.
+ACCENT = (235, 104, 52)                              # orange #eb6834
+FG = (20, 33, 61)                                    # ink #14213d
+MUTED = (91, 100, 117)                               # #5b6475
+LINE = (214, 212, 204)
+TAG = (243, 242, 236)
+GRIDLINE = (237, 236, 231)
 
 HERE = Path(__file__).resolve().parent
 FPS = 60
 WALL = (52, 56, 63)
-WAVE_OLD = (219, 230, 241)
-WAVE_NEW = (122, 160, 199)
+WAVE_OLD = (205, 226, 251)                           # blue ramp #cde2fb: cells the wave reached a while ago
+WAVE_NEW = (109, 167, 236)                           # blue ramp #6da7ec: cells it just reached
 FORMATS = {"wide": (1280, 720), "tall": (720, 850)}
 
 # timeline (seconds). The opening is slow so each stage can be read; then the loops speed up.
@@ -112,11 +120,14 @@ class Timeline:
         ]
 
 
-GLOW = (205, 217, 233)                              # the block lit by a pass
-ACCENT_SOFT = (234, 238, 243)
+GLOW = (250, 211, 194)                              # the block lit by a pass (light orange)
+ACCENT_SOFT = (253, 241, 235)
 CAP = 1.0                                           # passes per second shown at most: the pulse never strobes
 GROUPS = [6, 24, 8, 8, 40]                          # MLP neurons by job: wave, pointer, pointer clear, chain, clean-up
-STAGE_COLORS = [(21, 70, 119), (214, 110, 26), (27, 138, 122), (111, 75, 178), (138, 106, 31), (180, 51, 74)]
+# One colour per banner stage, from the palette's text shades: blue #1c5cab, aqua #0f7d56, yellow #a87200, orange #c4471a.
+# Orange (the path) is kept for the stage where the path grows; neighbouring stages differ.
+_B, _A, _Y, _O = (28, 92, 171), (15, 125, 86), (168, 114, 0), (196, 71, 26)
+STAGE_COLORS = [_B, _A, _Y, _B, _A, _B, _Y, _O, _A, _Y]
 BANNER = {"wide": dict(x=40, y=26, r=21, size=26, lead=35, maxw=520),
           "tall": dict(x=24, y=18, r=20, size=24, lead=32, maxw=620)}
 
@@ -322,8 +333,8 @@ class Scene:
         for j in range(n + 1):
             x = self.gx + j * self.cell
             y = self.gy + j * self.cell
-            dr.line([(x, self.gy), (x, gy1)], fill=(236, 238, 241), width=1)
-            dr.line([(self.gx, y), (gx1, y)], fill=(236, 238, 241), width=1)
+            dr.line([(x, self.gy), (x, gy1)], fill=GRIDLINE, width=1)
+            dr.line([(self.gx, y), (gx1, y)], fill=GRIDLINE, width=1)
         for idx, letter in ((self.S, "S"), (self.G, "G")):
             x0, y0, x1, y1 = self.cell_box(idx)
             dr.rectangle((x0, y0, x1, y1), fill=FG)

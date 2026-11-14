@@ -403,43 +403,43 @@
    {
     "key": "const",
     "n": 1,
-    "_colour": "#dfe3e9",
+    "_colour": "#e1e0d9",
     "label": "constant 1"
    },
    {
     "key": "pos",
     "n": 3,
-    "_colour": "#b4bcc8",
+    "_colour": "#9ec5f4",
     "label": "position"
    },
    {
     "key": "input",
     "n": 3,
-    "_colour": "#34383f",
+    "_colour": "#3a3f4b",
     "label": "type"
    },
    {
     "key": "phase",
     "n": 3,
-    "_colour": "#7aa0c7",
+    "_colour": "#2a78d6",
     "label": "distance, in threes"
    },
    {
     "key": "ptr",
     "n": 4,
-    "_colour": "#b38b2d",
+    "_colour": "#eda100",
     "label": "pointer"
    },
    {
     "key": "on",
     "n": 1,
-    "_colour": "#154677",
+    "_colour": "#eb6834",
     "label": "on the path"
    },
    {
     "key": "copied",
     "n": 20,
-    "_colour": "#d66e1a",
+    "_colour": "#1baf7a",
     "label": "copied from neighbours",
     "sub": [
      "down",

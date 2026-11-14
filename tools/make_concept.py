@@ -1,4 +1,4 @@
-"""Two-panel concept figure: Claude solving a maze itself (fails) vs Claude writing the network's weights (solves).
+"""Two-panel concept figure: Claude solving a maze itself (fails) vs Claude writing the transformer's weights (solves).
 
 Usage: python3 -I make_concept.py <out.html>   (writes an inline <figure> with an <svg>)
 """
@@ -155,7 +155,7 @@ mx_a, mx_b = 258, PW + 20 + 258
 parts = [f'<rect x="0" y="0" width="{PW}" height="{H}" rx="18" fill="{SOFT}"/>',
          f'<rect x="{PW + 20}" y="0" width="{PW}" height="{H}" rx="18" fill="{SOFT}"/>',
          f'<text x="28" y="46" class="cx-title" fill="{INK}">Asked to solve the maze</text>',
-         f'<text x="{PW + 48}" y="46" class="cx-title" fill="{NAVY}">Asked to write the network</text>']
+         f'<text x="{PW + 48}" y="46" class="cx-title" fill="{NAVY}">Asked to write the transformer</text>']
 
 # panel A
 ca = (110, 140)
@@ -164,7 +164,7 @@ parts.append(f'<path d="M{ca[0] + 40},{ca[1] - 6} C{ca[0] + 95},{ca[1] - 30} {mx
 parts.append(maze(mx_a, my, wrong, GOLD, crash=wall))
 parts.append(outcome(30, 376, "26%", GOLD))
 
-# panel B: Claude holds a control bar; strings run to the weight grid; the looped network solves the maze
+# panel B: Claude holds a control bar; strings run to the weight grid; the looped transformer solves the maze
 cb = (PW + 20 + 110, 104)
 parts.append(claude_villain(*cb))
 bar_y, bx0, bx1 = 166, cb[0] - 70, cb[0] + 70
@@ -197,10 +197,10 @@ parts.append(outcome(PW + 48, 376, "100%", NAVY))
 
 svg = (f'<svg class="concept-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Two panels. On the left, a confused cartoon Claude is asked to solve a maze '
        f'itself, draws a path that goes wrong and cuts through a wall, and solves 26% of test mazes. On the right, a scheming cartoon Claude holds a '
-       f'control bar whose strings set the weights of a small network, which loops and finds the right path, solving 100% of test mazes.">'
+       f'control bar whose strings set the weights of a small transformer, which loops and finds the right path, solving 100% of test mazes.">'
        + "".join(parts) + "</svg>")
-html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption><strong>Claude fails most mazes, yet writes the network that solves them all.</strong> On the left, '
+html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption><strong>Claude fails most mazes, yet writes the transformer that solves them all.</strong> On the left, '
         'Claude Opus 5.5 searches for the shortest path itself and solves 26% of the Maze-Hard test mazes it is given. On the right, '
-        'it sets every weight of a small looped transformer by hand, with no training. That network solves 100% of them.</figcaption>\n</figure>')
+        'it sets every weight of a small looped transformer by hand, with no training. That transformer solves 100% of them.</figcaption>\n</figure>')
 open(sys.argv[1], "w", encoding="utf-8").write(html)
 print("path lengths", len(good), len(wrong), "wall", wall)

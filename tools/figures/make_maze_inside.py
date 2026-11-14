@@ -25,13 +25,13 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_hero import ACCENT, BG, FG, MP4, MUTED, SS, WEBM, clamp, font, mix, ramp, smooth, text_fixed  # noqa: E402
-from make_maze_hero import WALL, WAVE_NEW, WAVE_OLD  # noqa: E402
+from make_hero import BG, MP4, SS, WEBM, clamp, font, mix, ramp, smooth, text_fixed  # noqa: E402
+from make_maze_hero import ACCENT, FG, MUTED, WALL, WAVE_NEW, WAVE_OLD  # noqa: E402  (blog palette, path in orange)
 
 HERE = Path(__file__).resolve().parent
 FPS = 60
-ORANGE = (214, 110, 26)
-GRIDLINE = (226, 229, 233)
+MARK = (237, 161, 0)                                # yellow #eda100: the close-up frame and the four reads
+GRIDLINE = (228, 227, 221)
 ROWS, COLS = range(10, 18), range(3, 11)          # the close-up: 8 x 8 cells around the goal
 READER = (14, 4)                                    # the cell whose four reads are drawn at loop 1
 DIRS = {"D": (1, 0), "L": (0, -1), "R": (0, 1), "U": (-1, 0)}
@@ -60,7 +60,7 @@ def on(t, a, b):
     return ramp(t, a - 0.15, a + 0.15) * (1 - ramp(t, b - 0.15, b + 0.15))
 
 
-NAVY = (21, 70, 119)
+CHAR = (196, 71, 26)                                # dark orange #c4471a: the transformer Claude wrote, its note
 SKETCH_GRAY = (150, 156, 166)
 CAVEAT = HERE / "fonts" / "Caveat-Variable.ttf"     # SIL Open Font License, fonts/Caveat-OFL.txt
 
@@ -193,7 +193,7 @@ class Scene:
         return layer
 
     def make_note(self):
-        """'loop imagination', handwritten in navy, slightly tilted."""
+        """'loop imagination', handwritten in dark orange, slightly tilted."""
         k, g = SS, self.g
         x, y, size, lines, rot = g["note"]
         f = ImageFont.truetype(str(CAVEAT), int(size * k))
@@ -205,7 +205,7 @@ class Scene:
         layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
         for j, line in enumerate(lines):
-            d.text((w / 2, 10 * k + lead * (j + 0.5)), line, font=f, fill=NAVY + (255,), anchor="mm")
+            d.text((w / 2, 10 * k + lead * (j + 0.5)), line, font=f, fill=CHAR + (255,), anchor="mm")
         layer = layer.rotate(-rot, resample=Image.BICUBIC, expand=True)
         return layer, (int(x * k - layer.width / 2), int(y * k - layer.height / 2))
 
@@ -217,17 +217,17 @@ class Scene:
         k = SS
         for pts in self.swirl:
             n = max(2, int(len(pts) * u))
-            dr.line(pts[:n], fill=NAVY, width=round(2.2 * k), joint="curve")
+            dr.line(pts[:n], fill=CHAR, width=round(2.2 * k), joint="curve")
         if u >= 0.98:
             pts = self.swirl[0]
             (xa, ya), (xb, yb) = pts[-6], pts[-1]
             ang = math.atan2(yb - ya, xb - xa)
             for side in (-1, 1):
                 a = ang + math.pi + side * 0.5
-                dr.line([(xb, yb), (xb + 11 * k * math.cos(a), yb + 11 * k * math.sin(a))], fill=NAVY, width=round(2.2 * k))
+                dr.line([(xb, yb), (xb + 11 * k * math.cos(a), yb + 11 * k * math.sin(a))], fill=CHAR, width=round(2.2 * k))
 
     def make_char(self, eye_open):
-        """The network Claude wrote: a navy block, hatched by hand, with two eyes and a loop arrow on top."""
+        """The transformer Claude wrote: an orange block, hatched by hand, with two eyes and a loop arrow on top."""
         k, g = SS, self.g
         cx, cy, w, h = g["char"]
         pad = 40
@@ -240,7 +240,7 @@ class Scene:
         x0, y0, x1, y1 = cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2
         body = [(X(x), Y(y)) for x, y in rrect_points(x0, y0, x1, y1, min(w, h) * 0.28)]
         body_j = jitter([(x, y) for x, y in body], 1.2 * k, seed=31)
-        dr.polygon(body_j, fill=mix(BG, NAVY, 0.58) + (255,))        # a lighter navy fill:
+        dr.polygon(body_j, fill=mix(BG, ACCENT, 0.55) + (255,))      # a lighter orange fill:
         hatch = Image.new("RGBA", size, (0, 0, 0, 0))                 # loose darker hatching on top,
         hd = ImageDraw.Draw(hatch)                                    # clipped to the body
         rnd = random.Random(41)
@@ -250,12 +250,12 @@ class Scene:
             a = (x + rnd.uniform(-1, 1) * k, Y(y1) + 2 * k)
             b = (x + (y1 - y0) * k + rnd.uniform(-1, 1) * k, Y(y0) - 2 * k)
             hd.line(jitter([a, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), b], 0.8 * k, seed=int(x), closed=False),
-                    fill=NAVY + (255,), width=round(2.0 * k))
+                    fill=CHAR + (255,), width=round(2.0 * k))
             x += step
         mask = Image.new("L", size, 0)
         ImageDraw.Draw(mask).polygon(body_j, fill=255)
         layer.paste(hatch, (0, 0), Image.composite(hatch.getchannel("A"), Image.new("L", size, 0), mask))
-        sketch(dr, body, NAVY + (255,), round(2.4 * k), 1.8 * k, seed=33)
+        sketch(dr, body, CHAR + (255,), round(2.4 * k), 1.8 * k, seed=33)
         # eyes: hand-drawn white ovals with a small pupil
         for j, ex in enumerate((cx - w * 0.17, cx + w * 0.17)):
             ey = cy - h * 0.06
@@ -266,21 +266,21 @@ class Scene:
             if eye_open > 0.5:
                 pr = rx * 0.45 * k
                 px, py = X(ex + rx * 0.15), Y(ey + ry * 0.2)
-                dr.ellipse((px - pr, py - pr, px + pr, py + pr), fill=NAVY + (255,))
+                dr.ellipse((px - pr, py - pr, px + pr, py + pr), fill=CHAR + (255,))
         # a loop arrow on top: an open circle with an arrowhead
         lr = min(w, h) * 0.17
         lcx, lcy = cx, y0 - lr - 7
         arc = [(X(lcx + lr * math.cos(math.radians(a))), Y(lcy + lr * math.sin(math.radians(a))))
                for a in range(-60, 241, 6)]
         for pass_ in range(2):
-            dr.line(jitter(arc, 0.6 * k, seed=60 + pass_, closed=False), fill=NAVY + (255,), width=round(2.2 * k),
+            dr.line(jitter(arc, 0.6 * k, seed=60 + pass_, closed=False), fill=CHAR + (255,), width=round(2.2 * k),
                     joint="curve")
         ex_, ey_ = arc[-1]
         ang = math.radians(240 + 90)                                   # tangent at the arc's end
         for side in (-1, 1):
             hx = ex_ + 7 * k * math.cos(ang + math.pi + side * 0.55)
             hy = ey_ + 7 * k * math.sin(ang + math.pi + side * 0.55)
-            dr.line([(ex_, ey_), (hx, hy)], fill=NAVY + (255,), width=round(2.2 * k))
+            dr.line([(ex_, ey_), (hx, hy)], fill=CHAR + (255,), width=round(2.2 * k))
         return layer, (int(ox), int(oy))
 
     # ------------------------------------------------------------------ the real state at (fractional) loop L
@@ -342,7 +342,7 @@ class Scene:
                 if i == self.tr["goal"]:
                     dr.text((bx0 + 4 * k, by0 + 2 * k), "G", font=self.f["corner"], fill=ink, anchor="lt")
                     dr.rectangle(box, outline=FG, width=2 * k)
-        dr.rectangle((x0 - k, y0 - k, x1 + k, y1 + k), outline=ORANGE, width=3 * k)
+        dr.rectangle((x0 - k, y0 - k, x1 + k, y1 + k), outline=MARK, width=3 * k)
 
     def draw_reads(self, img, t):
         """The four reads of one cell at loop 1 (marks what every cell does in every loop)."""
@@ -362,12 +362,12 @@ class Scene:
             scx, scy = (src[0] + src[2]) / 2, (src[1] + src[3]) / 2
             start = (scx - dx * s * 0.08, scy - dy * s * 0.08)
             end = (tcx + dx * s * 0.44, tcy + dy * s * 0.44)
-            od.line([start, end], fill=ORANGE + (alpha,), width=3 * k)
+            od.line([start, end], fill=MARK + (alpha,), width=3 * k)
             hx, hy = -dx * 9 * k, -dy * 9 * k
             px, py = -dy * 6 * k, dx * 6 * k
             od.polygon([(end[0] - hx * 0.2, end[1] - hy * 0.2), (end[0] + hx + px, end[1] + hy + py),
-                        (end[0] + hx - px, end[1] + hy - py)], fill=ORANGE + (alpha,))
-        od.rectangle((tx0, ty0, tx1, ty1), outline=ORANGE + (alpha,), width=3 * k)
+                        (end[0] + hx - px, end[1] + hy - py)], fill=MARK + (alpha,))
+        od.rectangle((tx0, ty0, tx1, ty1), outline=MARK + (alpha,), width=3 * k)
         img.alpha_composite(over)
 
     # ------------------------------------------------------------------ the whole maze
@@ -384,20 +384,20 @@ class Scene:
             if col != BG:
                 dr.rectangle((mx + c * cs, my + r * cs, mx + (c + 1) * cs, my + (r + 1) * cs), fill=col)
         for j in range(n + 1):
-            dr.line([(mx + j * cs, my), (mx + j * cs, my + n * cs)], fill=(236, 238, 241), width=1)
-            dr.line([(mx, my + j * cs), (mx + n * cs, my + j * cs)], fill=(236, 238, 241), width=1)
+            dr.line([(mx + j * cs, my), (mx + j * cs, my + n * cs)], fill=GRIDLINE, width=1)
+            dr.line([(mx, my + j * cs), (mx + n * cs, my + j * cs)], fill=GRIDLINE, width=1)
         dr.rectangle((mx - 1.5 * k, my - 1.5 * k, mx + n * cs + 1.5 * k, my + n * cs + 1.5 * k), outline=FG, width=max(2, round(1.5 * k)))
         if self.g["letter"]:
             for idx, letter in ((self.tr["start"], "S"), (self.tr["goal"], "G")):
                 r, c = divmod(idx, n)
                 dr.text((mx + (c + 0.5) * cs, my + (r + 0.5) * cs), letter, font=self.f["letter"], fill=BG, anchor="mm")
         dr.rectangle((mx + COLS[0] * cs - k, my + ROWS[0] * cs - k, mx + (COLS[-1] + 1) * cs + k, my + (ROWS[-1] + 1) * cs + k),
-                     outline=ORANGE, width=2 * k)
+                     outline=MARK, width=2 * k)
         pulse = on(t, 10.9, 12.0)                          # the count reaches the start
         if pulse > 0.01:
             r, c = divmod(self.tr["start"], n)
             cx, cy, rad = mx + (c + 0.5) * cs, my + (r + 0.5) * cs, cs * (1.4 + 0.8 * smooth(clamp((t - 10.9) / 1.1)))
-            dr.ellipse((cx - rad, cy - rad, cx + rad, cy + rad), outline=mix(BG, ORANGE, pulse), width=2 * k)
+            dr.ellipse((cx - rad, cy - rad, cx + rad, cy + rad), outline=mix(BG, MARK, pulse), width=2 * k)
 
     # ------------------------------------------------------------------ the only text: counter and label
     def draw_text(self, dr, L, t):
@@ -405,7 +405,7 @@ class Scene:
         x, y = g["count"]
         text_fixed(dr, (x * k, y * k), f"loop {int(math.floor(L + 1e-9)):,}", self.f["count"], MUTED, anchor="ls")
         lx, ly, anc = g["label"]
-        dr.text((lx * k, ly * k), "the network Claude wrote", font=self.f["label"], fill=MUTED, anchor=anc)
+        dr.text((lx * k, ly * k), "the transformer Claude wrote", font=self.f["label"], fill=MUTED, anchor=anc)
 
     def frame(self, t):
         img = Image.new("RGBA", (self.W, self.H), BG + (255,))

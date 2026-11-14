@@ -838,7 +838,7 @@ z
      <g id="line2d_8">
       <path d="M 42.768 161.180426 
 L 373.248 161.180426 
-" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
+" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e1e0d9; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
      <g id="line2d_9"/>
      <g id="text_9">
@@ -852,7 +852,7 @@ L 373.248 161.180426
      <g id="line2d_10">
       <path d="M 42.768 95.739748 
 L 373.248 95.739748 
-" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
+" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e1e0d9; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
      <g id="line2d_11"/>
      <g id="text_10">
@@ -867,7 +867,7 @@ L 373.248 95.739748
      <g id="line2d_12">
       <path d="M 42.768 30.29907 
 L 373.248 30.29907 
-" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
+" clip-path="url(#p794d15ebde)" style="fill: none; stroke: #e1e0d9; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
      <g id="line2d_13"/>
      <g id="text_11">
@@ -1049,7 +1049,7 @@ z
    <g id="patch_3">
     <path d="M 42.768 169.033307 
 L 373.248 169.033307 
-" style="fill: none; stroke: #e3e8f0; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+" style="fill: none; stroke: #e1e0d9; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="AnnotationBbox_1">
     <image xlink:href="data:image/png;base64,

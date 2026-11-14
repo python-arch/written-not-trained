@@ -33,13 +33,21 @@ PAGE = ROOT / "index.html"
 DATA = HERE / "data.json"
 
 # Fixed colours (HANDOVER.md): hand-written, trained, frontier/pretrained LLMs.
-WRITTEN = "#154677"   # MBZUAI blue
-TRAINED = "#868e96"
-LLM = "#8a6a1f"       # dark gold
-INK = "#14213d"      # navy text (page theme)
+# Palette (Observable-10-like, checked with the dataviz validator; adjacent pairs pass in this order).
+BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
+MAGENTA, GREEN, VIOLET, RED = "#e87ba4", "#008300", "#6250d6", "#e34948"
+RAMP = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#2a78d6", "#1c5cab", "#104281", "#0d366b"]
+# Roles, the same in every chart. Marks use the base colour; a coloured label uses the darker text shade.
+WRITTEN, WRITTEN_TEXT = ORANGE, "#c4471a"      # the transformer Claude wrote: the hero series
+TRAINED, TRAINED_TEXT = BLUE, "#1c5cab"        # TRM and trained looped models
+HRM_C, AQUA_TEXT = AQUA, "#0f7d56"             # HRM and the standard transformer
+LLM, YELLOW_TEXT = YELLOW, "#a87200"           # gradient descent on the written architecture, LDT, LLMs
+DT_C = VIOLET                                  # DeepThinking (Bansal et al.)
+INK = "#14213d"
 MUTED = "#5b6475"
-GRID = "#e3e8f0"
-BAND = "#eef2f8"
+GRID = "#e1e0d9"
+BAND = "#f3f2ec"
+NEUTRAL = "#b8b6ae"                            # structure that is not a series
 
 CSS_DPI = 96          # 1 CSS px = 1/96 in
 F = 1.18              # text scale: keeps figure text legible at phone width
@@ -300,17 +308,17 @@ def hanoi(plt, d) -> None:
     # The paper's collapse point.
     c0, c1 = d["paper_collapse"]
     ax.axvspan(c0 - 0.5, c1 + 0.5, color=LLM, alpha=0.13, lw=0, zorder=0)
-    ax.text(c0 - 0.4, 2.6e6, d["label_collapse"], fontsize=F * 8.2, color=LLM, va="top",
+    ax.text(c0 - 0.4, 2.6e6, d["label_collapse"], fontsize=F * 8.2, color=YELLOW_TEXT, va="top",
             ha="left", linespacing=1.3)
     # The revised paper's tested range ends at 12.
     m = d["paper_max_tested_revised"]
     ax.axvline(m + 0.5, color=LLM, lw=1, ls=(0, (3, 2)), zorder=1)
     if d["label_paper_range"]:
-        ax.text(m + 0.75, 1.3, d["label_paper_range"], fontsize=F * 8, color=LLM, va="bottom",
+        ax.text(m + 0.75, 1.3, d["label_paper_range"], fontsize=F * 8, color=YELLOW_TEXT, va="bottom",
                 ha="left", linespacing=1.3)
 
     # Minimum move count, 2^N - 1.
-    ax.plot(ns, moves, color="#c9d1dd", lw=1.6, zorder=2, solid_capstyle="round")
+    ax.plot(ns, moves, color="#d6d4cc", lw=1.6, zorder=2, solid_capstyle="round")
 
     # Hand-written network: tested once, solved.
     solved = list(range(d["solved_min"], d["solved_max"] + 1))
@@ -322,17 +330,17 @@ def hanoi(plt, d) -> None:
         ax.scatter([p], [2 ** p - 1], s=40, facecolor="white", edgecolor=WRITTEN, linewidth=1.3,
                    linestyle=(0, (2, 1.4)), zorder=4)
         ax.annotate(d.get("label_pending", f"N = {p}: pending"), xy=(p, 2 ** p - 1), xytext=(p - 0.1, 2.3e6),
-                    fontsize=F * 8, color=WRITTEN, ha="right", va="bottom",
+                    fontsize=F * 8, color=WRITTEN_TEXT, ha="right", va="bottom",
                     arrowprops=dict(arrowstyle="-", color=WRITTEN, lw=0.7, shrinkA=1, shrinkB=4))
     # Largest solved.
     s = d["solved_max"]
     ax.annotate(d["label_solved_max"], xy=(s, 2 ** s - 1), xytext=(n_max + 0.3, 160),
-                fontsize=F * 8.6, fontweight="semibold", color=WRITTEN, ha="right", va="center",
+                fontsize=F * 8.6, fontweight="semibold", color=WRITTEN_TEXT, ha="right", va="center",
                 linespacing=1.3, gid="data",
                 arrowprops=dict(arrowstyle="-", color=WRITTEN, lw=0.8, shrinkA=2, shrinkB=4))
     # Move counts at selected sizes (computed by formula).
     for n in d["annotate_moves_at"]:
-        ax.text(n + 0.15, (2 ** n - 1) * 2.0, f"{2 ** n - 1:,}", fontsize=F * 7.6, color=WRITTEN,
+        ax.text(n + 0.15, (2 ** n - 1) * 2.0, f"{2 ** n - 1:,}", fontsize=F * 7.6, color=WRITTEN_TEXT,
                 ha="right", va="bottom")
 
     ax.set_yscale("log")
@@ -361,83 +369,117 @@ def _val(v):
 
 
 def written_vs_trained(plt, d) -> None:
-    panels = d["panels"]
-    fig = plt.figure(figsize=(5.4, 7.8))
-    top, bottom = 0.885, 0.08
-    h_each = (top - bottom) / len(panels)
+    """Figure 8, beyond the checking range. Three slope panels (graph search, parity, reasoning chains), each joining
+    a model's accuracy on the sizes Claude checked to its accuracy on longer inputs. Two layouts: wide (desktop, the
+    panels side by side with one y-axis) and tall (phones, stacked), saved as written_vs_trained and
+    written_vs_trained_tall."""
+    for tall in (False, True):
+        _written_vs_trained(plt, d, tall)
+
+
+def _wvt_panel(ax, p, show_y: bool, fs: float) -> None:
+    from matplotlib.patches import FancyBboxPatch
+
     x0, x1 = 0.0, 1.0
+    ax.set_xlim(-0.36, 1.62)
+    ax.set_ylim(-9, 109)
+    # The sizes Claude checked: a soft rounded band behind the left column.
+    ax.add_patch(FancyBboxPatch((-0.28, -7), 0.56, 114, boxstyle="round,pad=0,rounding_size=0.09",
+                                mutation_aspect=60, facecolor=BAND, edgecolor="none", zorder=0))
+    for y in (0, 50, 100):
+        ax.axhline(y, color=GRID, lw=0.8, zorder=0.5)
+    ax.set_yticks([0, 50, 100])
+    ax.tick_params(length=0, labelsize=fs, pad=5)
+    if show_y:
+        ax.set_ylabel("Accuracy (%)", fontsize=fs, labelpad=6)
+    else:
+        ax.tick_params(labelleft=False)
+    for s in ax.spines.values():
+        s.set_visible(False)
+    ax.set_xticks([x0, x1])
+    ax.set_xticklabels([f"Checked\n{p['checking_label']}", f"Longer\n{p['test_label']}"], fontsize=fs * 0.95,
+                       linespacing=1.35)
+    for lab, col, w in zip(ax.get_xticklabels(), (INK, INK), ("semibold", "semibold")):
+        lab.set_color(MUTED)
 
-    for i, p in enumerate(panels):
-        y_top = top - i * h_each
-        ax = fig.add_axes([0.13, y_top - h_each + 0.085, 0.47, h_each - 0.135])
-        ax.set_xlim(-0.32, 1.12)
-        ax.set_ylim(-6, 108)
-        ax.axvspan(-0.32, 0.5, color=BAND, lw=0, zorder=0)  # checking range shaded
-        for y in (0, 50, 100):
-            ax.axhline(y, color=GRID, lw=0.7, zorder=0)
-        ax.set_yticks([0, 50, 100])
-        ax.set_yticklabels(["0", "50", "100"])
-        ax.set_ylabel("Accuracy (%)", fontsize=F * 8.2)
-        ax.set_xlabel("Input size", fontsize=F * 8.2, labelpad=4)
-        ax.set_xticks([x0, x1])
-        ax.set_xticklabels([f"Checked\n{p['checking_label']}",
-                            f"Longer\n{p['test_label']}"], fontsize=F * 8.2, linespacing=1.3)
-        ax.tick_params(length=0, labelsize=F * 8.2)
-        for side in ("left", "bottom"):
-            ax.spines[side].set_visible(False)
-        ax.text(-0.32, 121, p["title"], fontsize=F * 10.5, fontweight="semibold", color=INK,
-                ha="left", va="bottom")
+    if "chance" in p:
+        ax.axhline(p["chance"], color=MUTED, lw=0.9, ls=(0, (2.5, 2.5)), zorder=1)
+        ax.text(1.62, p["chance"] - 3, "chance", fontsize=fs * 0.86, color=MUTED, ha="right", va="top")
 
-        if "chance" in p:
-            ax.axhline(p["chance"], color=MUTED, lw=0.8, ls=(0, (2, 2)), zorder=1)
-            ax.text(-0.29, p["chance"] + 2.5, "chance", fontsize=F * 7.4, color=MUTED, ha="left",
-                    va="bottom")
+    # Trained models: thin blue slopes with a dot at each end.
+    tests = []
+    for t in p["trained"]:
+        c, tv = t["checking"], t["test"]
+        if isinstance(tv, list):
+            lo_, hi_ = tv
+            tests += tv
+            mid = (lo_ + hi_) / 2
+            ax.plot([x0, x1], [c, mid], color=TRAINED, lw=1.7, alpha=0.9, zorder=2, solid_capstyle="round",
+                    gid="data")
+            ax.plot([x1, x1], [lo_, hi_], color=TRAINED, lw=5, alpha=0.9, zorder=3, solid_capstyle="round",
+                    gid="data")
+        else:
+            tests.append(tv)
+            ax.plot([x0, x1], [c, tv], color=TRAINED, lw=1.7, alpha=0.9, zorder=2, solid_capstyle="round",
+                    gid="data")
+            ax.scatter([x1], [tv], s=30, color=TRAINED, edgecolor="white", linewidth=1.0, zorder=4, gid="data")
+        ax.scatter([x0], [c], s=30, color=TRAINED, edgecolor="white", linewidth=1.0, zorder=4, gid="data")
 
-        # Trained models (gray).
-        test_vals = []
-        for t in p["trained"]:
-            c, tv = t["checking"], t["test"]
-            if isinstance(tv, list):  # a range: fan from the checking score to both ends
-                lo_, hi_ = tv
-                test_vals += tv
-                ax.plot([x1, x1], [lo_, hi_], color=TRAINED, lw=3, solid_capstyle="round",
-                        zorder=2, gid="data")
-                if c is not None:
-                    ax.fill([x0, x1, x1], [c, lo_, hi_], color=TRAINED, alpha=0.18, lw=0,
-                            zorder=1, gid="data")
-                    ax.scatter([x0], [c], s=16, color=TRAINED, zorder=3, gid="data")
-                continue
-            test_vals.append(tv)
-            if c is not None:
-                ax.plot([x0, x1], [c, tv], color=TRAINED, lw=1.1, zorder=2, gid="data")
-                ax.scatter([x0], [c], s=16, color=TRAINED, zorder=3, gid="data")
-                if len([q for q in p["trained"] if q["checking"] is not None]) == 1:
-                    ax.text(x0 - 0.06, c - 4, f"{c:g}", fontsize=F * 7.4, color=TRAINED,
-                            ha="right", va="top", gid="data")
-            ax.scatter([x1], [tv], s=16, color=TRAINED, zorder=3, gid="data")
+    # Written by Claude: one thick orange line on top.
+    w = p["written"]
+    ax.plot([x0, x1], [w["checking"], w["test"]], color=WRITTEN, lw=3.4, zorder=6, solid_capstyle="round",
+            gid="data")
+    ax.scatter([x0, x1], [w["checking"], w["test"]], s=58, color=WRITTEN, edgecolor="white", linewidth=1.4,
+               zorder=7, gid="data")
 
-        # Hand-written (blue), drawn last.
-        w = p["written"]
-        ax.plot([x0, x1], [w["checking"], w["test"]], color=WRITTEN, lw=2.4, zorder=5,
-                solid_capstyle="round", gid="data")
-        ax.scatter([x0, x1], [w["checking"], w["test"]], s=30, color=WRITTEN, zorder=6,
-                   edgecolor="white", linewidth=0.8, gid="data")
+    # End values, right of the "Longer" column.
+    lx = x1 + 0.13
+    ax.text(lx, w["test"], f"{w['test']:g}%", fontsize=fs * 1.12, fontweight="bold", color=WRITTEN_TEXT,
+            ha="left", va="center", gid="data")
+    lo_t, hi_t = min(tests), max(tests)
+    rng = f"{lo_t:g}%" if lo_t == hi_t else f"{lo_t:g}–{hi_t:g}%"
+    ty = (lo_t + hi_t) / 2
+    if "chance" in p:
+        ty = hi_t + 9          # above the chance line and its label
+    else:
+        ty = max(ty, 0) + 9
+    ax.text(lx, ty, rng, fontsize=fs * 0.98, fontweight="semibold", color=TRAINED_TEXT, ha="left",
+            va="center", gid="data")
 
-        # Direct labels to the right of the plot.
-        lx = 1.17
-        ax.text(lx, w["test"], f"Written by Claude\n{w['params_label']}", fontsize=F * 8.2,
-                fontweight="semibold", color=WRITTEN, va="center", ha="left",
-                linespacing=1.25, clip_on=False, transform=ax.transData, gid="data")
-        lo_t, hi_t = min(test_vals), max(test_vals)
-        rng = (f"{lo_t:g}%" if lo_t == hi_t else f"{lo_t:g}–{hi_t:g}%")
-        label_y = min(max(sum(test_vals) / len(test_vals), 24), 52)
-        ax.text(lx, label_y, p['trained_label'].replace(', ', ',\n', 1),
-                fontsize=F * 7.6, color=TRAINED, va="center", ha="left", linespacing=1.25,
-                clip_on=False, gid="data")
 
-    fig_title(fig, d["title"], 0.985)
-    fig_footnote(fig, d["footnote"], 0.012)
-    save(fig, "written_vs_trained", d["title"].replace("\n", " "))
+def _written_vs_trained(plt, d, tall: bool) -> None:
+    panels = d["panels"]
+    fs = F * (9.0 if tall else 8.4)
+
+    if tall:
+        W, H = 4.7, 10.9
+        fig = plt.figure(figsize=(W, H))
+        ph, step = 1.75 / H, 3.55 / H
+        boxes = [[0.16, 1 - 1.0 / H - ph - i * step, 0.8, ph] for i in range(3)]
+    else:
+        W, H = 9.6, 4.3
+        fig = plt.figure(figsize=(W, H))
+        boxes = [[0.075 + i * 0.31, 0.2, 0.275, 0.44] for i in range(3)]
+
+    for i, (p, box) in enumerate(zip(panels, boxes)):
+        ax = fig.add_axes(box)
+        _wvt_panel(ax, p, show_y=(tall or i == 0), fs=fs)
+        line = 0.125 if not tall else 0.14
+        top_t = max(t["params"] for t in p["trained"])
+        ax.text(0, 1 + 3.15 * line, p["title"], transform=ax.transAxes, fontsize=fs * 1.22,
+                fontweight="semibold", color=INK, ha="left", va="bottom")
+        ax.text(0, 1 + 1.95 * line, f"Claude, {p['written']['params_label']}", transform=ax.transAxes,
+                fontsize=fs * 0.88, color=WRITTEN_TEXT, ha="left", va="bottom")
+        ax.text(0, 1 + 0.95 * line, f"Trained, up to {top_t:,} weights", transform=ax.transAxes,
+                fontsize=fs * 0.88, color=TRAINED_TEXT, ha="left", va="bottom")
+
+    # One x-axis title and one legend for the whole figure.
+    if tall:
+        fig.text(0.56, 0.1 / H, "Input size", ha="center", va="bottom", fontsize=fs, color=MUTED)
+    else:
+        fig.text(0.075 + 0.31 + 0.1375, 0.02, "Input size", ha="center", va="bottom", fontsize=fs, color=MUTED)
+    name = "written_vs_trained_tall" if tall else "written_vs_trained"
+    save(fig, name, "Beyond the checking range")
     plt.close(fig)
 
 
@@ -460,16 +502,16 @@ def ouro_clock(plt, d) -> None:
     xs = [6 + i * 7.6 for i in range(11)]
     for i, x in enumerate(xs):
         clock = i < 4
-        box(x, y_tok, s_tok, s_tok, "#e3e9f6" if clock else "white", LLM if clock else "#b7bfcc",
+        box(x, y_tok, s_tok, s_tok, "#fdf1d2" if clock else "white", LLM if clock else "#c9c7bf",
             lw=1.1)
-    ax.text(xs[0], y_tok - 3.2, d["label_tokens_clock"], fontsize=F * 8.4, color=LLM,
+    ax.text(xs[0], y_tok - 3.2, d["label_tokens_clock"], fontsize=F * 8.4, color=YELLOW_TEXT,
             fontweight="semibold", va="top")
     ax.text(xs[5], y_tok - 3.2, d["label_tokens_rest"], fontsize=F * 8.4, color=MUTED, va="top")
     for j in (5, 7, 10):
         ax.add_patch(FancyArrowPatch((xs[j] + s_tok / 2, y_tok + s_tok + 0.4),
                                      (xs[2] + s_tok / 2, y_tok + s_tok + 0.6),
                                      connectionstyle="arc3,rad=0.32", arrowstyle="-|>",
-                                     mutation_scale=7, color="#9aa3b2", lw=0.9))
+                                     mutation_scale=7, color=NEUTRAL, lw=0.9))
 
     # --- clock state at each loop
     n = d["loops_shown"]
@@ -483,42 +525,42 @@ def ouro_clock(plt, d) -> None:
                 va="center")
     # trained range band
     ax.add_patch(Rectangle((loop_x[0] - 1.1, y_b - 2.2), (k * step) - 0.1, y_a + h - y_b + 4.4,
-                           fc="#f1f4fa", ec="none", zorder=0))
+                           fc=BAND, ec="none", zorder=0))
     ax.text(loop_x[0] - 1.1, y_b - 3.6, d["label_trained_range"], fontsize=F * 7.8, color=MUTED,
             va="top")
 
-    ax.text(4, y_a + h / 2, "Unedited", fontsize=F * 8.8, fontweight="semibold", color=LLM,
+    ax.text(4, y_a + h / 2, "Unedited", fontsize=F * 8.8, fontweight="semibold", color=YELLOW_TEXT,
             va="center")
-    ax.text(4, y_b + h / 2, "With the fix", fontsize=F * 8.8, fontweight="semibold", color=WRITTEN,
+    ax.text(4, y_b + h / 2, "With the fix", fontsize=F * 8.8, fontweight="semibold", color=WRITTEN_TEXT,
             va="center")
     for i, x in enumerate(loop_x):
         inside = i < k
         # Unedited: the clock keeps counting past the trained range.
         if inside:
-            box(x, y_a, w, h, "#e3e9f6", LLM, lw=1.1)
+            box(x, y_a, w, h, "#fdf1d2", LLM, lw=1.1)
         else:
             box(x, y_a, w, h, "white", LLM, lw=1.1, hatch="////", ls=(0, (3, 1.5)))
         ax.text(x + w / 2, y_a + h / 2, str(i + 1), fontsize=F * 9, fontweight="semibold",
-                color=LLM, ha="center", va="center",
+                color=YELLOW_TEXT, ha="center", va="center",
                 bbox=None if inside else dict(fc="white", ec="none", pad=0.6))
         # With the fix: same first loops, then held inside the trained range.
         if inside:
-            box(x, y_b, w, h, "#e3e9f6", LLM, lw=1.1)
+            box(x, y_b, w, h, "#fdf1d2", LLM, lw=1.1)
             ax.text(x + w / 2, y_b + h / 2, str(i + 1), fontsize=F * 9, fontweight="semibold",
-                    color=LLM, ha="center", va="center")
+                    color=YELLOW_TEXT, ha="center", va="center")
         else:
             box(x, y_b, w, h, "#fbe7dc", WRITTEN, lw=1.2)
             ax.text(x + w / 2, y_b + h / 2, "≤" + str(k), fontsize=F * 8.6, fontweight="semibold",
-                    color=WRITTEN, ha="center", va="center")
+                    color=WRITTEN_TEXT, ha="center", va="center")
     # out-of-range bracket
     xa, xb = loop_x[k], loop_x[-1] + w
-    ax.plot([xa, xa, xb, xb], [y_a - 1.4, y_a - 2.4, y_a - 2.4, y_a - 1.4], color=LLM, lw=0.9)
-    ax.text((xa + xb) / 2, y_a - 3.0, d["label_out_of_range"], fontsize=F * 8, color=LLM,
+    ax.plot([xa, xa, xb, xb], [y_a - 1.4, y_a - 2.4, y_a - 2.4, y_a - 1.4], color=YELLOW_TEXT, lw=0.9)
+    ax.text((xa + xb) / 2, y_a - 3.0, d["label_out_of_range"], fontsize=F * 8, color=YELLOW_TEXT,
             ha="center", va="top")
-    ax.text((xa + xb) / 2, y_b - 3.6, d["label_fix"], fontsize=F * 7.8, color=WRITTEN,
+    ax.text((xa + xb) / 2, y_b - 3.6, d["label_fix"], fontsize=F * 7.8, color=WRITTEN_TEXT,
             ha="center", va="top")
     if d["label_readout"]:
-        ax.text(4, 7.6, d["label_readout"], fontsize=F * 7.8, color=WRITTEN, va="center")
+        ax.text(4, 7.6, d["label_readout"], fontsize=F * 7.8, color=WRITTEN_TEXT, va="center")
 
     fig_title(fig, d["title"], 0.975)
     fig_footnote(fig, d["footnote"], 0.012)
@@ -529,7 +571,8 @@ def ouro_clock(plt, d) -> None:
 
 # --------------------------------------------------------------------------- glance: pictograms and logos
 PIC_W, PIC_H = 0.27, 0.15          # inches; every pictogram fits this box
-PIC_LINE = "#9aa3b0"               # light gray structure
+PIC_LINE = "#a9a79f"               # light warm gray structure
+PIC_INK = INK                      # the strokes that carry the meaning
 MODEL_LOGOS = {"Claude Opus 5.5, GPT-6 Astra": ["claude", "openai"], "GPT-6 Astra": ["openai"],
                "Gemini 4 Carbon": ["gemini"], "SmolLM2-360M": ["huggingface"], "Pythia-410M": ["eleutherai"],
                "Qwen3-235B-A22B": ["qwen"], "Qwen3-235B-A22B, program synthesis": ["qwen"]}
@@ -541,19 +584,19 @@ def pictogram(ax, task, x, yc):
     h, w = PIC_H, PIC_W
     y0 = yc - h / 2
     lw = 0.9
-    def arrow(p, q, rad=0.0, col=WRITTEN):
+    def arrow(p, q, rad=0.0, col=PIC_INK):
         ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=4.2, lw=lw, color=col,
                                      connectionstyle=f"arc3,rad={rad}", shrinkA=0, shrinkB=0))
-    def text(tx, ty, s, size=6.4, col=WRITTEN, weight="semibold"):
+    def text(tx, ty, s, size=6.4, col=PIC_INK, weight="semibold"):
         ax.text(tx, ty, s, fontsize=size, color=col, ha="center", va="center", fontweight=weight)
     if task == "Maze-Hard":
         cs = h / 4
         bx = x + (w - h) / 2
         for r, c in [(1, 0), (1, 2), (2, 2), (3, 2), (2, 3)]:
-            ax.add_patch(Rectangle((bx + c * cs, y0 + (3 - r) * cs), cs, cs, fc=TRAINED, ec="none"))
+            ax.add_patch(Rectangle((bx + c * cs, y0 + (3 - r) * cs), cs, cs, fc="#8f8d85", ec="none"))
         ax.add_patch(Rectangle((bx, y0), h, h, fc="none", ec=PIC_LINE, lw=lw))
         path = [(3, 0), (2, 0), (2, 1), (1, 1), (0, 1), (0, 2), (0, 3)]
-        ax.plot([bx + (c + 0.5) * cs for r, c in path], [y0 + (3.5 - r) * cs for r, c in path], color=WRITTEN, lw=1.3,
+        ax.plot([bx + (c + 0.5) * cs for r, c in path], [y0 + (3.5 - r) * cs for r, c in path], color=PIC_INK, lw=1.3,
                 solid_joinstyle="round", solid_capstyle="round")
     elif task == "Sudoku-Extreme":
         cs = h / 3
@@ -571,11 +614,11 @@ def pictogram(ax, task, x, yc):
             ax.add_patch(Circle((px, py), 0.017, fc="white", ec=PIC_LINE, lw=lw, zorder=5))
     elif task == "Graph search":
         A, B = (x + 0.035, yc), (x + w - 0.035, yc)
-        ax.plot([A[0], A[0] + 0.07, B[0] - 0.07, B[0]], [A[1], yc + 0.05, yc - 0.05, B[1]], color=WRITTEN, lw=1.3,
+        ax.plot([A[0], A[0] + 0.07, B[0] - 0.07, B[0]], [A[1], yc + 0.05, yc - 0.05, B[1]], color=PIC_INK, lw=1.3,
                 solid_joinstyle="round")
         for (px, py), lab in ((A, "A"), (B, "B")):
             ax.add_patch(Circle((px, py), 0.033, fc="white", ec=PIC_LINE, lw=lw, zorder=5))
-            ax.text(px, py, lab, fontsize=4.6, color=WRITTEN, ha="center", va="center", fontweight="bold", zorder=6)
+            ax.text(px, py, lab, fontsize=4.6, color=PIC_INK, ha="center", va="center", fontweight="bold", zorder=6)
     elif task == "Parity":
         text(x + w / 2, yc, "1011", size=6.6)
     elif task == "Reasoning chains":
@@ -583,13 +626,13 @@ def pictogram(ax, task, x, yc):
         xs = [x + 0.005, x + w / 2 - bs / 2, x + w - bs - 0.005]
         for bxx in xs:
             ax.add_patch(Rectangle((bxx, yc - bs / 2), bs, bs, fc="white", ec=PIC_LINE, lw=lw))
-            ax.text(bxx + bs / 2, yc, "x", fontsize=4.2, color=WRITTEN, ha="center", va="center")
+            ax.text(bxx + bs / 2, yc, "x", fontsize=4.2, color=PIC_INK, ha="center", va="center")
         for a, b in zip(xs, xs[1:]):
             arrow((a + bs + 0.004, yc), (b - 0.004, yc))
     elif task == "Boolean Expressions":
         text(x + 0.06, yc, "T", size=6.4)
         text(x + w - 0.06, yc, "F", size=6.4)
-        ax.plot([x + w / 2 - 0.028, x + w / 2, x + w / 2 + 0.028], [yc - 0.03, yc + 0.035, yc - 0.03], color=WRITTEN,
+        ax.plot([x + w / 2 - 0.028, x + w / 2, x + w / 2 + 0.028], [yc - 0.03, yc + 0.035, yc - 0.03], color=PIC_INK,
                 lw=1.1, solid_joinstyle="miter")
     elif task == "Dyck Languages":
         text(x + w / 2, yc, "( [ ] )", size=6.4)
@@ -605,11 +648,11 @@ def pictogram(ax, task, x, yc):
             ax.plot([tx - 0.011, tx + 0.011], [by + 0.0015, by + 0.0015], color="white", lw=1.2)
             cx, cy = bxx + bw / 2, by + bh / 2
             if ok:
-                ax.plot([cx - 0.022, cx - 0.006, cx + 0.024], [cy, cy - 0.017, cy + 0.02], color=WRITTEN, lw=1.2,
+                ax.plot([cx - 0.022, cx - 0.006, cx + 0.024], [cy, cy - 0.017, cy + 0.02], color=PIC_INK, lw=1.2,
                         solid_joinstyle="round", solid_capstyle="round")
             else:
                 for sgn in (-1, 1):
-                    ax.plot([cx - 0.018, cx + 0.018], [cy - sgn * 0.018, cy + sgn * 0.018], color=TRAINED, lw=1.2,
+                    ax.plot([cx - 0.018, cx + 0.018], [cy - sgn * 0.018, cy + sgn * 0.018], color=MUTED, lw=1.2,
                             solid_capstyle="round")
     elif task == "Shuffled Objects":
         bs = 0.055
@@ -634,6 +677,12 @@ def logos_at(ax, names, x, yc, h_in):
 
 # --------------------------------------------------------------------------- results at a glance
 KIND = {"written": WRITTEN, "trained": TRAINED, "llm": LLM}
+KIND_TEXT = {"written": WRITTEN_TEXT, "trained": TRAINED_TEXT, "llm": YELLOW_TEXT}
+
+
+def bar_role(r):
+    """The colour role of a glance bar: LDT is yellow by the shared mapping, other trained models blue."""
+    return "llm" if r["label"].startswith("LDT") else r["kind"]
 
 
 def glance(plt, d) -> None:
@@ -656,7 +705,7 @@ def glance(plt, d) -> None:
     scale = (x100 - x0) / 100
     y = H - title_h
     ll = ax.text(x100 + 0.02, y - head_h / 2 + 0.02, d["line_label"], fontsize=F * 7.9, fontweight="semibold",
-                 color=WRITTEN, ha="right", va="center")
+                 color=WRITTEN_TEXT, ha="right", va="center")
     lx0 = ax.transData.inverted().transform(ll.get_window_extent(renderer).p0)[0]
     lh = F * 7.9 * 1.05 / 72
     logos_at(ax, ["claude"], lx0 - 0.035 - lh, y - head_h / 2 + 0.02, lh)
@@ -672,21 +721,23 @@ def glance(plt, d) -> None:
             ax.text(x_end + 0.06, y - task_h / 2 - 0.01, t["test"], fontsize=F * 7.1, color=MUTED, va="center")
         yy = y - task_h
         for r in t["bars"]:
-            c = KIND[r["kind"]]
+            role = bar_role(r)
+            c, ct = KIND[role], KIND_TEXT[role]
             yc = yy - bar_h / 2
             lh = F * 7.6 * 1.05 / 72
             tx = logos_at(ax, MODEL_LOGOS.get(r["label"], []), x_lab + 0.1, yc, lh)
-            ax.text(tx, yc, r["label"], fontsize=F * 7.6, color=c, va="center")
-            ax.add_patch(Rectangle((x0, yc - 0.07), x100 - x0, 0.14, fc="#f3f5f9", ec="none", zorder=0))
+            ax.text(tx, yc, r["label"], fontsize=F * 7.6, color=ct, va="center")
+            ax.add_patch(Rectangle((x0, yc - 0.07), x100 - x0, 0.14, fc="#f3f2ec", ec="none", zorder=0))
             ax.add_patch(Rectangle((x0, yc - 0.07), max(r["value"], 0) * scale, 0.14, fc=c, ec="none",
                                    zorder=2, gid="data"))
             end = x0 + r["value"] * scale
             if r["value"] < 99 and end + 0.5 > x100:      # would cross the 100% line: write it inside the bar
-                ax.text(end - 0.05, yc, r["text"], fontsize=F * 7.6, color="white", ha="right", va="center",
+                ax.text(end - 0.05, yc, r["text"], fontsize=F * 7.6, color=INK if role == "llm" else "white",
+                        ha="right", va="center",
                         fontweight="semibold", zorder=4, gid="data")
             else:
                 ax.text(max(end, x100 if r["value"] >= 99 else end) + 0.06, yc, r["text"], fontsize=F * 7.6,
-                        color=c, va="center", gid="data")
+                        color=ct, va="center", gid="data")
             yy -= bar_h
         y = yy - gap
     ax.plot([x100, x100], [y + gap - 0.02, line_top], color=WRITTEN, lw=1.8, zorder=3, solid_capstyle="butt",
@@ -722,15 +773,27 @@ def maze_loops(plt, d) -> None:
         ax.tick_params(length=0, labelsize=F * 8.2)
         ax.spines["left"].set_visible(False)
     axl.set_yticklabels(["0", "50", "100"])
-    axl.set_ylabel("Test mazes solved (%)", fontsize=F * 8.4)
+    axl.set_ylabel("Mazes solved (%)", fontsize=F * 8.4)
     axr.tick_params(labelleft=False)
 
-    axl.step([r for r, _ in near], [a for _, a in near], where="post", color=WRITTEN, lw=2.2, gid="data")
+    # DeepThinking (Bansal et al., NeurIPS 2022, Figure 6): trained on 9x9 mazes, tested on 13x13; it overthinks.
+    dt = json.loads((HERE / "maze_dt_overthink.json").read_text(encoding="utf-8"))["series"]
+    dt = [(r, a) for r, a in dt if r <= 100]
+    axl.plot([r for r, _ in dt], [a for _, a in dt], color=DT_C, lw=1.6, zorder=3, solid_joinstyle="round",
+             solid_capstyle="round", gid="data")
+    # One-line label above the peak (86.6% at loop 41), clear of the written ramp at loop 218; the maze size below it.
+    axl.text(10, 95, "DeepThinking, trained", fontsize=F * 7.8, fontweight="semibold", color=DT_C, ha="left",
+             va="center", gid="data")
+    axl.text(57, 79, "13×13 mazes", fontsize=F * 7.2, color=MUTED, ha="left", va="center", gid="data")
+
+    axl.step([r for r, _ in near], [a for _, a in near], where="post", color=WRITTEN, lw=2.2, zorder=4, gid="data")
+    axl.text(396, 102, "Written by Claude", fontsize=F * 7.8, fontweight="semibold", color=WRITTEN_TEXT, ha="right",
+             va="bottom", gid="data")
     axl.set_xlim(0, 400)
     axl.set_xticks([0, 100, 200, 300])
     axl.set_xlabel("Loops", fontsize=F * 8.4)
     if d["label_ramp"]:
-        axl.annotate(d["label_ramp"], xy=(219, 22), xytext=(8, 26), fontsize=F * 7.6, color=WRITTEN, va="center",
+        axl.annotate(d["label_ramp"], xy=(219, 22), xytext=(8, 26), fontsize=F * 7.6, color=WRITTEN_TEXT, va="center",
                      linespacing=1.3, gid="data",
                      arrowprops=dict(arrowstyle="-", color=WRITTEN, lw=0.7, shrinkA=2, shrinkB=3))
 
@@ -744,7 +807,7 @@ def maze_loops(plt, d) -> None:
     axr.xaxis.set_minor_locator(NullLocator())
     axr.set_xticklabels([f"{x:,}" for x in xs[1:]], fontsize=F * 7.4)
     if d["label_run"]:
-        axr.text(10000, 86, d["label_run"], fontsize=F * 7.6, color=WRITTEN, ha="right", va="top",
+        axr.text(10000, 86, d["label_run"], fontsize=F * 7.6, color=WRITTEN_TEXT, ha="right", va="top",
                  linespacing=1.3, gid="data")
     # Axis break marks.
     for ax, x in ((axl, 1.0), (axr, 0.0)):
@@ -788,12 +851,13 @@ def maze_size(plt, d) -> None:
                "TRM": (-9, 0, "right", "center"), "HRM": (-9, 0, "right", "center")}
     for t in d["trained"]:
         x = _weights(t["weights"])
-        ax.scatter([x], [t["accuracy"]], s=46, color=TRAINED, edgecolor="white", linewidth=0.8, zorder=3, gid="data")
+        mc = LLM if t["label"].startswith("LDT") else HRM_C if t["label"] == "HRM" else TRAINED
+        ax.scatter([x], [t["accuracy"]], s=46, color=mc, edgecolor="white", linewidth=0.8, zorder=3, gid="data")
         dx, dy, ha, va = offsets.get(t["label"], (8, 0, "left", "center"))
         short = {"LDT, 512 paths per maze": "LDT", "LDT, one path per maze": "LDT, one path"}.get(t["label"], t["label"])
         text = f"{short}, {t['accuracy']}%"
         lab = ax.annotate(text, xy=(x, t["accuracy"]), xytext=(dx, dy), textcoords="offset points", fontsize=F * 7.7,
-                          color=TRAINED, ha=ha, va=va, linespacing=1.25, gid="data")
+                          color=MUTED, ha=ha, va=va, linespacing=1.25, gid="data")
         logo = {"TRM": "samsung", "HRM": "sapient"}.get(t["label"])
         if logo:
             add_logos(fig, ax, lab, [logo])
@@ -802,7 +866,7 @@ def maze_size(plt, d) -> None:
                gid="data")
     ax.annotate(f"{w['label']}, {w['accuracy']:g}%",
                 xy=(w["weights"], w["accuracy"]), xytext=(10, -10), textcoords="offset points",
-                fontsize=F * 8.2, fontweight="semibold", color=WRITTEN, ha="left", va="top", linespacing=1.3,
+                fontsize=F * 8.2, fontweight="semibold", color=WRITTEN_TEXT, ha="left", va="top", linespacing=1.3,
                 gid="data")
 
     fig_title(fig, d["title"], 0.965, width=44)
@@ -840,17 +904,18 @@ def maze_compute(plt, d) -> None:
     rx, ra = v["ours_run"]
     ax.scatter([rx], [ra], s=46, color=WRITTEN, edgecolor="white", linewidth=1.0, zorder=5, gid="data")
     ax.annotate(d["label_ours"], xy=(rx, ra), xytext=(-2, 9), textcoords="offset points", fontsize=F * 7.9,
-                fontweight="semibold", color=WRITTEN, ha="center", va="bottom", linespacing=1.25, gid="data")
+                fontweight="semibold", color=WRITTEN_TEXT, ha="center", va="bottom", linespacing=1.25, gid="data")
 
     ldt = v["ldt"]
-    ax.plot([ldt["lo"], ldt["hi"]], [max(ldt["acc"])] * 2, color=TRAINED, lw=1.2, zorder=2, gid="data")
-    ax.plot([ldt["hi"]] * 2, [max(ldt["acc"]) - 2.2, max(ldt["acc"]) + 2.2], color=TRAINED, lw=1.2, zorder=2,
+    ax.plot([ldt["lo"], ldt["hi"]], [max(ldt["acc"])] * 2, color=LLM, lw=1.4, zorder=2, gid="data")
+    ax.plot([ldt["hi"]] * 2, [max(ldt["acc"]) - 2.2, max(ldt["acc"]) + 2.2], color=LLM, lw=1.4, zorder=2,
             gid="data")
     for a in ldt["acc"]:
-        ax.scatter([ldt["lo"]], [a], s=38, color=TRAINED, edgecolor="white", linewidth=0.8, zorder=3, gid="data")
+        ax.scatter([ldt["lo"]], [a], s=38, color=LLM, edgecolor="white", linewidth=0.8, zorder=3, gid="data")
     for key in ("hrm", "trm"):
         x, a = v[key]
-        ax.scatter([x], [a], s=38, color=TRAINED, edgecolor="white", linewidth=0.8, zorder=3, gid="data")
+        ax.scatter([x], [a], s=38, color=HRM_C if key == "hrm" else TRAINED, edgecolor="white", linewidth=0.8,
+                   zorder=3, gid="data")
     for lab in d["labels"]:
         x, y = (ldt["lo"], max(ldt["acc"])) if lab["at"] == "ldt" else \
             (ldt["hi"], max(ldt["acc"])) if lab["at"] == "ldt_hi" else v[lab["at"]]
@@ -879,7 +944,7 @@ def maze_block(plt, d) -> None:
     ax.set_ylim(0, H)
     ax.axis("off")
     col = {g["key"]: g["_colour"] for g in d["groups"]}
-    edge, soft = "#c3c8d0", "#f6f7f9"
+    edge, soft = "#cfcdc5", "#f6f5f1"
 
     def head(y, text):
         ax.text(2.2, y, text, fontsize=F * 8.6, fontweight="semibold", color=INK, va="baseline")
@@ -937,7 +1002,7 @@ def maze_block(plt, d) -> None:
                                      arrowstyle="-|>", mutation_scale=9, color=col["copied"], lw=1.6))
         side = -1 if h["dir"] in ("up", "left") else 1
         tx, ha = nx + side * (s / 2 + 0.8), ("right" if side < 0 else "left")
-        ax.text(tx, ny + 0.25, h["name"], fontsize=F * 7.4, fontweight="semibold", color=col["copied"], ha=ha,
+        ax.text(tx, ny + 0.25, h["name"], fontsize=F * 7.4, fontweight="semibold", color=AQUA_TEXT, ha=ha,
                 va="bottom")
         if h["carries"]:
             ax.text(tx, ny + 0.05, h["carries"], fontsize=F * 6.8, color=MUTED, ha=ha, va="top", linespacing=1.25)
@@ -980,7 +1045,7 @@ def maze_block(plt, d) -> None:
 
 
 # --------------------------------------------------------------------------- maze: Claude as the optimizer
-CLAUDE = "#c4540f"    # orange: Claude's revisions
+CLAUDE = ORANGE       # orange: Claude's revisions
 
 
 def claude_optimizer(plt, d) -> None:
@@ -1006,10 +1071,10 @@ def claude_optimizer(plt, d) -> None:
 
     gd = d.get("gd") or []
     if gd:
-        ax.plot([s for s, _ in gd], [a for _, a in gd], color=TRAINED, lw=1.8, zorder=2, gid="data")
+        ax.plot([s for s, _ in gd], [a for _, a in gd], color=GD_INK, lw=1.8, zorder=2, gid="data")
         s, a = gd[-1]
         ax.annotate(d["label_gd"], xy=(s, a), xytext=(-4, -8), textcoords="offset points", fontsize=F * 7.6,
-                    color=TRAINED, ha="right", va="top", linespacing=1.25, gid="data")
+                    color=YELLOW_TEXT, ha="right", va="top", linespacing=1.25, gid="data")
 
     big = max(t["params"] for t in d["trained"])
     for t in d["trained"]:
@@ -1025,7 +1090,7 @@ def claude_optimizer(plt, d) -> None:
     ax.scatter(xs, ys, s=44, color=CLAUDE, edgecolor="white", linewidth=1.0, zorder=5, gid="data")
     for lab in d["claude_labels"]:
         ax.annotate(lab["text"], xy=(lab["x"], lab["y"]), xytext=lab["offset"], textcoords="offset points",
-                    fontsize=F * 7.9, color=CLAUDE, fontweight=lab.get("weight", "normal"), ha=lab["ha"],
+                    fontsize=F * 7.9, color=WRITTEN_TEXT, fontweight=lab.get("weight", "normal"), ha=lab["ha"],
                     va=lab["va"], linespacing=1.25, gid="data")
 
     fig_title(fig, d["title"], 0.965, width=44)
@@ -1035,8 +1100,8 @@ def claude_optimizer(plt, d) -> None:
 
 
 # --------------------------------------------------------------------------- maze: written vs trained, over time
-GD_INK = "#4d5562"    # the same network, trained by gradient descent: a darker grey than other trained models
-STD_INK = "#a9b0b8"   # the standard transformer: a lighter grey than TRM, with square markers
+GD_INK = YELLOW       # the written architecture, trained by gradient descent
+STD_INK = AQUA        # the standard transformer
 
 
 def maze_training(plt, d) -> None:
@@ -1098,31 +1163,31 @@ def _maze_training(plt, d, tall: bool) -> None:
     ax.scatter(tx[1:], ty[1:], s=40, marker="o", color=TRAINED, edgecolor="white", linewidth=1.4, zorder=4, gid="data")
     trm_lab = ax.text(XMAX, 92.6, "TRM 85.3%", fontsize=small, color=MUTED, ha="right", va="center", gid="data")
 
-    # Navy, the story: the same architecture trained by gradient descent, at 0% ...
+    # The story: the same architecture trained by gradient descent, at 0% (yellow) ...
     ends = [r["points"][-1][0] for r in v["gd"].values()]
     x_gd = max(ends)
-    ax.plot([0, x_gd], [0, 0], color=WRITTEN, lw=1.9, dashes=(3.0, 2.2), dash_capstyle="round", zorder=8, gid="data")
+    ax.plot([0, x_gd], [0, 0], color=GD_INK, lw=2.4, dashes=(3.0, 2.2), dash_capstyle="round", zorder=8, gid="data")
     zero = ax.annotate("0%", xy=(x_gd, 0), xytext=(6, 0), textcoords="offset points", fontsize=big,
-                       fontweight="bold", color=WRITTEN, ha="left", va="center", gid="data")
+                       fontweight="bold", color=YELLOW_TEXT, ha="left", va="center", gid="data")
     if tall:
-        ax.text(0.0, -9, "Same architecture,\ntrained by gradient descent", fontsize=small, color=WRITTEN, ha="left",
+        ax.text(0.0, -9, "Same architecture,\ntrained by gradient descent", fontsize=small, color=YELLOW_TEXT, ha="left",
                 va="top", linespacing=1.3, gid="data")
     else:
         ax.annotate("Same architecture,\ntrained by gradient descent", xy=(1, 0.5), xycoords=zero, xytext=(7, 0),
-                    textcoords="offset points", fontsize=small, color=WRITTEN, ha="left", va="center",
+                    textcoords="offset points", fontsize=small, color=YELLOW_TEXT, ha="left", va="center",
                     linespacing=1.3, gid="data")
-    # ... and Claude's written network at 100%, with no training: a star at 0 h.
+    # ... and the transformer Claude wrote, at 100% with no training (orange).
     W_AT, W_END = 1.0, 1.5                         # Claude took an hour to write the network: 0% until then, then 100%
     ax.plot([0, W_AT, W_AT, W_END], [0, 0, 100, 100], color=WRITTEN, lw=3.2, zorder=7, solid_joinstyle="round",
             solid_capstyle="round", gid="data")
     ax.scatter([W_AT], [100], s=210 if tall else 260, marker="*", color=WRITTEN, edgecolor="white", linewidth=0.8,
                zorder=9, clip_on=False, gid="data")
     c = ax.annotate("Written by Claude in 1 hour,\nno training" if tall else "Written by Claude in 1 hour, no training",
-                    xy=(W_AT, 100), xytext=(13, 9), textcoords="offset points", fontsize=label, color=WRITTEN,
+                    xy=(W_AT, 100), xytext=(13, 9), textcoords="offset points", fontsize=label, color=WRITTEN_TEXT,
                     fontweight="bold", ha="left", va="bottom", linespacing=1.25, gid="data")
     ax.annotate("100%", xy=(W_END, 100), xytext=(5 if tall else 7, 0), textcoords="offset points",
                 fontsize=label * 1.35 if tall else big, fontweight="bold",
-                color=WRITTEN, ha="left", va="center", gid="data")
+                color=WRITTEN_TEXT, ha="left", va="center", gid="data")
     add_logos(fig, ax, c, ["claude"], shift=True)
     add_logos(fig, ax, trm_lab, ["samsung"])
 
@@ -1157,7 +1222,7 @@ def chains_loops(plt, d) -> None:
     ax.plot(xs, [100] * len(xs), color=WRITTEN, lw=2.6, zorder=5, gid="data")
     ax.scatter(xs, [100] * len(xs), s=30, color=WRITTEN, edgecolor="white", linewidth=0.8, zorder=6, gid="data")
     ax.annotate("Written by Claude, 100%", xy=(xs[-1], 100), xytext=(0, 8), textcoords="offset points",
-                fontsize=F * 8.0, fontweight="semibold", color=WRITTEN, ha="right", va="bottom", gid="data")
+                fontsize=F * 8.0, fontweight="semibold", color=WRITTEN_TEXT, ha="right", va="bottom", gid="data")
 
     tv = [69.1, 66.7, 49.2]
     ax.plot(xs[:3], tv, color=TRAINED, lw=2.0, zorder=4, solid_joinstyle="round", gid="data")
@@ -1178,9 +1243,9 @@ def social(plt, d) -> None:
     ax.set_xlim(0, 1200)
     ax.set_ylim(0, 630)
     ax.axis("off")
-    navy, sky = "#0c2945", "#b9cdf2"          # MBZUAI navy
+    navy, sky = INK, "#cde2fb"                 # ink background, light blue text
     ax.add_patch(Rectangle((0, 0), 1200, 630, fc=navy, ec="none"))
-    ax.add_patch(Rectangle((0, 0), 1200, 10, fc="#e5c687", ec="none"))   # MBZUAI gold
+    ax.add_patch(Rectangle((0, 0), 1200, 10, fc=ORANGE, ec="none"))
 
     pt = 72 / dpi  # font size in points for a size given in px
     ax.text(72, 548, d["title"], fontsize=66 * pt, fontweight="bold", color="white", va="top")
@@ -1190,20 +1255,20 @@ def social(plt, d) -> None:
                                 fc="white", ec="none"))
     ax.text(100, 278, d["result_task"].upper(), fontsize=19 * pt, fontweight="semibold",
             color=MUTED, va="top")
-    ax.text(100, 236, d["result"], fontsize=44 * pt, fontweight="bold", color=WRITTEN,
+    ax.text(100, 236, d["result"], fontsize=44 * pt, fontweight="bold", color=WRITTEN_TEXT,
             va="top", linespacing=1.12)
 
     # A small Tower of Hanoi: all disks moved to the third peg.
     base_y, peg_h = 118, 190
     pegs = [760, 905, 1050]
-    ax.add_patch(Rectangle((700, base_y - 8), 410, 8, fc="#4a6f95", ec="none"))
+    ax.add_patch(Rectangle((700, base_y - 8), 410, 8, fc=RAMP[5], ec="none"))
     for x in pegs:
-        ax.add_patch(Rectangle((x - 3.5, base_y), 7, peg_h, fc="#4a6f95", ec="none"))
+        ax.add_patch(Rectangle((x - 3.5, base_y), 7, peg_h, fc=RAMP[5], ec="none"))
     for i in range(7):
         wdt = 128 - i * 15
         ax.add_patch(FancyBboxPatch((pegs[2] - wdt / 2, base_y + i * 22 + 2), wdt, 18,
                                     boxstyle="round,pad=0,rounding_size=6",
-                                    fc="#a9c6e3" if i % 2 == 0 else "#d8e6f4", ec="none"))
+                                    fc=RAMP[1] if i % 2 == 0 else RAMP[0], ec="none"))
 
     ax.text(72, 56, d["byline"], fontsize=21 * pt, color="white", va="center")
     ax.text(1128, 56, d["url"], fontsize=19 * pt, color=sky, va="center", ha="right")

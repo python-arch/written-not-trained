@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Run the maze network · Written, Not Trained</title>
-<meta name="description" content="Run the hand-written Maze-Hard network in your browser: its real weights, one generic loop, on real test mazes.">
+<title>Run the maze transformer · Written, Not Trained</title>
+<meta name="description" content="Run the hand-written Maze-Hard transformer in your browser: its real weights, one generic loop, on real test mazes.">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png">
@@ -71,8 +71,8 @@
 <div class="wrap">
   <div class="top"><a href="../index.html">← Written, Not Trained</a> · <a href="index.html">Tower of Hanoi demo</a></div>
   <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming · demo</div>
-  <h1>Run the maze network</h1>
-  <p class="lede">This page runs the Maze-Hard network from the post, in your browser, on real test mazes. It loads the network's weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each cell, run the same transformer layer again and again, and read off every cell. The loop knows nothing about mazes. The grid shows the network's own state after each loop.</p>
+  <h1>Run the maze transformer</h1>
+  <p class="lede">This page runs the Maze-Hard transformer from the post, in your browser, on real test mazes. It loads the transformer's weights, <span id="w-total">…</span> of them, and only <span id="w-nonzero">…</span> aren't zero. Then it runs them with one generic loop: look up each cell, run the same transformer layer again and again, and read off every cell. The loop knows nothing about mazes. The grid shows the numbers inside the transformer after each loop.</p>
 
   <div class="panel">
     <div class="controls">
@@ -92,13 +92,13 @@
         <button id="pause" type="button" disabled>Pause</button>
       </div>
     </div>
-    <div class="board"><canvas id="grid" width="1200" height="1200" aria-label="The maze, coloured by the network's state after each loop."></canvas></div>
-    <div class="legend"><span style="--sw:#dbe6f1">knows its distance from the goal</span><span style="--sw:#154677">the path the network writes</span><span style="--sw:#34383f">wall</span></div>
+    <div class="board"><canvas id="grid" width="1200" height="1200" aria-label="The maze, coloured by the transformer's state after each loop."></canvas></div>
+    <div class="legend"><span style="--sw:#dbe6f1">knows its distance from the goal</span><span style="--sw:#154677">the path the transformer writes</span><span style="--sw:#34383f">wall</span></div>
     <div class="stats">
       <div class="stat"><div class="k">Loop</div><div class="v" id="s-loop">0</div></div>
       <div class="stat"><div class="k">Path cells</div><div class="v" id="s-path">0</div></div>
       <div class="stat"><div class="k">Matches the answer</div><div class="v" id="s-match">–</div></div>
-      <div class="stat"><div class="k">Network time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
+      <div class="stat"><div class="k">Transformer time</div><div class="v" id="s-time">0.0 <small>s</small></div></div>
     </div>
     <div class="status" id="status">Pick a maze and press Run.</div>
   </div>
@@ -107,19 +107,19 @@
   <ol>
     <li>Each of the 900 cells becomes one token: its row, its column, and what is there (wall, open, start or goal).</li>
     <li>In every loop, the same transformer layer runs over all the cells. Each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal.</li>
-    <li>After every loop, the network reads off a character for every cell. The cells it marks as path are drawn in blue.</li>
-    <li>When it stops, the page compares the network's grid with the dataset's answer, character by character.</li>
+    <li>After every loop, the transformer reads off a character for every cell. The cells it marks as path are drawn in blue.</li>
+    <li>When it stops, the page compares the transformer's grid with the dataset's answer, character by character.</li>
   </ol>
-  <p>The network's rule is to run 1,800 loops on a 30×30 maze. Long before that, its whole internal state stops changing: every number is the same as after the loop before. From then on, every loop gives exactly the same state, so the page stops there by default. Tick "Run all 1,800 loops" to run them anyway, which takes about a minute on a laptop.</p>
+  <p>The transformer's rule is to run 1,800 loops on a 30×30 maze. Long before that, its whole internal state stops changing: every number is the same as after the loop before. From then on, every loop gives exactly the same state, so the page stops there by default. Tick "Run all 1,800 loops" to run them anyway, which takes about a minute on a laptop.</p>
 
   <details>
-    <summary>The whole runner: the loop that runs the network</summary>
+    <summary>The whole runner: the loop that runs the transformer</summary>
     <pre id="runner-src"></pre>
   </details>
-  <p class="note">The mazes are the first 50 of the Maze-Hard test set (the HRM paper's release), in file order. The network solves all 1,000 test mazes, including the 50 on which Claude Opus 5.5 solves 13 on its own. The same network and loop in Python are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>.</p>
+  <p class="note">The mazes are the first 50 of the Maze-Hard test set (the HRM paper's release), in file order. The transformer solves 100% of the test mazes, including these 50, of which Claude Opus 5.5 solves 26% when asked directly. The same transformer and loop in Python are in <a href="https://github.com/python-arch/written-not-trained/tree/main/weights">weights/</a>.</p>
 </div>
 
-<script src="maze_network.js"></script>
+<script src="maze_model.js"></script>
 <script src="maze_tests.js"></script>
 <script id="runner">
 // The generic loop, the same computation as weights/run.py. It knows nothing about mazes:
@@ -134,7 +134,7 @@ function sparse(t) {                            // a weight matrix kept as its n
 }
 function usedCols(W) { const s = new Set(W.c); return Int32Array.from([...s].sort((a, b) => a - b)); }
 
-function loadNetwork(net) {
+function loadModel(net) {
   const N = { cfg: net.config, d: net.config.d_model, emb: net.embed.map(t => ({ shape: t.shape, w: dense(t) })),
               W_out: sparse(net.W_out), b_out: dense(net.b_out), layers: [] };
   for (const L of net.layers) {
@@ -210,7 +210,7 @@ function readout(N, H, n) {                      // the argmax character at ever
 </script>
 <script>
 (function () {
-  const net = loadNetwork(window.MAZE_NETWORK), tests = window.MAZE_TESTS;
+  const net = loadModel(window.MAZE_MODEL), tests = window.MAZE_TESTS;
   const cs = net.cfg.charset, side = 30, n = side * side, R = 2 * n;
   const fmt = (x) => x.toLocaleString("en-US"), el = (id) => document.getElementById(id);
   el("w-total").textContent = fmt(net.total); el("w-nonzero").textContent = fmt(net.nonzero);
@@ -244,7 +244,7 @@ function readout(N, H, n) {                      // the argmax character at ever
     cx.strokeStyle = "#1d1d1f"; cx.lineWidth = 3; cx.strokeRect(1.5, 1.5, W - 3, W - 3);
   }
 
-  // ---------------- run: the network loops; the page draws its state and checks the final grid
+  // ---------------- run: the transformer loops; the page draws its state and checks the final grid
   let H = null, prev = null, running = false, done = false, tSpent = 0, fixedAt = null;
   function show() {
     el("s-loop").innerHTML = `${fmt(L)} <small>of ${fmt(R)}</small>`;
@@ -276,7 +276,7 @@ function readout(N, H, n) {                      // the argmax character at ever
     el("status").className = "status" + (ok ? " done" : "");
     const tail = L < R ? ` The whole state stopped changing at loop ${fmt(fixedAt)}, so loops ${fmt(fixedAt + 1)} to ${fmt(R)} give exactly the same grid.`
                        : ` The whole state stopped changing at loop ${fmt(fixedAt)}, and the remaining loops changed nothing.`;
-    el("status").textContent = (ok ? "Solved. The network's grid matches the dataset's answer exactly, character by character." : "The grid differs from the dataset's answer.") + tail;
+    el("status").textContent = (ok ? "Solved. The transformer's grid matches the dataset's answer exactly, character by character." : "The grid differs from the dataset's answer.") + tail;
     el("run").textContent = "Run again"; el("pause").disabled = true;
   }
   let lastT = 0, carry = 0;
