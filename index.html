@@ -277,6 +277,8 @@
 
 <p>What makes this result striking is who wrote the transformer. Claude itself struggles to carry out a search of more than a hundred steps in text, even when we spell the algorithm out (<a href="#maze-claude">section 3</a>). Yet it can write a single step of that search into weights, leaving the loop to repeat the step for as long as the maze requires. Programmers rely on the same trick whenever they write code for arithmetic they could not do in their heads. Language models gain from it too. On math word problems, they get more answers right when they write a short program that does the arithmetic than when they do the arithmetic in text (<a href="https://arxiv.org/abs/2211.10435">Gao et al., ICML 2023</a>; <a href="https://arxiv.org/abs/2211.12588">Chen et al., TMLR 2023</a>).</p>
 
+<p>We hope these hand-written transformers help advance research on looped models, by showing how much a single small block can compute when it runs in a loop and by giving training methods concrete solutions to aim for. The weights and two in-browser demos are <a href="#code">public</a>.</p>
+
 <div class="hero-pair">
 <figure class="hero-video">
   <div class="player">
@@ -300,9 +302,6 @@
   <figcaption><strong>Figure 3. Writing beats training.</strong> Claude spent an hour writing the transformer, so its line steps from 0% to 100% at 1 hour, with no training. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%.</figcaption>
 </figure>
 </div>
-
-<p>We hope these hand-written transformers help advance research on looped models, by showing how much a single small block can compute when it runs in a loop and by giving training methods concrete solutions to aim for. The weights and two in-browser demos are <a href="#code">public</a>.</p>
-
 
 <h2 id="inside"><span class="qn">1.</span> How the maze transformer works</h2>
 

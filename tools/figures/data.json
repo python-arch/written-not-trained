@@ -75,25 +75,25 @@
       "test": 53.8
      },
      {
-      "name": "Trained, 1 layer",
+      "name": "Trained, 1 block",
       "params": 50434,
       "checking": 100,
       "test": 52.6
      },
      {
-      "name": "Trained, 4 layers",
+      "name": "Trained, 4 blocks",
       "params": 13234,
       "checking": 100,
       "test": 49.2
      },
      {
-      "name": "Trained, 8 layers",
+      "name": "Trained, 8 blocks",
       "params": 101858,
       "checking": 100,
       "test": 49.5
      },
      {
-      "name": "Trained, 12 layers",
+      "name": "Trained, 12 blocks",
       "params": 600258,
       "checking": 100,
       "test": 45.5
@@ -122,25 +122,25 @@
       ]
      },
      {
-      "name": "Trained, 1 layer",
+      "name": "Trained, 1 block",
       "params": 77924,
       "checking": 7.0,
       "test": 2.8
      },
      {
-      "name": "Trained, 4 layers",
+      "name": "Trained, 4 blocks",
       "params": 51368,
       "checking": 43.4,
       "test": 2.8
      },
      {
-      "name": "Trained, 8 layers (~90×)",
+      "name": "Trained, 8 blocks (~90×)",
       "params": 427812,
       "checking": 93.7,
       "test": 3.5
      },
      {
-      "name": "Trained, 12 layers",
+      "name": "Trained, 12 blocks",
       "params": 627748,
       "checking": 49.6,
       "test": 4.0
@@ -244,7 +244,7 @@
     "test": "",
     "bars": [
      {
-      "label": "Trained, 8 layers, 427,812 weights",
+      "label": "Trained, 8 blocks, 427,812 weights",
       "value": 3.5,
       "text": "3.5%",
       "kind": "trained"
@@ -391,7 +391,7 @@
   "footnote": "Accuracy in %. Trained models: best version, picked on the test set."
  },
  "maze_block": {
-  "title": "The maze layer, piece by piece",
+  "title": "The maze block, piece by piece",
   "_height": 64,
   "_y_bar": 12.3,
   "_stair": 1.6,
