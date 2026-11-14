@@ -363,6 +363,139 @@ def maze_compute():
     return card("maze_compute", h, "".join(b), label, cap)
 
 
-for fn in (maze_training, maze_loops, written_vs_trained, glance, hanoi, maze_size, maze_compute):
+
+# ------------------------------------------------------------------ 8. the maze layer (diagram)
+def maze_block():
+    h = 344
+    CUR['id'] = 'maze_block'
+    spec = D["maze_block"]
+    col = {"const": "#3a4458", "pos": "#56627a", "input": "#8a96a8", "phase": "#259ed6",
+           "ptr": "#c48225", "on": "#eaf7ff", "copied": "#855290"}
+    short = {"pos": ("position", 0), "input": ("type", 1), "phase": ("distance", 0), "ptr": ("pointer", 1),
+             "on": ("path", 0), "copied": ("copied from neighbours", 0)}
+    b = [text(20, 24, "One cell's memory, 35 numbers", "t-key")]
+    x, step, sq, yq = 20.0, 12.4, 10.4, 36
+    i = 0
+    for g in spec["groups"]:
+        gx0 = x + step * i
+        for k in range(g["n"]):
+            sub = (k // 5) % 2 if g["key"] == "copied" else 0
+            op = ' opacity=".72"' if sub else ""
+            glow = f' filter="url(#glow-maze_block)"' if g["key"] == "on" else ""
+            if g["key"] == "on":
+                b.append(f'<rect x="{f(x + step * i)}" y="{yq}" width="{sq}" height="22" rx="3" fill="#3fc4ff" opacity=".7"{glow} class="pop" style="--d:.6s"/>')
+            b.append(f'<rect x="{f(x + step * i)}" y="{yq}" width="{sq}" height="22" rx="3" fill="{col[g["key"]]}"{op} class="pop" style="--d:{0.1 + 0.015 * i:.3f}s"/>')
+            i += 1
+        gx1 = x + step * i - (step - sq)
+        b.append(f'<rect class="hit" x="{f(gx0)}" y="{yq - 4}" width="{f(gx1 - gx0)}" height="30"{tip(g["label"].replace(chr(10), " "))}/>')
+        if g["key"] in short:
+            lab, row = short[g["key"]]
+            cx = (gx0 + gx1) / 2
+            ty = 80 + 17 * row
+            b.append(f'<line class="tick" x1="{f(cx)}" x2="{f(cx)}" y1="{yq + 26}" y2="{ty - 11}"/>')
+            b.append(text(cx, ty, lab, "t-mut", "middle"))
+    # four heads around a cell
+    b.append(text(20, 132, "Four heads", "t-key"))
+    cx, cy, cs, gp = 104, 206, 28, 16
+    nb = {"up": (0, -1), "left": (-1, 0), "right": (1, 0), "down": (0, 1)}
+    for dname, (dx, dy) in nb.items():
+        nx, ny = cx + dx * (cs + gp), cy + dy * (cs + gp)
+        b.append(f'<rect class="cellbox" x="{f(nx - cs / 2)}" y="{f(ny - cs / 2)}" width="{cs}" height="{cs}" rx="6"/>')
+        b.append(text(nx, ny + 4, dname, "t-tiny", "middle"))
+        x1_, y1_ = nx - dx * (cs / 2 + 1), ny - dy * (cs / 2 + 1)
+        x2_, y2_ = cx + dx * (cs / 2 + 1), cy + dy * (cs / 2 + 1)
+        b.append(f'<line class="conn" x1="{f(x1_)}" y1="{f(y1_)}" x2="{f(x2_)}" y2="{f(y2_)}"/>')
+        b.append(f'<circle class="flow" r="2.4" cx="{f(x1_)}" cy="{f(y1_)}" style="--fx:{f(x2_ - x1_)}px;--fy:{f(y2_ - y1_)}px"/>')
+        b.append(f'<rect class="hit" x="{f(nx - cs / 2)}" y="{f(ny - cs / 2)}" width="{cs}" height="{cs}"'
+                 f'{tip(f"The {dname} head reads this neighbour, its distance, its path flag, and whether it points here")}/>')
+    b.append(f'<rect x="{f(cx - cs / 2)}" y="{f(cy - cs / 2)}" width="{cs}" height="{cs}" rx="6" fill="#3fc4ff" opacity=".6" filter="url(#glow-maze_block)"/>')
+    b.append(f'<rect class="cellbox c" x="{f(cx - cs / 2)}" y="{f(cy - cs / 2)}" width="{cs}" height="{cs}" rx="6"/>')
+    b.append(text(cx, cy + 4, "cell", "t-tiny dark", "middle"))
+    # neurons by job
+    b.append(text(232, 132, "Neurons, by job", "t-key"))
+    units = [u for u in spec["units"] if not u.get("note")]
+    for k, u in enumerate(units):
+        yy = 146 + k * 25
+        name, n = u["name"].split(", ")
+        b.append(f'<rect class="chip pop" x="232" y="{yy}" width="226" height="20" rx="10" style="--d:{0.3 + 0.08 * k:.2f}s"/>')
+        b.append(f'<circle cx="245" cy="{yy + 10}" r="4" fill="{col[u["writes"]]}" class="pop" style="--d:{0.4 + 0.08 * k:.2f}s"/>')
+        b.append(text(256, yy + 14.5, name, "t-lbl"))
+        b.append(text(448, yy + 14.5, n.split()[0], "t-val", "end"))
+        b.append(f'<rect class="hit" x="232" y="{yy}" width="226" height="20"{tip(u["job"].replace(chr(10), " "))}/>')
+    # readout
+    b.append(text(20, 306, "Each cell writes", "t-key"))
+    tiles = [("#", "wall"), ("", "open"), ("S", "start"), ("G", "goal"), ("o", "path")]
+    for k, (ch, lab) in enumerate(tiles):
+        tx = 232 + k * 46
+        hot = ch == "o"
+        if hot:
+            b.append(f'<rect x="{tx}" y="282" width="34" height="34" rx="8" fill="#3fc4ff" opacity=".55" filter="url(#glow-maze_block)"/>')
+        b.append(f'<rect class="tile{" hot" if hot else ""}" x="{tx}" y="282" width="34" height="34" rx="8"/>')
+        if ch:
+            b.append(text(tx + 17, 305, ch, "t-glyph" + (" dark" if hot else ""), "middle"))
+        b.append(text(tx + 17, 334, lab, "t-tiny", "middle"))
+    label = ("Diagram of the maze network's one layer. A strip of 35 slots shows one cell's memory, grouped into a constant 1, "
+             "its position, its type, its distance to the goal counted in threes, a pointer to the next step, a path flag, "
+             "and 20 numbers copied from its four neighbours. Four attention heads each read one neighbour, either the cell "
+             "above, to the left, to the right or below. The neurons are grouped by job into wave (6), pointer (24), pointer "
+             "clear (8), chain (8) and clean-up (40). At the end, each cell writes a wall, an open cell, the start, the goal "
+             "or a path cell.")
+    cap = ("The maze network's one layer, read from its weights. After the last loop, every cell's distance, pointer and path "
+           "flag match those of a standard shortest-path search on all 1,000 training mazes. Hover over any part to see "
+           "what it does.")
+    return card("maze_block", h, "".join(b), label, cap)
+
+
+# ------------------------------------------------------------------ 9. Ouro's clock (schematic)
+def ouro_clock():
+    h = 236
+    CUR['id'] = 'ouro_clock'
+    trained = D["ouro_clock"]["trained_loops"]
+    n = D["ouro_clock"]["loops_shown"]
+    xs = lambda k: 150 + (k - 1) * 43
+    r = 15
+    lo, hi = -90 + 40 * 0.4, -90 + 40 * (trained + 0.5)
+    def pt(cx, cy, a, rr=r):
+        return cx + rr * math.cos(math.radians(a)), cy + rr * math.sin(math.radians(a))
+    def sector(cx, cy, a0, a1, cls):
+        x0_, y0_ = pt(cx, cy, a0); x1_, y1_ = pt(cx, cy, a1)
+        big = 1 if (a1 - a0) % 360 > 180 else 0
+        return f'<path class="sector {cls}" d="M{f(cx)},{f(cy)} L{f(x0_)},{f(y0_)} A{r},{r} 0 {big} 1 {f(x1_)},{f(y1_)} Z"/>'
+    b = [legend([("w", "inside the trained range"), ("t", "outside it")], 20, 22)]
+    xd = (xs(trained) + xs(trained + 1)) / 2
+    b.append(f'<line class="ref" x1="{f(xd)}" x2="{f(xd)}" y1="44" y2="{h - 34}"/>')
+    b.append(text(xd - 6, 56, f"trained for {trained} loops", "t-mut", "end"))
+    lanes = [("Ouro as trained", 100, False), ("With the fix", 168, True)]
+    for name, cy, fixed in lanes:
+        b.append(text(20, cy + 4, name, "t-key"))
+        for k in range(1, n + 1):
+            cx = xs(k)
+            a = -90 + 40 * k
+            if fixed and k > trained:
+                a = -90 + 40 * (trained - (k % 2))
+            inside = lo <= a <= hi
+            d = 0.15 + 0.07 * k + (0.4 if fixed else 0)
+            b.append(f'<g class="pop" style="--d:{d:.2f}s">')
+            b.append(f'<circle class="dial" cx="{f(cx)}" cy="{cy}" r="{r}"/>')
+            b.append(sector(cx, cy, lo, hi, "in"))
+            hx, hy = pt(cx, cy, a, r - 3)
+            if inside:
+                b.append(f'<line class="hand halo-h" x1="{f(cx)}" y1="{cy}" x2="{f(hx)}" y2="{f(hy)}" filter="url(#glow-ouro_clock)"/>')
+            b.append(f'<line class="hand {"in" if inside else "out"}" x1="{f(cx)}" y1="{cy}" x2="{f(hx)}" y2="{f(hy)}"/>')
+            b.append(f'<circle cx="{f(cx)}" cy="{cy}" r="2" fill="#e9eef7"/>')
+            b.append("</g>")
+            state = "inside the trained range" if inside else "outside the range Ouro saw in training"
+            b.append(f'<circle class="hit" cx="{f(cx)}" cy="{cy}" r="{r + 4}"{tip(f"{name}, loop {k}, clock {state}")}/>')
+    for k in range(1, n + 1):
+        b.append(text(xs(k), h - 14, str(k), "t-tick", "middle"))
+    b.append(text(xs(1) - 26, h - 14, "loop", "t-mut", "end"))
+    label = ("Schematic, not data. One dial per loop shows the state of Ouro's first tokens, which every other token reads like "
+             "a clock. As trained, the hand moves past the shaded trained range after loop 4. With the fix, it stays inside "
+             "the trained range for all eight loops.")
+    cap = ("A schematic, not data. Each dial is the state of Ouro's first tokens after one loop, and the shaded wedge is the "
+           "range Ouro saw in training. As trained, the hand leaves that range after loop 4. With the fix, it stays inside.")
+    return card("ouro_clock", h, "".join(b), label, cap)
+
+for fn in (maze_training, maze_loops, written_vs_trained, glance, hanoi, maze_size, maze_compute, maze_block, ouro_clock):
     fn()
 print("wrote", sorted(os.listdir(OUT)))

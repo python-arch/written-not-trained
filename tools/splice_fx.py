@@ -25,6 +25,8 @@ OLD = {
     "hanoi": "figures/hanoi_data.svg",
     "maze_size": "figures/maze_size_data.svg",
     "maze_compute": "figures/maze_compute_data.svg",
+    "maze_block": "figures/maze_block.svg",
+    "ouro_clock": "figures/ouro_clock.svg",
 }
 for name, src in OLD.items():
     new = open(os.path.join(fx, f"{name}.html"), encoding="utf-8").read()
