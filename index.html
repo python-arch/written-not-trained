@@ -262,7 +262,7 @@
 <div class="tldr">
   <div class="label">What we found</div>
   <ul>
-    <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe to write networks that solve Sudoku-Extreme by guessing and backtracking, that play out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake, that answer graph questions buried in prompts of up to a million tokens (GraphWalks), and that solve four reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these networks scored 100% on the test problems we ran.</li>
+    <li><strong>The approach works far beyond mazes.</strong> Claude used the same recipe on other hard tasks. One network solves Sudoku-Extreme by guessing and backtracking. Another plays out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake. A third answers graph questions buried in prompts of up to a million tokens (GraphWalks). Four more solve reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these networks scored 100% on the test problems we ran.</li>
     <li><strong>The loop keeps the networks small and lets them scale.</strong> Every weight is one more thing Claude has to get right. With a loop, a bigger problem needs more passes rather than more weights, which keeps the maze network 163 times smaller than it would be without one. The same loop lets each network keep working far beyond the sizes Claude checked it on (<a href="#beyond">section 4</a>).</li>
     <li><strong>Gradient descent did not find these solutions in our runs.</strong> When we reset Claude's maze network to random weights and trained it on the same 1,000 mazes, every run ended with 0% of mazes solved, on budgets far smaller than those of the models built for this benchmark (<a href="#training">section 4</a>).</li>
     <li><strong>Every number inside has a meaning.</strong> Claude decided what each number in a network's state stands for, so we can decode that state after any loop and watch the algorithm run, as the video above shows.</li>
@@ -419,7 +419,7 @@
 
 <details>
   <summary>How the design changed</summary>
-  <p>The task description Claude worked from, which Claude had also written, suggested a first design with two waves, one from each end, that used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal, counted in threes, pointers with a tie-break, and a chain from the start.</p>
+  <p>Claude had also written the task description it worked from. That description suggested a first design with two waves, one from each end. The waves used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal, counted in threes, pointers with a tie-break, and a chain from the start.</p>
   <p>In the single-answer tries, the instructions did say how many loops our network runs.</p>
 </details>
 
