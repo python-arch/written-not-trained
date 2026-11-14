@@ -128,6 +128,13 @@
   @media (max-width: 639px) { h2 { font-size: 1.62rem; margin-top: 60px; } h3 { font-size: 1.22rem; } }
   .eyebrow { margin: 44px 0 0; }
   p { margin: 0 0 16px; }
+  /* Epigraph at the top of the post. */
+  .epigraph { position: relative; max-width: 760px; margin: 34px auto 42px; padding: 6px 0 0 64px; }
+  .epigraph::before { content: "\201C"; position: absolute; left: 0; top: -22px; font-family: var(--serif); font-size: 6.4rem; line-height: 1; color: #eb6834; }
+  .epigraph blockquote { margin: 0; font-family: var(--serif); font-style: italic; font-size: 1.9rem; line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+  .epigraph figcaption { margin-top: 12px; font-family: var(--sans); font-size: 0.86rem; color: var(--muted); }
+  .epigraph figcaption b { color: var(--fg); font-weight: 600; }
+  @media (max-width: 639px) { .epigraph { padding-left: 44px; margin: 26px 0 32px; } .epigraph::before { font-size: 4.6rem; top: -14px; } .epigraph blockquote { font-size: 1.45rem; } }
   a { color: inherit; text-decoration: underline; text-decoration-color: #9aa0a6; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   a:hover { text-decoration-color: var(--fg); }
   strong { font-weight: 600; }
@@ -272,6 +279,11 @@
 </script>
 
 <main class="wrap">
+
+<figure class="epigraph">
+  <blockquote>What I cannot create, I do not understand.</blockquote>
+  <figcaption><b>Richard Feynman</b>, written on his blackboard at Caltech, 1988</figcaption>
+</figure>
 
 <p>Deep learning models normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices. If you know the program you want, you can skip training and write the matrices yourself. People have done this by hand for small problems (<a href="#related">related work</a>). Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. Recently, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a model's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, but only for toy tasks (<a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a>, <a href="https://github.com/anadim/AdderBoard">AdderBoard</a>). In those transformers, every step of a computation takes a separate block. Scaling one up to a hard problem would mean a far bigger transformer and a far bigger Claude bill, since Claude would have to write every one of those extra weights.</p>
 
