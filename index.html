@@ -212,13 +212,13 @@
     <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
       <div class="layers wide">
       <img class="data" src="figures/maze_training_data.svg" width="518" height="384" alt="" aria-hidden="true">
-      <img src="figures/maze_training_base.svg" width="518" height="384" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+      <img src="figures/maze_training_base.svg" width="518" height="384" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
       </div>
       <div class="layers tall">
       <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="442" alt="" aria-hidden="true">
-      <img src="figures/maze_training_tall_base.svg" width="355" height="442" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+      <img src="figures/maze_training_tall_base.svg" width="355" height="442" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The same network as Claude's, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
       </div>
-      <figcaption>Claude's network needed no training and is shown at 1 hour. TRM is a model built for mazes, which we trained ourselves. The dashed line is the TRM its authors released. More in <a href="#maze-gd-details">section 3</a>.</figcaption>
+      <figcaption>Claude's network needed no training and is shown at 1 hour. TRM, a model built for mazes, and a standard transformer are both over 300 times bigger than Claude's network, and we trained both ourselves. The dashed line is the TRM its authors released. More in <a href="#maze-gd-details">section 3</a>.</figcaption>
     </figure>
 
     <div class="cards">
@@ -272,7 +272,7 @@
 <main class="wrap">
 <div class="tldr">
   <div class="label">TL;DR</div>
-  <p class="lead"><strong>Claude gets most of these mazes wrong. The network it built by hand gets every one right.</strong> Claude Opus 5.5 designed a tiny transformer and set every weight itself, with no training, and it solves all 1,000 Maze-Hard test mazes, where Claude on its own solves 13 of 50. Trained from scratch by gradient descent, the same network solves none. The key is a loop: one small layer runs again and again, so a tiny network can also solve a 20-disk Tower of Hanoi, over a million moves, without a mistake. Networks written the same way score 100% on GraphWalks, with prompts of up to a million tokens, on Sudoku-Extreme and on BIG-Bench tasks. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
+  <p class="lead"><strong>Claude gets most of these mazes wrong. The network it built by hand gets every one right.</strong> Claude Opus 5.5 designed a tiny transformer and set every weight itself, with no training, and it solves all 1,000 Maze-Hard test mazes, where Claude on its own solves 13 of 50. Trained from scratch by gradient descent, the same network solves none, and a standard transformer 320 times bigger gets only 42% after 8 hours of training. The key is a loop: one small layer runs again and again, so a tiny network can also solve a 20-disk Tower of Hanoi, over a million moves, without a mistake. Networks written the same way score 100% on GraphWalks, with prompts of up to a million tokens, on Sudoku-Extreme and on BIG-Bench tasks. This builds on <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (MIT CSAIL).</p>
 </div>
 
 
@@ -621,11 +621,13 @@
 
 <h2 id="training"><span class="qn">3.</span> Can training find these networks?</h2>
 
-<p class="a"><strong>Not in our tests, even inside the exact network Claude wrote.</strong> We tried two ways: training the maze network itself, and training standard networks on three more tasks.</p>
+<p class="a"><strong>Not in our tests, even inside the exact network Claude wrote.</strong> We tried two ways: training on mazes, inside Claude's network and in a standard transformer, and training standard networks on three more tasks.</p>
 
-<h3>Training the maze network</h3>
+<h3>Training on mazes</h3>
 
-<p>We gave gradient descent the exact network Claude wrote for mazes, with its weights reset to random, and the same 1,000 training mazes Claude could check its work on. <strong>Every run on our budget ended with 0% of mazes solved.</strong> The network learned only to copy the maze back unchanged. Longer runs on bigger versions of the network, up to 2.8M weights, also ended at 0% (<a href="#written-vs-trained-maze">the first figure</a>). In the same network, Claude's weights solve all 1,000 test mazes.</p>
+<p>We gave gradient descent the exact network Claude wrote for mazes, with its weights reset to random, and the same 1,000 training mazes Claude could check its work on. <strong>Every run on our budget ended with 0% of mazes solved.</strong> The network learned only to copy the maze back unchanged. Longer runs on bigger versions of the network, up to 2.8M weights, also ended at 0% (<a href="#written-vs-trained-maze">the first figure</a>), and so did runs that started on small mazes and worked up. In the same network, Claude's weights solve all 1,000 test mazes.</p>
+
+<p><strong>A standard transformer learns some mazes, but stops at 42%.</strong> Maybe Claude's network is just hard to train? So we also trained a standard transformer with no loop, the size of TRM and 320 times bigger than Claude's network. It trained for 8 hours on one GPU, on 3,000 mazes, three times as many as the runs above. It gets almost all of its training mazes right, but only 42% of the test mazes, and it stopped improving in its last two hours.</p>
 
 <details>
   <summary>Details: how we trained it</summary>
@@ -635,11 +637,13 @@
 </details>
 
 <details id="maze-gd-details">
-  <summary>Details: the longer runs in the first figure, and why not train them longer</summary>
+  <summary>Details: every run in the first figure, and why not train them longer</summary>
   <p>We reset the network Claude wrote to random weights and trained it on the same 1,000 training mazes, in 6 versions: at its own size (with 3 learning rates), with twice the loops, with 2 or 4 layers per loop, and 4 or 16 times wider. As above, each adds normalisation, because the network as written breaks down in training. The runs shared one GPU, so the figure places each one at its number of updates times its time per update with the GPU to itself.</p>
-  <p><strong>Why not train them longer?</strong> Four of the six versions got more updates than the 13,020 TRM needed to reach 77.4%: from 15,210 to 50,370. The other two got 9,750 and 11,130, more than the 7,812 TRM needed to reach 53.9%. And none was slowly getting better. Each one learned early on to copy the maze back unchanged, and none got past 87.5% of cells right, against 87.4% for copying. A maze needs all 900 cells right.</p>
+  <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. In 8 hours each, none solved a single maze of any size, not even 10×10, and all 111 checkpoints we scored on the test mazes are at 0%.</p>
+  <p><strong>The standard transformer</strong> is a plain transformer encoder of TRM's size: 8 layers, width 256, 8 heads and 6.4M weights. It has no loop, so one pass fills in all 900 cells. It trained on the 1,000 training mazes plus 2,000 we generated in the same style, for 8 hours alone on one GPU, with a standard recipe (AdamW, learning rate 3e-4, batch 64). This is one run with nothing tuned. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 of its training mazes it was at 94–99% from about the first hour on, while on 200 new mazes of the same style it levelled off at 45% for the last two hours.</p>
+  <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%: from 15,210 to 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. And none was slowly getting better. Each one learned early on to copy the maze back unchanged, and none got past 87.5% of cells right, against 87.4% for copying. A maze needs all 900 cells right. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
   <p>TRM is a different network, built for mazes, with 6.8M weights. This is our run of its recipe on one GPU instead of the authors' eight. The authors' released TRM gets 85.3% scored this way, still short of 100%.</p>
-  <p>This is one task and one training recipe, without tricks like starting with small mazes. So it shows that gradient descent doesn't find these weights in this setup, not that they can't be learned.</p>
+  <p>This is one task and a handful of standard recipes. So it shows that gradient descent doesn't find these weights in this setup, not that they can't be learned.</p>
 </details>
 
 <p>Next, three more tasks. While building each network, Claude could check it only on small inputs, which we call its checking range. We trained standard networks on graph search, parity and reasoning chains at exactly those sizes, then gave both kinds the same test on bigger problems.</p>

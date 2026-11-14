@@ -72,7 +72,7 @@ z
      <g id="line2d_2"/>
      <g id="text_2">
       <!-- 1 h -->
-      <g style="fill: #5b6475" transform="translate(91.65914 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(77.88914 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-31" d="M 2041 4656 
 L 2041 0 
@@ -116,7 +116,7 @@ z
      <g id="line2d_3"/>
      <g id="text_3">
       <!-- 2 h -->
-      <g style="fill: #5b6475" transform="translate(145.756421 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(118.216421 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-32" d="M 481 0 
 L 481 428 
@@ -156,7 +156,7 @@ z
      <g id="line2d_4"/>
      <g id="text_4">
       <!-- 3 h -->
-      <g style="fill: #5b6475" transform="translate(200.798624 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(159.488624 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-33" d="M 1984 -63 
 Q 1528 -63 1175 93 
@@ -207,7 +207,7 @@ z
      <g id="line2d_5"/>
      <g id="text_5">
       <!-- 4 h -->
-      <g style="fill: #5b6475" transform="translate(255.741799 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(200.661799 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-34" d="M 375 947 
 L 375 1431 
@@ -241,7 +241,7 @@ z
      <g id="line2d_6"/>
      <g id="text_6">
       <!-- 5 h -->
-      <g style="fill: #5b6475" transform="translate(311.07655 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(242.22655 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-35" d="M 1863 -63 
 Q 1453 -63 1128 98 
@@ -286,7 +286,7 @@ z
      <g id="line2d_7"/>
      <g id="text_7">
       <!-- 6 h -->
-      <g style="fill: #5b6475" transform="translate(366.026529 236.61929) scale(0.09676 -0.09676)">
+      <g style="fill: #5b6475" transform="translate(283.406529 236.61929) scale(0.09676 -0.09676)">
        <defs>
         <path id="Inter-Regular-36" d="M 2019 -63 
 Q 1728 -63 1437 43 
@@ -335,7 +335,92 @@ z
       </g>
      </g>
     </g>
-    <g id="text_8">
+    <g id="xtick_8">
+     <g id="line2d_8"/>
+     <g id="text_8">
+      <!-- 7 h -->
+      <g style="fill: #5b6475" transform="translate(324.978839 236.61929) scale(0.09676 -0.09676)">
+       <defs>
+        <path id="Inter-Regular-37" d="M 625 0 
+L 2694 4097 
+L 2694 4134 
+L 306 4134 
+L 306 4656 
+L 3316 4656 
+L 3316 4103 
+L 1250 0 
+L 625 0 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#Inter-Regular-37"/>
+       <use xlink:href="#Inter-Regular-20" transform="translate(56.591797 0)"/>
+       <use xlink:href="#Inter-Regular-68" transform="translate(84.716797 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_9">
+     <g id="line2d_9"/>
+     <g id="text_9">
+      <!-- 8 h -->
+      <g style="fill: #5b6475" transform="translate(366.034088 236.61929) scale(0.09676 -0.09676)">
+       <defs>
+        <path id="Inter-Regular-38" d="M 1978 -63 
+Q 1506 -63 1145 104 
+Q 784 272 582 565 
+Q 381 859 381 1238 
+Q 381 1531 500 1782 
+Q 619 2034 825 2203 
+Q 1031 2372 1291 2419 
+L 1291 2444 
+Q 950 2531 750 2822 
+Q 550 3113 550 3481 
+Q 550 3838 734 4117 
+Q 919 4397 1241 4558 
+Q 1563 4719 1978 4719 
+Q 2388 4719 2709 4558 
+Q 3031 4397 3217 4117 
+Q 3403 3838 3403 3481 
+Q 3403 3113 3201 2822 
+Q 3000 2531 2669 2444 
+L 2669 2419 
+Q 2922 2372 3128 2203 
+Q 3334 2034 3456 1782 
+Q 3578 1531 3578 1238 
+Q 3578 859 3373 565 
+Q 3169 272 2808 104 
+Q 2447 -63 1978 -63 
+z
+M 1978 453 
+Q 2441 453 2712 676 
+Q 2984 900 2984 1269 
+Q 2984 1528 2853 1726 
+Q 2722 1925 2494 2039 
+Q 2266 2153 1978 2153 
+Q 1538 2153 1252 1904 
+Q 966 1656 966 1269 
+Q 966 900 1236 676 
+Q 1506 453 1978 453 
+z
+M 1978 2650 
+Q 2347 2650 2587 2867 
+Q 2828 3084 2828 3438 
+Q 2828 3788 2593 3997 
+Q 2359 4206 1978 4206 
+Q 1591 4206 1358 3997 
+Q 1125 3788 1125 3438 
+Q 1125 3084 1362 2867 
+Q 1600 2650 1978 2650 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#Inter-Regular-38"/>
+       <use xlink:href="#Inter-Regular-20" transform="translate(61.865234 0)"/>
+       <use xlink:href="#Inter-Regular-68" transform="translate(89.990234 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_10">
      <!-- Hours -->
      <g style="fill: #5b6475" transform="translate(193.941478 249.804779) scale(0.09912 -0.09912)">
       <defs>
@@ -462,13 +547,13 @@ z
    </g>
    <g id="matplotlib.axis_2">
     <g id="ytick_1">
-     <g id="line2d_8">
+     <g id="line2d_10">
       <path d="M 42.768 216.083306 
 L 373.248 216.083306 
 " clip-path="url(#pa8dc9ef6c5)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
-     <g id="line2d_9"/>
-     <g id="text_9">
+     <g id="line2d_11"/>
+     <g id="text_11">
       <!-- 0 -->
       <g style="fill: #5b6475" transform="translate(33.163049 219.602951) scale(0.09676 -0.09676)">
        <use xlink:href="#Inter-Regular-30"/>
@@ -476,13 +561,13 @@ L 373.248 216.083306
      </g>
     </g>
     <g id="ytick_2">
-     <g id="line2d_10">
+     <g id="line2d_12">
       <path d="M 42.768 144.678347 
 L 373.248 144.678347 
 " clip-path="url(#pa8dc9ef6c5)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
-     <g id="line2d_11"/>
-     <g id="text_10">
+     <g id="line2d_13"/>
+     <g id="text_12">
       <!-- 50 -->
       <g style="fill: #5b6475" transform="translate(27.422459 148.197992) scale(0.09676 -0.09676)">
        <use xlink:href="#Inter-Regular-35"/>
@@ -491,13 +576,13 @@ L 373.248 144.678347
      </g>
     </g>
     <g id="ytick_3">
-     <g id="line2d_12">
+     <g id="line2d_14">
       <path d="M 42.768 73.273388 
 L 373.248 73.273388 
 " clip-path="url(#pa8dc9ef6c5)" style="fill: none; stroke: #e3e8f0; stroke-width: 0.7; stroke-linecap: square"/>
      </g>
-     <g id="line2d_13"/>
-     <g id="text_11">
+     <g id="line2d_15"/>
+     <g id="text_13">
       <!-- 100% -->
       <g style="fill: #5b6475" transform="translate(13.622064 76.793033) scale(0.09676 -0.09676)">
        <defs>
@@ -579,7 +664,7 @@ L 373.248 226.08
 " style="fill: none; stroke: #e3e8f0; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
   </g>
-  <g id="text_12">
+  <g id="text_14">
    <!-- Claude wrote a network that solves every maze. -->
    <g style="fill: #14213d" transform="translate(15.552 20.95582) scale(0.1475 -0.1475)">
     <defs>
@@ -1234,7 +1319,7 @@ z
     <use xlink:href="#Inter-SemiBold-2e" transform="translate(2089.111328 0)"/>
    </g>
   </g>
-  <g id="text_13">
+  <g id="text_15">
    <!-- 1,000 Maze-Hard test mazes. A maze counts only if its whole path is right. -->
    <g style="fill: #5b6475" transform="translate(15.552 268.935692) scale(0.08968 -0.08968)">
     <defs>
