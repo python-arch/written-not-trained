@@ -162,15 +162,18 @@ ca = (110, 140)
 parts.append(claude_dumb(*ca))
 parts.append(f'<path d="M{ca[0] + 40},{ca[1] - 6} C{ca[0] + 95},{ca[1] - 30} {mx_a - 50},{my - 20} {mx_a - 10},{my + 20}" fill="none" stroke="{GOLD}" stroke-width="2.5" stroke-dasharray="2 7" stroke-linecap="round"/>')
 parts.append(maze(mx_a, my, wrong, GOLD, crash=wall))
-parts.append(outcome(30, 376, "13 / 50", GOLD))
+parts.append(outcome(30, 376, "26%", GOLD))
 
 # panel B: Claude holds a control bar; strings run to the weight grid; the looped network solves the maze
 cb = (PW + 20 + 110, 104)
 parts.append(claude_villain(*cb))
 bar_y, bx0, bx1 = 166, cb[0] - 70, cb[0] + 70
-parts.append(f'<path d="M{cb[0] - 6},{cb[1] + 30} C{cb[0] - 30},{cb[1] + 44} {cb[0] - 22},{bar_y - 34} {cb[0]},{bar_y - 20}" fill="none" stroke="{ORANGE}" stroke-width="7" stroke-linecap="round"/>')
+for side in (-1, 1):
+    hx = cb[0] + side * 52
+    parts.append(f'<path d="M{cb[0] + side * 22},{cb[1] + 26} C{cb[0] + side * 46},{cb[1] + 30} {hx + side * 8},{bar_y - 40} {hx},{bar_y - 20}" fill="none" stroke="{ORANGE}" stroke-width="7" stroke-linecap="round"/>')
 parts.append(f'<line x1="{bx0}" y1="{bar_y}" x2="{bx1}" y2="{bar_y}" stroke="{GOLD}" stroke-width="5" stroke-linecap="round"/>')
-parts.append(glove(cb[0], bar_y + 2))
+parts.append(glove(cb[0] - 52, bar_y + 2))
+parts.append(glove(cb[0] + 52, bar_y + 2))
 gx0, gy0, gc, gr, gs = cb[0] - 76, 200, 8, 4, 19
 for i in range(gc):
     sx = bx0 + (bx1 - bx0) * i / (gc - 1)
@@ -190,11 +193,11 @@ lx, ly = (ax0 + mx_b - 18) / 2, ay - 22
 parts.append(f'<path d="M{lx + 9},{ly - 7} A11,11 0 1,0 {lx + 11},{ly + 2}" fill="none" stroke="{NAVY}" stroke-width="2.2" stroke-linecap="round"/>')
 parts.append(f'<path d="M{lx + 6},{ly - 10} L{lx + 10},{ly - 6} L{lx + 14},{ly - 11}" fill="none" stroke="{NAVY}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>')
 parts.append(maze(mx_b, my, good, NAVY, solved=True))
-parts.append(outcome(PW + 48, 376, "1,000 / 1,000", NAVY))
+parts.append(outcome(PW + 48, 376, "100%", NAVY))
 
 svg = (f'<svg class="concept-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Two panels. On the left, a confused cartoon Claude is asked to solve a maze '
-       f'itself, draws a path that goes wrong and cuts through a wall, and solves 13 of 50 test mazes. On the right, a scheming cartoon Claude holds a '
-       f'control bar whose strings set the weights of a small network, which loops and finds the right path, solving all 1,000 test mazes.">'
+       f'itself, draws a path that goes wrong and cuts through a wall, and solves 26% of test mazes. On the right, a scheming cartoon Claude holds a '
+       f'control bar whose strings set the weights of a small network, which loops and finds the right path, solving 100% of test mazes.">'
        + "".join(parts) + "</svg>")
 html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption>When Claude solves a maze itself, it often goes wrong. When it writes '
         'the network instead, setting every weight by hand, the looped network finds the path in every test maze.</figcaption>\n</figure>')
