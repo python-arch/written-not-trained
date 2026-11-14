@@ -44,16 +44,30 @@ FPS = 60
 SS = 2                      # draw at 2x, then scale down: smooth edges and sub-pixel motion
 PEGS = "ABC"
 
+# The blog palette (as in make_figures.py): the transformer Claude wrote, the disk it moves and the progress in
+# orange; the disks in the blue ramp, small = light, large = dark; ink text and warm neutrals for structure.
 BG = (255, 255, 255)
-FG = (29, 29, 31)
-MUTED = (95, 99, 104)
-FAINT = (150, 154, 160)
-LINE = (215, 217, 221)
-PEG = (190, 194, 200)
-TAG = (236, 237, 239)
-DISK = ((203, 207, 213), (184, 189, 197))
-ACCENT = (21, 70, 119)       # MBZUAI blue
-ACCENT_SOFT = (234, 238, 243)
+FG = (20, 33, 61)            # ink #14213d
+MUTED = (91, 100, 117)       # #5b6475
+FAINT = (158, 156, 148)
+LINE = (214, 212, 204)
+PEG = (196, 194, 186)        # pegs and base, warm grey
+TAG = (243, 242, 236)
+ACCENT = (235, 104, 52)      # orange #eb6834
+ACCENT_TEXT = (196, 71, 26)  # orange text shade #c4471a
+ACCENT_SOFT = (253, 241, 235)
+RAMP = [(205, 226, 251), (158, 197, 244), (109, 167, 236), (57, 135, 229), (42, 120, 214), (28, 92, 171),
+        (16, 66, 129), (13, 54, 107)]                  # blue ramp #cde2fb .. #0d366b
+BADGE = {"move by move": ((205, 226, 251), (28, 92, 171)),   # light blue, blue text
+         "fast forward": ((42, 120, 214), BG),               # blue #2a78d6, white text
+         "solved": ((15, 125, 86), BG)}                      # dark aqua #0f7d56, white text
+
+
+def disk_colour(d, n=20):
+    """Disk d of n on the blue ramp: the smallest lightest, the largest darkest."""
+    x = (d - 1) / (n - 1) * (len(RAMP) - 1)
+    i = min(int(x), len(RAMP) - 2)
+    return mix(RAMP[i], RAMP[i + 1], x - i)
 
 # ---- timeline (seconds)
 T_INTRO = 0.7
@@ -313,13 +327,13 @@ class Scene:
         if self.kind == "square":
             dr.text((self.left, g["title_y"] * k), "Written, Not Trained", font=F["title"], fill=FG, anchor="lt")
             dr.text((self.left, (g["title_y"] + 66) * k),
-                    "Claude wrote this network by hand. A separate program checks every move.",
+                    "Claude wrote this transformer by hand. A separate program checks every move.",
                     font=F["sub"], fill=MUTED, anchor="lt")
         dr.text((self.left, g["header_y"] * k), "Tower of Hanoi, 20 disks", font=F["head"], fill=FG, anchor="lm")
         dr.line([(a * k, b * k) for a, b in g["divider"]], fill=LINE, width=self.st1)
         if g["panel_title"]:
             x, y = g["panel_title"]
-            dr.text((x * k, y * k), "Hand-written network", font=F["panel"], fill=FG, anchor="ls")
+            dr.text((x * k, y * k), "The transformer Claude wrote", font=F["panel"], fill=FG, anchor="ls")
         for x, name in zip(self.pegs_x, PEGS):
             dr.text((x, self.base_y + 30 * k), name, font=F["peg"], fill=MUTED, anchor="mm")
         dr.text((self.px0, g["count_lab_y"] * k), f"Moves, of {self.M:,}", font=F["count_lab"], fill=MUTED,
@@ -360,7 +374,7 @@ class Scene:
 
         def color(disk):
             a = acc_cur if cur and disk == cur[0] else acc_prev if disk == prev else 0.0
-            return mix(DISK[disk % 2], ACCENT, a)
+            return mix(disk_colour(disk, self.n), ACCENT, a)
 
         for p, stack in enumerate(st):
             for level, disk in enumerate(stack):
@@ -476,15 +490,16 @@ class Scene:
                 dr.rectangle((ax_ * k - tw - 6 * k, ay_ * k - F["att"].size, ax_ * k + 2 * k, ay_ * k + 6 * k), fill=BG)
             dr.multiline_text((ax_ * k, ay_ * k), txt, font=F["att"], fill=lab_col, anchor=anc, spacing=3 * k)
         # ---- the block, drawn once, with its loop
-        dr.rectangle(self.box, fill=mix(BG, ACCENT_SOFT, reading), outline=mix(BG, mix(LINE, FG, 0.25 + 0.75 * reading), dim),
-                     width=self.st2)
+        dr.rectangle(self.box, fill=mix(BG, ACCENT_SOFT, 0.6 + 0.4 * reading),
+                     outline=mix(BG, mix(mix(BG, ACCENT, 0.55), ACCENT, reading), dim), width=self.st2)
         dr.text(((bx0 + bx1) / 2, self.y["blk"]), "transformer", font=F["box"], fill=mix(BG, FG, dim), anchor="mm")
         lp = self.loop_path
-        lc = mix(BG, MUTED, dim)
-        dr.line([(lp[1][0], by1), lp[2], lp[3], (lp[3][0], by1 + 9 * k)], fill=lc, width=self.st1, joint="curve")
+        lc = mix(BG, ACCENT, 0.7 * dim)                 # the loop arrow, orange as in the maze video
+        dr.line([(lp[1][0], by1), lp[2], lp[3], (lp[3][0], by1 + 9 * k)], fill=lc, width=self.st2, joint="curve")
         tip = (lp[3][0], by1 + 1 * k)
         dr.polygon([tip, (tip[0] - 6 * k, tip[1] + 11 * k), (tip[0] + 6 * k, tip[1] + 11 * k)], fill=lc)
-        dr.text(((bx0 + bx1) / 2, by1 + self.loop_d / 2 + 1 * k), "loop", font=F["loop"], fill=lc, anchor="mm")
+        dr.text(((bx0 + bx1) / 2, by1 + self.loop_d / 2 + 1 * k), "loop", font=F["loop"], fill=mix(BG, MUTED, dim),
+                anchor="mm")
         # passes: one trip round the loop each
         p_now, q = 0, 0.0
         for p in range(4):
@@ -516,10 +531,11 @@ class Scene:
             if ra > 0.01:
                 o = self.steps[cur - 1]["output_by_pass"][str(p)]
                 txt = "end" if "end" in o else f"{PEGS[o['from']]}→{PEGS[o['to']]}"
-                col = FAINT if p == 1 else ACCENT if p == 2 else FG
+                col = FAINT if txt == "end" else mix(MUTED, ACCENT_TEXT, focus)
                 rise = (1 - ra_in) * 8 * k
                 dr.text((x + self.cw / 2, self.y["blk"] + rise), txt, font=F["cell"], fill=mix(BG, col, ra), anchor="mm")
-        notes = ("loop 1: not ready yet", "loop 2: the move appears", "loop 3: same answer", "loop 4: same answer")
+        notes = ("loop 1 has no move yet", "loop 2 writes the move", "loop 3 gives the same move",
+                 "loop 4 gives the same move")
         for i, txt in enumerate(notes):
             a0, a1 = U_PASS[i], (U_PASS[i + 1] if i < 3 else U_DONE + 0.08)
             na = traced * ramp(u, a0 + 0.02, a0 + 0.05) * (1 - ramp(u, a1 - 0.03, a1))
@@ -543,8 +559,8 @@ class Scene:
         k, F = SS, self.F
         ws = ramp(t, tl.t_end, tl.t_end + 0.3)
         fast = 1.0 if t >= tl.t_mid else (1 - det if t >= T_INTRO + T_MOVE[0] * 0.5 else 0.0)
-        items = [("move by move", (1 - ws) * (1 - fast), TAG, FG), ("sped up", (1 - ws) * fast, ACCENT, BG),
-                 ("solved", ws, TAG, FG)]
+        items = [(name, w) + BADGE[name] for name, w in
+                 (("move by move", (1 - ws) * (1 - fast)), ("fast forward", (1 - ws) * fast), ("solved", ws))]
         width = sum(w * dr.textlength(s, font=F["tag"]) for s, w, _, _ in items) + 30 * k
         fill = tuple(int(round(sum(w * c[i] for _, w, c, _ in items))) for i in range(3))
         y = self.g["header_y"] * k
@@ -557,12 +573,12 @@ class Scene:
         k, g = SS, self.g
         done = self.M if m >= self.M else int(m)
         text_fixed(dr, (self.px0, g["count_y"] * k), f"{done:,}", self.F["count"], FG, anchor="ls")
-        text_fixed(dr, (self.px1, g["count_y"] * k), f"{bisect.bisect_right(self.bad, done)}", self.F["count"], FG,
-                   anchor="rs")
+        text_fixed(dr, (self.px1, g["count_y"] * k), f"{bisect.bisect_right(self.bad, done)}", self.F["count"],
+                   ACCENT_TEXT, anchor="rs")
         y = g["prog_y"] * k
         dr.rectangle((self.px0, y, self.px1, y + 3 * k), fill=TAG)
         if done:
-            dr.rectangle((self.px0, y, self.px0 + (self.px1 - self.px0) * done / self.M, y + 3 * k), fill=FG)
+            dr.rectangle((self.px0, y, self.px0 + (self.px1 - self.px0) * done / self.M, y + 3 * k), fill=ACCENT)
 
     def draw_final(self, img, a):
         if a <= 0:
@@ -579,8 +595,8 @@ class Scene:
         lh = f.size * 1.22
         fw = max(dr.textlength(s, font=f) for s in lines)
         dr.rectangle((cx - fw / 2 - 16 * k, cy - lh - 6 * k, cx + fw / 2 + 16 * k, cy + lh + 4 * k), fill=BG)
-        dr.text((cx, cy - lh / 2), lines[0], font=f, fill=ACCENT, anchor="mm")
-        dr.text((cx, cy + lh / 2), lines[1], font=f, fill=ACCENT, anchor="mm")
+        dr.text((cx, cy - lh / 2), lines[0], font=f, fill=ACCENT_TEXT, anchor="mm")
+        dr.text((cx, cy + lh / 2), lines[1], font=f, fill=ACCENT_TEXT, anchor="mm")
         return Image.blend(img, top, a)
 
     # ------------------------------------------------------------------ one frame
