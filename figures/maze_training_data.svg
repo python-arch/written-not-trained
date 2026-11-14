@@ -630,7 +630,7 @@ z
    </g>
    <g id="data">
     <!-- TRM, best 77.4% -->
-    <g style="fill: #5b6475" transform="translate(278.705934 78.134506) scale(0.08968 -0.08968)">
+    <g style="fill: #5b6475" transform="translate(254.660153 91.042817) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-19b" d="M 306 4131 
 L 306 4656 
@@ -1260,7 +1260,7 @@ z
    </g>
    <g id="data">
     <!-- TRM as released, 85.3% -->
-    <g style="fill: #5b6475" transform="translate(92.078 43.023267) scale(0.08968 -0.08968)">
+    <g style="fill: #5b6475" transform="translate(142.861153 43.023267) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-2e0" d="M 1056 4656 
 L 1056 0 
@@ -1414,7 +1414,7 @@ z
    </g>
    <g id="data">
     <!-- Written by Claude, 100% -->
-    <g style="fill: #154677" transform="translate(92.078 21.193388) scale(0.0944 -0.0944)">
+    <g style="fill: #154677" transform="translate(105.19 21.193388) scale(0.0944 -0.0944)">
      <defs>
       <path id="Inter-SemiBold-242" d="M 2275 -63 
 Q 1975 -63 1776 39 
@@ -1541,7 +1541,7 @@ z
    </g>
    <g id="data">
     <!-- , no training -->
-    <g style="fill: #154677" transform="translate(204.781275 21.30724) scale(0.08968 -0.08968)">
+    <g style="fill: #154677" transform="translate(217.893275 21.30724) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-2b1" d="M 494 0 
 L 494 3494 

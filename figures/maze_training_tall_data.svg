@@ -629,8 +629,8 @@ z
     </g>
    </g>
    <g id="data">
-    <!-- TRM, -->
-    <g style="fill: #5b6475" transform="translate(193.635904 68.303614) scale(0.08968 -0.08968)">
+    <!-- TRM, best 77.4% -->
+    <g style="fill: #5b6475" transform="translate(184.382753 92.332754) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-19b" d="M 306 4131 
 L 306 4656 
@@ -704,15 +704,7 @@ L 831 -1122
 L 400 -1122 
 z
 " transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#Inter-Regular-19b"/>
-     <use xlink:href="#Inter-Regular-180" transform="translate(64.546875 0)"/>
-     <use xlink:href="#Inter-Regular-124" transform="translate(128.90625 0)"/>
-     <use xlink:href="#Inter-Regular-5dd" transform="translate(219.234375 0)"/>
-    </g>
-    <!-- best 77.4% -->
-    <g style="fill: #5b6475" transform="translate(193.635904 83.184714) scale(0.08968 -0.08968)">
-     <defs>
+      <path id="Inter-Regular-6f1" transform="scale(0.015625)"/>
       <path id="Inter-Regular-242" d="M 2116 -75 
 Q 1784 -75 1581 39 
 Q 1378 153 1268 298 
@@ -831,7 +823,6 @@ L 1150 3494
 L 1869 3494 
 z
 " transform="scale(0.015625)"/>
-      <path id="Inter-Regular-6f1" transform="scale(0.015625)"/>
       <path id="Inter-Regular-546" d="M 625 0 
 L 2694 4097 
 L 2694 4134 
@@ -939,16 +930,21 @@ Q 1394 3006 1634 3006
 z
 " transform="scale(0.015625)"/>
      </defs>
-     <use xlink:href="#Inter-Regular-242"/>
-     <use xlink:href="#Inter-Regular-266" transform="translate(61.234375 0)"/>
-     <use xlink:href="#Inter-Regular-367" transform="translate(119.53125 0)"/>
-     <use xlink:href="#Inter-Regular-379" transform="translate(172.3125 0)"/>
-     <use xlink:href="#Inter-Regular-6f1" transform="translate(205.03125 0)"/>
-     <use xlink:href="#Inter-Regular-546" transform="translate(233.15625 0)"/>
-     <use xlink:href="#Inter-Regular-546" transform="translate(291.703125 0)"/>
-     <use xlink:href="#Inter-Regular-5de" transform="translate(335.796875 0)"/>
-     <use xlink:href="#Inter-Regular-542" transform="translate(364.609375 0)"/>
-     <use xlink:href="#Inter-Regular-6d0" transform="translate(429.203125 0)"/>
+     <use xlink:href="#Inter-Regular-19b"/>
+     <use xlink:href="#Inter-Regular-180" transform="translate(64.546875 0)"/>
+     <use xlink:href="#Inter-Regular-124" transform="translate(128.90625 0)"/>
+     <use xlink:href="#Inter-Regular-5dd" transform="translate(219.234375 0)"/>
+     <use xlink:href="#Inter-Regular-6f1" transform="translate(248.046875 0)"/>
+     <use xlink:href="#Inter-Regular-242" transform="translate(276.171875 0)"/>
+     <use xlink:href="#Inter-Regular-266" transform="translate(337.40625 0)"/>
+     <use xlink:href="#Inter-Regular-367" transform="translate(395.703125 0)"/>
+     <use xlink:href="#Inter-Regular-379" transform="translate(448.484375 0)"/>
+     <use xlink:href="#Inter-Regular-6f1" transform="translate(481.203125 0)"/>
+     <use xlink:href="#Inter-Regular-546" transform="translate(509.328125 0)"/>
+     <use xlink:href="#Inter-Regular-546" transform="translate(567.875 0)"/>
+     <use xlink:href="#Inter-Regular-5de" transform="translate(611.96875 0)"/>
+     <use xlink:href="#Inter-Regular-542" transform="translate(640.78125 0)"/>
+     <use xlink:href="#Inter-Regular-6d0" transform="translate(705.375 0)"/>
     </g>
    </g>
    <g id="data">
@@ -1264,7 +1260,7 @@ z
    </g>
    <g id="data">
     <!-- TRM as released, 85.3% -->
-    <g style="fill: #5b6475" transform="translate(79.262 49.195326) scale(0.08968 -0.08968)">
+    <g style="fill: #5b6475" transform="translate(130.045153 49.195326) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-2e0" d="M 1056 4656 
 L 1056 0 
@@ -1418,7 +1414,7 @@ z
    </g>
    <g id="data">
     <!-- Written by Claude, 100% -->
-    <g style="fill: #154677" transform="translate(79.262 21.445585) scale(0.0944 -0.0944)">
+    <g style="fill: #154677" transform="translate(92.374 21.445585) scale(0.0944 -0.0944)">
      <defs>
       <path id="Inter-SemiBold-242" d="M 2275 -63 
 Q 1975 -63 1776 39 
@@ -1545,7 +1541,7 @@ z
    </g>
    <g id="data">
     <!-- no training -->
-    <g style="fill: #154677" transform="translate(79.262 31.445585) scale(0.08968 -0.08968)">
+    <g style="fill: #154677" transform="translate(92.374 31.445585) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-2b1" d="M 494 0 
 L 494 3494 
