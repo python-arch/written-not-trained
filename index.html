@@ -163,6 +163,10 @@
   .mlogo { height: 1.1em; width: auto; vertical-align: -0.2em; margin-right: 6px; }
   .mlogo.word { height: 0.7em; vertical-align: 0.02em; }
   .narrow .layers, .narrow figcaption { max-width: 620px; }
+  .fig-pair { display: flex; gap: 32px; align-items: flex-start; justify-content: center; margin: 10px 0 30px; }
+  .fig-pair > figure { margin: 0; flex: 1 1 0; min-width: 0; }
+  .fig-pair > figure.pair-wide { flex-grow: 1.35; }
+  @media (max-width: 760px) { .fig-pair { flex-direction: column; gap: 20px; } .fig-pair > figure { width: 100%; } }
   .duo .layers.tall { display: none; }
   @media (max-width: 639px) { .duo .layers.wide { display: none; } .duo .layers.tall { display: block; max-width: 451px; } }
   .demo-link { font-weight: 600; }
@@ -356,13 +360,22 @@
 
 <p>Looped models trained by gradient descent can <em>overthink</em>, which means their answers get worse when they run for more loops than they were trained with. <a href="https://arxiv.org/abs/2202.05826">Bansal et al. (NeurIPS 2022)</a> showed this on mazes with DeepThinking, a looped convolutional model trained on 9×9 mazes. On 13×13 mazes it peaks at 86% after about 40 loops. If it keeps looping, its accuracy collapses below 1% by loop 82. The maze transformer is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves every number as it is.</p>
 
-<figure class="reveal narrow" style="--hide: 89%">
+<div class="fig-pair">
+<figure class="reveal pair-wide" style="--hide: 89%">
   <div class="layers">
   <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
   <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
 </figure>
+<figure class="reveal" style="--hide: 45%">
+  <div class="layers">
+  <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
+  </div>
+  <figcaption><strong>Figure 7. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+</figure>
+</div>
 
 <details>
   <summary>The loop in numbers</summary>
@@ -402,7 +415,7 @@
   <img class="data" src="figures/maze_size_data.svg" width="518" height="271" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_size_base.svg" width="518" height="271" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written transformer has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
   </div>
-  <figcaption><strong>Figure 7. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
+  <figcaption><strong>Figure 8. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
   <p><a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze, although its authors follow TRM's training protocol and report their number next to HRM's and TRM's reference-path scores.</p>
   <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. LDT scores 99.0 when trained on one path per maze. Both are averages over 3 runs.</p>
@@ -492,7 +505,7 @@
   <img class="data" src="figures/written_vs_trained_tall_data.svg" width="451" height="1046" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/written_vs_trained_tall_base.svg" width="451" height="1046" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written transformer scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written transformer scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written transformer scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
   </div>
-  <figcaption><strong>Figure 8. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
+  <figcaption><strong>Figure 9. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
 </figure>
 
 <p>In all three tasks, the trained models learn the sizes they see and stop there, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show what is possible at the other extreme. Small looped transformers can hold a solution that works at any size, given enough loops and a large enough position table.</p>
@@ -518,14 +531,6 @@
 <h2 id="results"><span class="qn">5.</span> The same recipe on other benchmarks</h2>
 
 <p>Beyond mazes, Claude wrote transformers for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. The rest of this section explains what each transformer has to do and where a comparison needs care.</p>
-
-<figure class="reveal narrow" style="--hide: 45%">
-  <div class="layers">
-  <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
-  </div>
-  <figcaption><strong>Figure 9. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
-</figure>
 
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
 
