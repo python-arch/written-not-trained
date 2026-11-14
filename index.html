@@ -356,7 +356,7 @@
 
 <p>Looped models trained by gradient descent can <em>overthink</em>, which means their answers get worse when they run for more loops than they were trained with. <a href="https://arxiv.org/abs/2202.05826">Bansal et al. (NeurIPS 2022)</a> showed this on mazes with DeepThinking, a looped convolutional model trained on 9×9 mazes. On 13×13 mazes it peaks at 86% after about 40 loops. If it keeps looping, its accuracy collapses below 1% by loop 82. The maze transformer is built so that this doesn't happen. Once the path is complete, every cell already holds its final distance, pointer and path flag, so another loop leaves every number as it is.</p>
 
-<figure class="reveal" style="--hide: 89%">
+<figure class="reveal narrow" style="--hide: 89%">
   <div class="layers">
   <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
