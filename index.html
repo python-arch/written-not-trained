@@ -286,16 +286,17 @@
   </div>
   <figcaption><strong>Figure 2. The network at work.</strong> The network Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single layer running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
 </figure>
+<!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
   <img class="data" src="figures/maze_training_data.svg" width="518" height="307" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg" width="518" height="307" loading="lazy" alt="Line chart of test mazes solved against training hours. The network Claude wrote sits at 100% from 0 hours, with no training, marked by a star. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM, trained by us, reaches a best of 77.4%. A standard transformer reaches 42% after 8 hours. A dotted line links TRM's best point to a hollow dot for TRM as released by its authors, at 85.3%.">
+  <img src="figures/maze_training_base.svg" width="518" height="307" loading="lazy" alt="Line chart of test mazes solved against training hours. The network Claude wrote sits at 100% from 0 hours, with no training, marked by a star. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM rises to 85.3% by 8 hours. A standard transformer reaches 42% after 8 hours.">
   </div>
   <div class="layers tall">
   <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="342" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg" width="355" height="342" loading="lazy" alt="Line chart of test mazes solved against training hours. The network Claude wrote sits at 100% from 0 hours, with no training, marked by a star. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM, trained by us, reaches a best of 77.4%. A standard transformer reaches 42% after 8 hours. A dotted line links TRM's best point to a hollow dot for TRM as released by its authors, at 85.3%.">
+  <img src="figures/maze_training_tall_base.svg" width="355" height="342" loading="lazy" alt="Line chart of test mazes solved against training hours. The network Claude wrote sits at 100% from 0 hours, with no training, marked by a star. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM rises to 85.3% by 8 hours. A standard transformer reaches 42% after 8 hours.">
   </div>
-  <figcaption><strong>Figure 3. Writing beats training.</strong> The network Claude wrote had no training, so its star sits at 0 hours. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%. The solid TRM curve is our run up to its best checkpoint. Its dotted end links to the hollow dot, TRM as released by its authors, who trained it on eight GPUs, so that stretch is not a measured path.</figcaption>
+  <figcaption><strong>Figure 3. Writing beats training.</strong> The network Claude wrote had no training, so its star sits at 0 hours. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%.</figcaption>
 </figure>
 </div>
 
