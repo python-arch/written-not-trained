@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mbzuai.ac.ae/"><img src="assets/mbzuai_logo.svg" alt="MBZUAI, Mohamed bin Zayed University of Artificial Intelligence" height="48"></a>
+  <a href="https://mbzuai.ac.ae/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/mbzuai_logo_dark.svg"><img src="assets/mbzuai_logo.svg" alt="MBZUAI, Mohamed bin Zayed University of Artificial Intelligence" height="48"></picture></a>
 </p>
 
 <p align="center">
