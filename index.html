@@ -163,6 +163,8 @@
   table.text-first td:first-child, table.text-first th:first-child { white-space: normal; }
   table.text-first tbody:not(.group) tr:last-child td { border-bottom-color: var(--fg); }
   table.text-wrap td:not(.num), table.text-wrap th:not(.num) { white-space: normal; }
+  .mlogo { height: 1.1em; width: auto; vertical-align: -0.2em; margin-right: 6px; }
+  .mlogo.word { height: 0.7em; vertical-align: 0.02em; }
   td .sub { display: block; font-weight: 400; color: var(--muted); font-size: 0.74rem; }
   .ablate { font-family: var(--sans); font-size: 0.8rem; line-height: 1.5; color: var(--muted); margin: 0 0 22px; border-left: 2px solid var(--line); padding-left: 12px; }
   .ablate .label { margin: 0 0 6px; }
@@ -396,9 +398,9 @@
   <tbody>
     <tr class="written"><td>Hand-written (19,936 weights, only 922 not zero)</td><td>None</td><td class="num">100.0</td></tr>
     <tr><td>LDT (1.8M weights)</td><td>1K mazes, plus search when solving</td><td class="num">99.8</td></tr>
-    <tr><td>TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
-    <tr><td>HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
-    <tr class="llm"><td>Claude Opus 5.5</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
+    <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
+    <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
     <tr class="llm"><td>GPT-6 Astra</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
     <tr class="llm"><td>GPT-6.1 Sol</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">12</td></tr>
   </tbody>
@@ -552,10 +554,10 @@
   <tbody>
     <tr class="written"><td>Hand-written (2,973,688 weights, only 17,014 not zero)<span class="sub">No training</span></td><td class="num">100</td><td class="num">100</td></tr>
     <tr><td><a href="https://github.com/chenglou/sotaku">Sotaku v2</a> (800K weights)<span class="sub">Trained on 2.7M puzzles</span></td><td class="num">–</td><td class="num">98.96</td></tr>
-    <tr><td>TRM (5M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">79.5</td></tr>
-    <tr><td>HRM (27M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">55.4</td></tr>
+    <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (5M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">79.5</td></tr>
+    <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)<span class="sub">Trained on 1K puzzles, plus rearranged copies</span></td><td class="num">–</td><td class="num">55.4</td></tr>
     <tr class="llm"><td>GPT-6 Astra<span class="sub">No Sudoku training</span></td><td class="num">68</td><td class="num">–</td></tr>
-    <tr class="llm"><td>Claude Opus 5.5<span class="sub">No Sudoku training</span></td><td class="num">54</td><td class="num">–</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5<span class="sub">No Sudoku training</span></td><td class="num">54</td><td class="num">–</td></tr>
     <tr class="llm"><td>GPT-6.1 Sol<span class="sub">No Sudoku training</span></td><td class="num">44</td><td class="num">–</td></tr>
   </tbody>
 </table>
@@ -620,8 +622,8 @@
     <tr class="llm"><td>Gemini 4 Carbon</td><td class="num">96.2</td></tr>
     <tr class="llm"><td>Gemini 4 Argon</td><td class="num">84.2</td></tr>
     <tr class="llm"><td>GPT-6 Astra</td><td class="num">71.8</td></tr>
-    <tr class="llm"><td>Claude Opus 5.5</td><td class="num">66.8</td></tr>
-    <tr class="llm"><td>Claude Fable 5.1</td><td class="num">65.0</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td class="num">66.8</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Fable 5.1</td><td class="num">65.0</td></tr>
   </tbody>
 </table>
 </div>
