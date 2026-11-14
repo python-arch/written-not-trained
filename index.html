@@ -269,7 +269,7 @@
 
 <p>Deep learning models normally get their weights from training. Once a transformer is trained, though, it is nothing more than a program written in matrices. If you know the program you want, you can skip training and write the matrices yourself. People have done this by hand for small problems (<a href="#related">related work</a>). Compilers such as <a href="https://arxiv.org/abs/2301.05062">Tracr</a> go further, turning short programs into transformer weights automatically. Recently, <a href="https://rikiyat.github.io/blog/weight-space-programming/">Weight-Space Programming</a> (Takehi, Teoh, Zhang and Khattab, MIT CSAIL) showed that a frontier LLM can edit a model's weights directly, without any training. Other groups have gone further and had LLMs set every weight of a tiny transformer, but only for toy tasks (<a href="https://csinva.io/weight-space-programming-autoresearch/analyze/toy_examples/report.html">Singh</a>, <a href="https://github.com/anadim/AdderBoard">AdderBoard</a>). In those transformers, every step of a computation takes a separate layer. Scaling one up to a hard problem would mean a far bigger transformer and a far bigger Claude bill, since Claude would have to write every one of those extra weights.</p>
 
-<p>We wanted to know whether LLM-written weights hold up on problems that are genuinely hard. Our main test is <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. Frontier LLMs struggle with it. For example, when Claude Opus 5.5 is asked for the shortest path, it solves only 26% of 50 test mazes (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>). So instead of asking Claude to solve the mazes, we asked it to build a model that solves them, namely a looped transformer whose every weight Claude sets by hand.</p>
+<p>We wanted to know whether LLM-written weights hold up on problems that are genuinely hard. Our main test is <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. Frontier LLMs struggle with it. For example, when Claude Opus 5.5 is asked for the shortest path, it solves only 26% of the test mazes it is given (<a href="https://arxiv.org/abs/2605.08605">Davis et al., NeurIPS 2026</a>). So instead of asking Claude to solve the mazes, we asked it to build a model that solves them, namely a looped transformer whose every weight Claude sets by hand.</p>
 
 <p>The transformer Claude wrote is surprisingly small, a single layer with 19,936 weights. The trick is that this one layer runs in a loop. Each forward pass moves a shortest-path search one step further, so the transformer keeps feeding the maze back through the same layer until the path is complete. With enough passes, it solves 100% of the test mazes. Since a bigger maze only needs more passes, the very same weights also solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes.</p>
 
@@ -386,9 +386,9 @@
     <tr><td>LDT (1.8M weights)</td><td>1K mazes, plus search when solving</td><td class="num">99.8</td></tr>
     <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
     <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6.1 Sol</td><td>No maze training, tested on 50 of the test mazes</td><td class="num">12</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">26</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">26</td></tr>
+    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6.1 Sol</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">12</td></tr>
   </tbody>
 </table>
 </div>
@@ -418,7 +418,7 @@
 
 <div class="table-wrap">
 <table class="text-first">
-  <thead><tr><th>On the paper's 50 test mazes</th><th class="num">Shortest path found (%)</th></tr></thead>
+  <thead><tr><th>On the paper's test mazes</th><th class="num">Shortest path found (%)</th></tr></thead>
   <tbody>
     <tr class="llm"><td>The paper's prompt (Davis et al., NeurIPS 2026)</td><td class="num">26</td></tr>
     <tr class="llm"><td>Told how to search</td><td class="num">48</td></tr>
@@ -530,7 +530,7 @@
 
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
 
-<p>The maze transformer has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the first 50 when asked directly.</p>
+<p>The maze transformer has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the puzzles it was given when asked directly.</p>
 
 <p>The Sudoku transformer Claude wrote does what a person would do, except for all 81 cells at once. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the transformer has to guess. It first saves a copy of the whole grid in memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the transformer restores the saved grid, in which that guess is now ruled out. One step of this search takes a block of five layers, which the transformer runs for 40,000 loops with room for 24 saved grids.</p>
 
@@ -685,7 +685,7 @@
 <p>More broadly, our results suggest that for some problems, what holds small models back is not their size but finding the right weights. An LLM that struggles with a problem can still write a transformer that solves it.</p>
 
 <h2 id="code">Weights and demo</h2>
-<p><a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Maze-Hard transformer in your browser</a> on 50 of the test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
+<p><a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Maze-Hard transformer in your browser</a> on real test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
 
 <p><a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Tower of Hanoi transformer in your browser.</a> The page loads the transformer's weights and runs them with one generic loop, while a separate checker replays every move.</p>
 
