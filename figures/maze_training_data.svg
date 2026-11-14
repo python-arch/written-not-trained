@@ -27,21 +27,6 @@ z
   </g>
   <g id="axes_1">
    <g id="data">
-    <defs>
-     <path id="macbd6d96eb" d="M 97.2 -51.26025 
-L 97.2 -194.143971 
-L 369.36 -194.143971 
-L 369.36 -51.26025 
-L 369.36 -51.26025 
-L 97.2 -51.26025 
-z
-"/>
-    </defs>
-    <g clip-path="url(#pa2d7dad71f)">
-     <use xlink:href="#macbd6d96eb" x="0" y="229.920715" style="fill: #154677; fill-opacity: 0.045"/>
-    </g>
-   </g>
-   <g id="data">
     <path d="M 58.32 178.660465 
 L 97.2 160.657116 
 L 136.08 138.938791 
@@ -1532,7 +1517,7 @@ z
    </g>
    <g id="data">
     <!-- 100% -->
-    <g style="fill: #154677" transform="translate(323.178856 24.791939) scale(0.1652 -0.1652)">
+    <g style="fill: #154677" transform="translate(123.64 41.786217) scale(0.1652 -0.1652)">
      <use xlink:href="#Inter-Bold-53e"/>
      <use xlink:href="#Inter-Bold-53d" transform="translate(43.109375 0)"/>
      <use xlink:href="#Inter-Bold-53d" transform="translate(110.546875 0)"/>
@@ -1594,7 +1579,7 @@ z
     <path d="M 58.32 178.660465 
 L 97.2 178.660465 
 L 97.2 35.776744 
-L 369.36 35.776744 
+L 116.64 35.776744 
 " clip-path="url(#pa2d7dad71f)" style="fill: none; stroke: #154677; stroke-width: 3.2; stroke-linecap: round"/>
    </g>
    <g id="data">
