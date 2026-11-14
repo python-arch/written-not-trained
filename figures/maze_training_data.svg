@@ -1461,7 +1461,7 @@ z
   <g id="axes_2">
    <g id="data">
     <!-- TRM 85.3% -->
-    <g style="fill: #5b6475" transform="translate(295.007673 60.128786) scale(0.09204 -0.09204)">
+    <g style="fill: #5b6475" transform="translate(328.407836 46.560546) scale(0.09204 -0.09204)">
      <defs>
       <path id="Inter-Regular-547" d="M 1978 -63 
 Q 1506 -63 1145 104 
@@ -1611,6 +1611,11 @@ z
      <use xlink:href="#m96df2dd146" x="353.808" y="56.780651" style="fill: #ffffff; stroke: #868e96; stroke-width: 1.5"/>
     </g>
    </g>
+  </g>
+  <g id="data">
+   <path d="M 210.383699 67.83801 
+Q 279.852656 62.482271 349.321614 57.126531 
+" style="fill: none; stroke-dasharray: 1.6,3.84; stroke-dashoffset: 0; stroke: #868e96; stroke-width: 1.6; stroke-linecap: round"/>
   </g>
  </g>
  <defs>
