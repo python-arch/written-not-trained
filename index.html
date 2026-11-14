@@ -384,36 +384,31 @@
 
 <h2 id="maze"><span class="qn">2.</span> How it compares on Maze-Hard</h2>
 
-<p>Maze-Hard comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model). It has become a standard test for small models trained to reason by repeating a step many times, such as HRM, <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT). Most of its mazes have several equally short paths, of which the dataset marks one as the answer. The table below uses the LDT paper's scoring, where any shortest path counts.</p>
+<p>Maze-Hard comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model). It has become a standard test for small models trained to reason by repeating a step many times, such as HRM, <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT). Most of its mazes have several equally short paths, of which the dataset marks one as the answer. Figure 8 uses the LDT paper's scoring, where any shortest path counts.</p>
 
-<div class="table-wrap">
-<table>
-  <thead><tr><th>Model</th><th>Training</th><th class="num">Solved (%)</th></tr></thead>
-  <tbody>
-    <tr class="written"><td>Hand-written (19,936 weights, only 922 not zero)</td><td>None</td><td class="num">100.0</td></tr>
-    <tr><td>LDT (1.8M weights)</td><td>1K mazes, plus search when solving</td><td class="num">99.8</td></tr>
-    <tr><td><img class="mlogo word" src="figures/logos/samsung.png" width="63" height="10" alt="Samsung logo">TRM (7M weights)</td><td>1K mazes</td><td class="num">91.9</td></tr>
-    <tr><td><img class="mlogo" src="figures/logos/sapient.png" width="16" height="16" alt="Sapient Intelligence logo">HRM (27M weights)</td><td>1K mazes</td><td class="num">84.6</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/claude.svg" width="16" height="16" alt="Claude logo">Claude Opus 5.5</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6 Astra</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">26</td></tr>
-    <tr class="llm"><td><img class="mlogo" src="figures/logos/openai.svg" width="16" height="16" alt="OpenAI logo">GPT-6.1 Sol</td><td>No maze training, tested on a sample of the test mazes</td><td class="num">12</td></tr>
-  </tbody>
-</table>
+<div class="fig-pair">
+<figure class="reveal pair-wide" style="--hide: 62%">
+  <div class="layers">
+  <img class="data" src="figures/maze_results_data.svg" width="643" height="360" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_results_base.svg" width="643" height="360" loading="lazy" alt="Horizontal bars of Maze-Hard test mazes solved, with the scale cut between 30% and 80%. The transformer Claude wrote, with 19,936 weights, solves 100%. Models trained on Maze-Hard solve 99.8% (LDT, 1.8M weights), 91.9% (TRM, 7M) and 84.6% (HRM, 27M). Frontier LLMs with no maze training solve 26% (Claude Opus 5.5), 26% (GPT-6 Astra) and 12% (GPT-6.1 Sol).">
+  </div>
+  <figcaption><strong>Figure 8. Maze-Hard results.</strong> A maze counts as solved when the answer is any shortest path from start to goal. The scale jumps from 30% to 80%. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</figcaption>
+</figure>
+<figure class="reveal" style="--hide: 85%">
+  <div class="layers">
+  <img class="data" src="figures/maze_size_data.svg" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_size_base.svg" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the written transformer has 90 times fewer weights than LDT.">
+  </div>
+  <figcaption><strong>Figure 9. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
+</figure>
 </div>
-<p class="note"><strong>Table 1. Maze-Hard results.</strong> A maze counts as solved when the answer is any shortest path from start to goal. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</p>
 
-<p>The written transformer tops the table. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written transformer needed no training at all. The written transformer also holds up under the stricter scoring of the HRM and TRM papers, where only the path marked in the dataset counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM.</p>
+<p>The written transformer tops the chart. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written transformer needed no training at all. The written transformer also holds up under the stricter scoring of the HRM and TRM papers, where only the path marked in the dataset counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM.</p>
 
 <details>
   <summary>Accuracy against size, stricter scoring, TRM's three scores, and a re-run check</summary>
-<figure class="reveal" style="--hide: 85%">
-  <div class="layers">
-  <img class="data" src="figures/maze_size_data.svg" width="518" height="271" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_size_base.svg" width="518" height="271" loading="lazy" alt="Accuracy against number of weights, on a log scale. The written transformer has 19,936 weights and scores 100%. LDT has 1.8M weights and scores 99.8%, or 99.0% trained on one path per maze. TRM has 7M and scores 91.9%, and HRM has 27M and scores 84.6%.">
-  </div>
-  <figcaption><strong>Figure 8. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
-</figure>
-  <p><a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze, although its authors follow TRM's training protocol and report their number next to HRM's and TRM's reference-path scores.</p>
+
+<p><a href="https://arxiv.org/abs/2605.12466">Attractor Models</a> (Fein-Ashley and Rashidinejad, 2026) report 93.1 with 27M weights, trained on ~1K mazes. That paper doesn't say how it scores a maze, although its authors follow TRM's training protocol and report their number next to HRM's and TRM's reference-path scores.</p>
   <p>Davis et al. retrained HRM and TRM and report each one's best score during training, measured on the test set. LDT's 99.8 is its strongest setting, trained on 512 shortest paths per training maze. LDT scores 99.0 when trained on one path per maze. Both are averages over 3 runs.</p>
   <p>TRM shows up with three scores in this post. The 91.9 is from Davis et al., counting any shortest path, for its best version during training. The 85.3 belongs to the model its authors released, counting only the reference path. The 77.4 comes from our training run in <a href="#written-vs-trained-maze">section 4</a>, scored the same way.</p>
   <p>A 30×30 maze uses only the first 30 rows of the transformer's row and column tables. A separate check re-ran the transformer on the 1,000 test mazes and on 500 freshly made ones, returning the reference path for 100% of them. In earlier tests in the LDT paper, in April 2026, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
@@ -439,7 +434,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 2. Claude with better prompts.</strong> The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a gap of a few points is noise.</p>
+<p class="note"><strong>Table 1. Claude with better prompts.</strong> The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a gap of a few points is noise.</p>
 
 <p>Knowing the algorithm helps, then, but only so far. Tokenization isn't the culprit either, since giving Claude one token per cell made it no better (22 against 24). The real difficulty is carrying the algorithm out. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 
@@ -501,7 +496,7 @@
   <img class="data" src="figures/written_vs_trained_tall_data.svg" width="451" height="1046" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/written_vs_trained_tall_base.svg" width="451" height="1046" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written transformer scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written transformer scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written transformer scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
   </div>
-  <figcaption><strong>Figure 9. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
+  <figcaption><strong>Figure 10. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
 </figure>
 
 <p>In all three tasks, the trained models learn the sizes they see and stop there, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show what is possible at the other extreme. Small looped transformers can hold a solution that works at any size, given enough loops and a large enough position table.</p>
@@ -519,7 +514,7 @@
   </tbody>
 </table>
 </div>
-  <p class="note"><strong>Table 3. Graph search in full.</strong> Accuracy in %. The written transformer has three looped blocks with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
+  <p class="note"><strong>Table 2. Graph search in full.</strong> Accuracy in %. The written transformer has three looped blocks with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
   <p>The full parity and chains tables, along with how those two transformers work, are in <a href="#app-parity">appendix A</a>.</p>
 </details>
 
@@ -533,7 +528,7 @@
   <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption><strong>Figure 10. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+  <figcaption><strong>Figure 11. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
 </figure>
 
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
@@ -560,7 +555,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 4. Sudoku-Extreme results.</strong> Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
+<p class="note"><strong>Table 3. Sudoku-Extreme results.</strong> Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
   <p>The transformer reads the puzzle as text, one character per token, and writes back the solved grid. Per puzzle, it does 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. </p>
   <p>Each column covers the same puzzles in the test set's fixed order, which the LDT code sets. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper scored its model on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
   <p>On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the transformer has. Before the test, the transformer itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
@@ -579,7 +574,7 @@
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 11. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
+  <figcaption><strong>Figure 12. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
 </figure>
 
 <p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The Hanoi transformer Claude wrote needs none of that. A single small block makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
@@ -617,7 +612,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 5. GraphWalks results.</strong> F1, the standard GraphWalks score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores are Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
+<p class="note"><strong>Table 4. GraphWalks results.</strong> F1, the standard GraphWalks score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores are Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
   <p>The transformer is two blocks, looped 400 times, with nothing trained. The first block has one attention head and 811 neurons, while the second has 12 neurons. Its 400 loops are enough for any N up to 397.</p>
 </details>
 
@@ -645,7 +640,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 6. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped part is two blocks with 89 neurons.</p>
+<p class="note"><strong>Table 5. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped part is two blocks with 89 neurons.</p>
 
 <div class="table-wrap">
 <table>
@@ -663,7 +658,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 7. BIG-Bench Extra Hard results.</strong> BIG-Bench Extra Hard, accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
+<p class="note"><strong>Table 6. BIG-Bench Extra Hard results.</strong> BIG-Bench Extra Hard, accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
   <p>Our transformers got 180 of 180 on each task, a score that a separate check confirmed by re-running both transformers. The task's 20 public example questions are not counted. The Feb 2025 rows come from the BBEH paper (Kazemi et al.), on all 200 questions per task. The Oct 2025 rows come from <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
   <p>The Extra Hard transformers read BBEH's fixed question templates. None of the extra everyday words they know appear in the test questions. The Shuffled Objects transformer assumes the options are listed in the order the objects were first handed out, as in every public example. Both transformers need 64-bit numbers and a high-precision version of the step that turns attention scores into weights. With the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, of which only 44,550 are not zero. Shuffled Objects has 6,663,936, of which only 40,316 are not zero.</p>
 </details>
@@ -727,7 +722,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 8. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
+<p class="note"><strong>Table 7. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
 <div class="table-wrap">
 <table class="text-first">
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
@@ -741,7 +736,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 9. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
+<p class="note"><strong>Table 8. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
 
 
 </details>
@@ -758,7 +753,7 @@
   <img class="data" src="figures/maze_compute_data.svg" width="518" height="277" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_compute_base.svg" width="518" height="277" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written transformer rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
-  <figcaption><strong>Figure 12. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
+  <figcaption><strong>Figure 13. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
 </figure>
 
 <p class="note">In this figure, every model's arithmetic is counted the way Davis et al. (NeurIPS 2026) count it, with any shortest path counting as solved. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots show the least a solve can cost, with the line running to its limit of 1,000 rounds. Trained scores are from Davis et al., Table 3, each the best version saved during training, picked by its test score.</p>
@@ -783,7 +778,7 @@
 
 <figure>
   <img src="figures/ouro_clock.svg" width="518" height="328" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states outside its training range. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's exit signal.">
-  <figcaption><strong>Figure 13. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
+  <figcaption><strong>Figure 14. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
 </figure>
 
 <div class="table-wrap">
@@ -797,7 +792,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 10. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
+<p class="note"><strong>Table 9. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
 
 <div class="table-wrap">
 <table>
@@ -808,7 +803,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 11. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
+<p class="note"><strong>Table 10. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
 
 <details>
   <summary>Uncertainty, and how this compares with STARS</summary>
