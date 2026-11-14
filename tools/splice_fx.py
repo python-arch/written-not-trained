@@ -7,9 +7,8 @@ import os, re, sys
 page, fx = sys.argv[1], sys.argv[2]
 s = open(page, encoding="utf-8").read()
 
-# 1. fonts: add JetBrains Mono for tick labels
-if "JetBrains+Mono" not in s:
-    s = s.replace("family=Inter:wght@400;500;600;700;800&", "family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&", 1)
+# 1. fonts: every figure uses the page's sans-serif, so drop any monospace font load
+s = s.replace("&family=JetBrains+Mono:wght@500", "")
 
 # 2. styles (replace a previous copy if present)
 css = open(os.path.join(fx, "fx.css"), encoding="utf-8").read()

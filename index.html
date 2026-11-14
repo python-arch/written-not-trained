@@ -36,7 +36,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
@@ -214,7 +214,7 @@
   .fx svg { position: relative; display: block; width: 100%; height: auto; overflow: visible; }
   .fx figcaption { max-width: none; margin-top: 10px; }
   .fx text { font-family: var(--sans); }
-  .fx .t-tick, .fx .t-val { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 500; fill: #6f7b90; }
+  .fx .t-tick, .fx .t-val { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 11px; font-weight: 500; fill: #6f7b90; }
   .fx .t-val { fill: #aab5c8; }
   .fx .t-tick .sup { font-size: 8px; }
   .fx .t-lbl { font-size: 12.5px; font-weight: 500; fill: #aab5c8; }
@@ -276,7 +276,7 @@
   }
   .fx .t-tiny { font-size: 10px; font-weight: 600; fill: #aab5c8; letter-spacing: 0.02em; }
   .fx .t-tiny.dark, .fx .t-glyph.dark { fill: #06121f; }
-  .fx .t-glyph { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 16px; font-weight: 500; fill: #e9eef7; }
+  .fx .t-glyph { font-family: var(--sans); font-size: 16px; font-weight: 500; fill: #e9eef7; }
   .fx .tick { stroke: rgba(255,255,255,0.18); stroke-width: 1; }
   .fx .cellbox { fill: rgba(255,255,255,0.04); stroke: rgba(255,255,255,0.16); stroke-width: 1; }
   .fx .cellbox.c { fill: #3fc4ff; stroke: none; }
