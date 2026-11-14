@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="388.8pt" height="418.559628pt" viewBox="0 0 388.8 418.559628" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="388.8pt" height="454.318884pt" viewBox="0 0 388.8 454.318884" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>On every benchmark here, the written network scores 100%. The best trained model or LLM doesn't.</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -17,11 +17,11 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 418.559628 
-L 388.8 418.559628 
+   <path d="M 0 454.318884 
+L 388.8 454.318884 
 L 388.8 0 
 L 0 0 
-L 0 418.559628 
+L 0 454.318884 
 z
 " style="fill: none"/>
   </g>
@@ -32,7 +32,7 @@ L 343.9008 52.259628
 L 343.9008 42.179628 
 L 214.56 42.179628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #868e96"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #868e96"/>
    </g>
    <g id="data">
     <path d="M 214.56 67.739628 
@@ -40,7 +40,7 @@ L 248.256 67.739628
 L 248.256 57.659628 
 L 214.56 57.659628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 103.739628 
@@ -48,7 +48,7 @@ L 342.81216 103.739628
 L 342.81216 93.659628 
 L 214.56 93.659628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #868e96"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #868e96"/>
    </g>
    <g id="data">
     <path d="M 214.56 119.219628 
@@ -56,7 +56,7 @@ L 302.688 119.219628
 L 302.688 109.139628 
 L 214.56 109.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 155.219628 
@@ -64,7 +64,7 @@ L 339.2352 155.219628
 L 339.2352 145.139628 
 L 214.56 145.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 191.219628 
@@ -72,7 +72,7 @@ L 214.56 191.219628
 L 214.56 181.139628 
 L 214.56 181.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #868e96"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #868e96"/>
    </g>
    <g id="data">
     <path d="M 214.56 227.219628 
@@ -80,7 +80,7 @@ L 284.2848 227.219628
 L 284.2848 217.139628 
 L 214.56 217.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #868e96"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #868e96"/>
    </g>
    <g id="data">
     <path d="M 214.56 263.219628 
@@ -88,7 +88,7 @@ L 219.096 263.219628
 L 219.096 253.139628 
 L 214.56 253.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #868e96"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #868e96"/>
    </g>
    <g id="data">
     <path d="M 214.56 299.219628 
@@ -96,7 +96,7 @@ L 304.7616 299.219628
 L 304.7616 289.139628 
 L 214.56 289.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 335.219628 
@@ -104,7 +104,7 @@ L 257.5872 335.219628
 L 257.5872 325.139628 
 L 214.56 325.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 371.219628 
@@ -112,7 +112,7 @@ L 319.7952 371.219628
 L 319.7952 361.139628 
 L 214.56 361.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <path d="M 214.56 407.219628 
@@ -120,7 +120,7 @@ L 288.3024 407.219628
 L 288.3024 397.139628 
 L 214.56 397.139628 
 z
-" clip-path="url(#pe06c541972)" style="fill: #8a6a1f"/>
+" clip-path="url(#p12d91beeb5)" style="fill: #8a6a1f"/>
    </g>
    <g id="data">
     <!-- 99.8% -->
@@ -535,7 +535,7 @@ z
    <g id="data">
     <path d="M 344.16 411.359628 
 L 344.16 23.639628 
-" clip-path="url(#pe06c541972)" style="fill: none; stroke: #154677; stroke-width: 1.8"/>
+" clip-path="url(#p12d91beeb5)" style="fill: none; stroke: #154677; stroke-width: 1.8"/>
    </g>
    <g id="data">
     <!-- 98.96% -->
@@ -817,8 +817,8 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pe06c541972">
-   <rect x="0" y="-68.880372" width="388.8" height="506.52"/>
+  <clipPath id="p12d91beeb5">
+   <rect x="0" y="-68.880372" width="388.8" height="529.56"/>
   </clipPath>
  </defs>
 </svg>
