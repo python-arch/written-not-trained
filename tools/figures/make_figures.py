@@ -1245,13 +1245,13 @@ def _maze_training(plt, d, tall: bool) -> None:
     XMAX, SPLIT = 8.0, 1.7
     if tall:
         fig = plt.figure(figsize=(3.7, 5.9))
-        ax = fig.add_axes([0.17, 0.36, 0.76, 0.56])
+        ax = fig.add_axes([0.16, 0.36, 0.71, 0.56])
     else:
         fig = plt.figure(figsize=(5.4, 4.7))
         ax = fig.add_axes([0.11, 0.3, 0.84, 0.6])
     ax.set_ylim(-9, 122)
     ax.yaxis.set_major_locator(FixedLocator([0, 50, 100]))
-    ax.grid(axis="y", color=GRID, lw=0.7, zorder=1)
+    ax.grid(axis="y", color="white", lw=1.0, zorder=1)   # white grid shows on both shaded regions
     ax.set_axisbelow(True)
     ax.tick_params(length=0, labelsize=F * 8.2)
     for s in ("left", "top", "right"):
@@ -1266,11 +1266,11 @@ def _maze_training(plt, d, tall: bool) -> None:
     big, label, small = F * 14, F * 8.4, F * 7.8
 
     # Two regions: written weights on the left, gradient-based methods on the right.
-    ax.axvspan(-0.4, SPLIT, color="#fdeee6", lw=0, zorder=0)
-    ax.axvspan(SPLIT, XMAX + 0.6, color="#f1f1ef", lw=0, zorder=0)
+    ax.axvspan(-0.4, SPLIT, color="#fbdac6", lw=0, zorder=0)
+    ax.axvspan(SPLIT, XMAX + 0.6, color="#e4e4de", lw=0, zorder=0)
     ax.text((-0.4 + SPLIT) / 2, 114, "Written\nweights" if tall else "Written weights", fontsize=small * 1.05,
-            color=WRITTEN_TEXT, fontweight="semibold", ha="center", va="center", linespacing=1.15)
-    ax.text((SPLIT + XMAX + 0.6) / 2, 114, "Gradient-based methods", fontsize=small * 1.05, color=MUTED,
+            color="#a63c14", fontweight="semibold", ha="center", va="center", linespacing=1.15)
+    ax.text((SPLIT + XMAX + 0.6) / 2, 114, "Gradient-based methods", fontsize=small * 1.05, color="#4a5262",
             fontweight="semibold", ha="center", va="center")
 
     # A standard transformer and TRM (our run up to its best point, then the placeholder points).
