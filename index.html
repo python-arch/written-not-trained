@@ -359,10 +359,10 @@
 
 <figure class="reveal" style="--hide: 89%">
   <div class="layers">
-  <img class="data" src="figures/maze_loops_data.svg" width="518" height="259" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_loops_base.svg" width="518" height="259" loading="lazy" alt="Mazes solved against the number of loops for two looped models. DeepThinking, trained by gradient descent, rises to 86.6% of 13×13 mazes at loop 41 and falls below 1% by loop 82. The transformer Claude wrote is at 0% of the Maze-Hard test mazes until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
+  <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
-  <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes.</figcaption>
+  <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
 </figure>
 
 <details>
@@ -371,7 +371,7 @@
   <p>In the curve above, any shortest path counts. We verified the twice-the-path-length rule at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
 </details>
 
-<p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. On Maze-Hard, HRM and TRM keep their accuracy at up to four times the steps they were trained with. So do our trained looped graph search and parity models.</p>
+<p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 6 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%. Our trained looped graph search and parity models also hold steady with extra loops.</p>
 
 
 <h2 id="maze"><span class="qn">2.</span> How it compares on Maze-Hard</h2>

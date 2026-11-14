@@ -422,15 +422,20 @@ def _wvt_panel(ax, p, show_y: bool, fs: float) -> None:
             tests.append(tv)
             ax.plot([x0, x1], [c, tv], color=TRAINED, lw=1.7, alpha=0.9, zorder=2, solid_capstyle="round",
                     gid="data")
-            ax.scatter([x1], [tv], s=30, color=TRAINED, edgecolor="white", linewidth=1.0, zorder=4, gid="data")
-        ax.scatter([x0], [c], s=30, color=TRAINED, edgecolor="white", linewidth=1.0, zorder=4, gid="data")
+            ax.scatter([x1], [tv], s=46, marker="X", color=TRAINED, edgecolor="white", linewidth=0.8, zorder=4,
+                       gid="data")
+        ax.scatter([x0], [c], s=30, facecolor="white", edgecolor=TRAINED, linewidth=1.5, zorder=4, gid="data")
 
     # Written by Claude: one thick orange line on top.
     w = p["written"]
     ax.plot([x0, x1], [w["checking"], w["test"]], color=WRITTEN, lw=3.4, zorder=6, solid_capstyle="round",
             gid="data")
-    ax.scatter([x0, x1], [w["checking"], w["test"]], s=58, color=WRITTEN, edgecolor="white", linewidth=1.4,
+    from matplotlib.path import Path
+    check = Path([(-0.55, 0.02), (-0.15, -0.38), (0.6, 0.42)], [Path.MOVETO, Path.LINETO, Path.LINETO])
+    ax.scatter([x0, x1], [w["checking"], w["test"]], s=150, color=WRITTEN, edgecolor="white", linewidth=1.4,
                zorder=7, gid="data")
+    ax.plot([x0, x1], [w["checking"], w["test"]], ls="none", marker=check, ms=7.5, mfc="none", mec="white",
+            mew=2.0, zorder=8, gid="data")
 
     # End values, right of the "Longer" column.
     lx = x1 + 0.13
@@ -461,19 +466,44 @@ def _written_vs_trained(plt, d, tall: bool) -> None:
         fig = plt.figure(figsize=(W, H))
         boxes = [[0.075 + i * 0.31, 0.2, 0.275, 0.44] for i in range(3)]
 
+    signs = []
     for i, (p, box) in enumerate(zip(panels, boxes)):
         ax = fig.add_axes(box)
         _wvt_panel(ax, p, show_y=(tall or i == 0), fs=fs)
         line = 0.125 if not tall else 0.14
         top_t = max(t["params"] for t in p["trained"])
-        ax.text(0, 1 + 3.15 * line, p["title"], transform=ax.transAxes, fontsize=fs * 1.22,
+        pic_s = 1.6                                   # task sign scale
+        tx = (PIC_W * pic_s + 0.08) / (box[2] * W)    # title starts after the sign (axes fraction)
+        ax.text(tx, 1 + 3.15 * line, p["title"], transform=ax.transAxes, fontsize=fs * 1.22,
                 fontweight="semibold", color=INK, ha="left", va="bottom")
+        signs.append((p["title"], box[0] * W, (box[1] + box[3] * (1 + 3.42 * line)) * H, pic_s))
         ax.text(0, 1 + 1.95 * line, f"Claude, {p['written']['params_label']}", transform=ax.transAxes,
                 fontsize=fs * 0.88, color=WRITTEN_TEXT, ha="left", va="bottom")
         ax.text(0, 1 + 0.95 * line, f"Trained, up to {top_t:,} weights", transform=ax.transAxes,
                 fontsize=fs * 0.88, color=TRAINED_TEXT, ha="left", va="bottom")
 
-    # One x-axis title and one legend for the whole figure.
+    # The task signs (the same ones as in the benchmark overview), drawn on a clear overlay in inches.
+    ov = fig.add_axes([0, 0, 1, 1], zorder=-1)
+    ov.set_xlim(0, W)
+    ov.set_ylim(0, H)
+    ov.axis("off")
+    for task, x_in, yc_in, s in signs:
+        sub = ov.inset_axes([x_in, yc_in - PIC_H * s / 2, PIC_W * s, PIC_H * s], transform=ov.transData)
+        sub.set_xlim(0, PIC_W)
+        sub.set_ylim(0, PIC_H)
+        sub.axis("off")
+        pictogram(sub, task, 0, PIC_H / 2)
+        # The sign was drawn for its small size: scale its text and strokes with it.
+        for a in sub.texts:
+            a.set_fontsize(a.get_fontsize() * s)
+        for a in sub.lines:
+            a.set_linewidth(a.get_linewidth() * s)
+        for a in sub.patches:
+            a.set_linewidth(a.get_linewidth() * s)
+            if hasattr(a, "set_mutation_scale"):
+                a.set_mutation_scale(a.get_mutation_scale() * s)
+
+    # One x-axis title for the whole figure.
     if tall:
         fig.text(0.56, 0.1 / H, "Input size", ha="center", va="bottom", fontsize=fs, color=MUTED)
     else:
@@ -755,68 +785,113 @@ def glance(plt, d) -> None:
 
 
 # --------------------------------------------------------------------------- maze: accuracy vs loops
+def _maze_icon(fig, rect):
+    """A small maze sign (walls, start, goal and an orange path) in its own little axes at `rect` (figure coords)."""
+    from matplotlib.patches import Rectangle
+    ia = fig.add_axes(rect)
+    ia.set_xlim(0, 5)
+    ia.set_ylim(0, 5)
+    ia.set_aspect("equal")
+    ia.axis("off")
+    walls = [(0, 1), (1, 1), (1, 3), (2, 3), (3, 1), (3, 2), (3, 3), (4, 3)]
+    ia.add_patch(Rectangle((0, 0), 5, 5, fc="white", ec=MUTED, lw=1.0))
+    for c, r in walls:
+        ia.add_patch(Rectangle((c, 4 - r), 1, 1, fc="#3b4048", ec="white", lw=0.6))
+    path = [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (0, 2), (0, 3), (0, 4), (1, 4), (2, 4), (3, 4), (4, 4)]
+    ia.plot([c + 0.5 for c, r in path], [4.5 - r for c, r in path], color=WRITTEN, lw=1.6,
+            solid_joinstyle="round", solid_capstyle="round")
+    for (c, r), col in (((0, 0), BLUE), ((4, 4), WRITTEN)):
+        ia.add_patch(Rectangle((c + 0.22, 4 - r + 0.22), 0.56, 0.56, fc=col, ec="none"))
+    return ia
+
+
 def maze_loops(plt, d) -> None:
+    """Figure 6. Mazes solved against loops, on one log axis, for four looped models. The transformer Claude wrote
+    (Maze-Hard, any shortest path, maze_loops.json), TRM and HRM (Maze-Hard, our runs of the released checkpoints at
+    1-64 reasoning steps, maze_loops_baselines.json) and DeepThinking (13x13 mazes, read from the vector data of
+    Figure 6 in Bansal et al. 2022, maze_dt_overthink.json). An open circle marks the most loops each trained model
+    saw in training."""
     from matplotlib.ticker import FixedLocator, NullLocator
 
-    series = json.loads((HERE / "maze_loops.json").read_text(encoding="utf-8"))["series"]
-    near = [(r, a) for r, a in series if r <= 400]
-    far = [(r, a) for r, a in series if r > 400]
-
-    fig = plt.figure(figsize=(5.4, 3.6))
-    axl = fig.add_axes([0.11, 0.2, 0.5, 0.56])
-    axr = fig.add_axes([0.655, 0.2, 0.31, 0.56], sharey=axl)
-    for ax in (axl, axr):
-        ax.set_ylim(-4, 108)
-        ax.yaxis.set_major_locator(FixedLocator([0, 50, 100]))
-        ax.grid(axis="y", color=GRID, lw=0.7)
-        ax.set_axisbelow(True)
-        ax.tick_params(length=0, labelsize=F * 8.2)
-        ax.spines["left"].set_visible(False)
-    axl.set_yticklabels(["0", "50", "100"])
-    axl.set_ylabel("Mazes solved (%)", fontsize=F * 8.4)
-    axr.tick_params(labelleft=False)
-
-    # DeepThinking (Bansal et al., NeurIPS 2022, Figure 6): trained on 9x9 mazes, tested on 13x13; it overthinks.
+    ours = json.loads((HERE / "maze_loops.json").read_text(encoding="utf-8"))["series"]
+    base = json.loads((HERE / "maze_loops_baselines.json").read_text(encoding="utf-8"))
     dt = json.loads((HERE / "maze_dt_overthink.json").read_text(encoding="utf-8"))["series"]
-    dt = [(r, a) for r, a in dt if r <= 100]
-    axl.plot([r for r, _ in dt], [a for _, a in dt], color=DT_C, lw=1.6, zorder=3, solid_joinstyle="round",
-             solid_capstyle="round", gid="data")
-    # One-line label above the peak (86.6% at loop 41), clear of the written ramp at loop 218; the maze size below it.
-    axl.text(10, 95, "DeepThinking, trained", fontsize=F * 7.8, fontweight="semibold", color=DT_C, ha="left",
-             va="center", gid="data")
-    axl.text(57, 79, "13×13 mazes", fontsize=F * 7.2, color=MUTED, ha="left", va="center", gid="data")
 
-    axl.step([r for r, _ in near], [a for _, a in near], where="post", color=WRITTEN, lw=2.2, zorder=4, gid="data")
-    axl.text(396, 102, "Written by Claude", fontsize=F * 7.8, fontweight="semibold", color=WRITTEN_TEXT, ha="right",
-             va="bottom", gid="data")
-    axl.set_xlim(0, 400)
-    axl.set_xticks([0, 100, 200, 300])
-    axl.set_xlabel("Loops", fontsize=F * 8.4)
-    if d["label_ramp"]:
-        axl.annotate(d["label_ramp"], xy=(219, 22), xytext=(8, 26), fontsize=F * 7.6, color=WRITTEN_TEXT, va="center",
-                     linespacing=1.3, gid="data",
-                     arrowprops=dict(arrowstyle="-", color=WRITTEN, lw=0.7, shrinkA=2, shrinkB=3))
+    HRM_C, HRM_TEXT = AQUA, "#11805a"
+    DT_C, DT_TEXT = YELLOW, "#9a6a00"
+    fs = F * 8.3
 
-    xs = [r for r, _ in far]
-    axr.set_xscale("log")
-    axr.set_xlim(1150, 10000)
-    axr.plot([1150] + xs, [100] * (len(xs) + 1), color=WRITTEN, lw=2.2, gid="data")
-    axr.scatter(xs[1:], [100] * len(xs[1:]), s=30, color=WRITTEN, edgecolor="white", linewidth=0.8, zorder=4,
-                gid="data")
-    axr.xaxis.set_major_locator(FixedLocator(xs[1:]))
-    axr.xaxis.set_minor_locator(NullLocator())
-    axr.set_xticklabels([f"{x:,}" for x in xs[1:]], fontsize=F * 7.4)
-    if d["label_run"]:
-        axr.text(10000, 86, d["label_run"], fontsize=F * 7.6, color=WRITTEN_TEXT, ha="right", va="top",
-                 linespacing=1.3, gid="data")
-    # Axis break marks.
-    for ax, x in ((axl, 1.0), (axr, 0.0)):
-        ax.plot([x - 0.012, x + 0.012], [-0.03, 0.03], transform=ax.transAxes, color=MUTED, lw=0.9, clip_on=False)
-    axl.spines["bottom"].set_bounds(0, 400)
+    W, H = 6.3, 3.75
+    fig = plt.figure(figsize=(W, H))
+    ax = fig.add_axes([0.125, 0.17, 0.7, 0.66])
+    ax.set_xscale("log")
+    ax.set_xlim(1, 10000)
+    ax.set_ylim(-5, 108)
+    ax.yaxis.set_major_locator(FixedLocator([0, 25, 50, 75, 100]))
+    ax.xaxis.set_major_locator(FixedLocator([1, 10, 100, 1000, 10000]))
+    ax.xaxis.set_minor_locator(NullLocator())
+    ax.set_xticklabels(["1", "10", "100", "1,000", "10,000"])
+    ax.grid(axis="y", color=GRID, lw=0.8)
+    ax.grid(axis="x", color=GRID, lw=0.6, ls=(0, (1.5, 2.5)))
+    ax.set_axisbelow(True)
+    for s in ("top", "right", "left"):
+        ax.spines[s].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.tick_params(length=0, labelsize=fs, pad=5)
+    ax.set_xlabel("Loops (log scale)", fontsize=fs, labelpad=6)
+    ax.set_ylabel("Mazes solved (%)", fontsize=fs, labelpad=8)
 
-    fig_title(fig, d["title"], 0.965, width=44)
-    fig_footnote(fig, d["footnote"], 0.02)
-    save(fig, "maze_loops", d["title"])
+    # The maze sign sits at the top of the y-axis, above its title.
+    yl = 0.125 - 0.095
+    _maze_icon(fig, [yl - 0.003, 0.835, 0.06, 0.06 * W / H])
+
+    def line(xs, ys, col, lw, z):
+        ax.plot(xs, ys, color=col, lw=lw, zorder=z, solid_joinstyle="round", solid_capstyle="round", gid="data")
+
+    # DeepThinking (13x13 mazes): rises, then overthinks.
+    dx, dy = zip(*dt)
+    line(dx, dy, DT_C, 2.2, 3)
+    # TRM and HRM on Maze-Hard: reasoning steps x passes of the repeated block.
+    for key, col in (("trm", TRAINED), ("hrm", HRM_C)):
+        xs, ys = zip(*base[key]["series"])
+        line(xs, ys, col, 2.2, 4)
+        ax.scatter([xs[0]], [ys[0]], s=22, color=col, edgecolor="white", linewidth=1.0, zorder=5, gid="data")
+    # The transformer Claude wrote: 0% until each maze's path is complete, then 100% to 7,200 loops.
+    ox, oy = zip(*[(r, a) for r, a in ours if r >= 1])
+    ax.step(ox, oy, where="post", color=WRITTEN, lw=3.0, zorder=6, gid="data")
+    far = [r for r, a in ours if r >= 1800]
+    ax.scatter(far, [100] * len(far), s=40, color=WRITTEN, edgecolor="white", linewidth=1.2, zorder=7, gid="data")
+
+    # Open circles: the most loops each trained model saw in training.
+    marks = [(30, dict(dt)[30], DT_C),
+             (base["trm"]["trained_steps"] * base["trm"]["loops_per_step"],
+              dict(map(tuple, base["trm"]["series"]))[base["trm"]["trained_steps"] * base["trm"]["loops_per_step"]], TRAINED),
+             (base["hrm"]["trained_steps"] * base["hrm"]["loops_per_step"],
+              dict(map(tuple, base["hrm"]["series"]))[base["hrm"]["trained_steps"] * base["hrm"]["loops_per_step"]], HRM_C)]
+    for x, y, col in marks:
+        ax.scatter([x], [y], s=46, facecolor="white", edgecolor=col, linewidth=1.8, zorder=8, gid="data")
+
+    # Direct labels at the ends of the lines.
+    trm_end, hrm_end = base["trm"]["series"][-1], base["hrm"]["series"][-1]
+    t_trm = ax.text(trm_end[0] * 1.18, trm_end[1] - 6.5, f"TRM {trm_end[1]:g}%", fontsize=fs, color=TRAINED_TEXT,
+                    fontweight="semibold", ha="left", va="center", gid="data")
+    t_hrm = ax.text(hrm_end[0] * 1.18, hrm_end[1] - 6, f"HRM {hrm_end[1]:g}%", fontsize=fs, color=HRM_TEXT,
+                    fontweight="semibold", ha="left", va="center", gid="data")
+    t_dt = ax.text(1.12, 42, "DeepThinking\n13×13 mazes", fontsize=fs * 0.95, color=DT_TEXT, fontweight="semibold",
+                   ha="left", va="center", linespacing=1.3, gid="data")
+    t_ours = ax.text(10000, 104.5, "Written by Claude", fontsize=fs * 1.04, color=WRITTEN_TEXT,
+                     fontweight="semibold", ha="right", va="bottom", gid="data")
+    ax.text(10000, 4, "most loops used in training", fontsize=fs * 0.86, color=MUTED, ha="right", va="center")
+    key = ax.text(10000, 4, "most loops used in training", fontsize=fs * 0.86, alpha=0, ha="right", va="center")
+    fig.canvas.draw()
+    bb = key.get_window_extent(fig.canvas.get_renderer())
+    kx, ky = ax.transData.inverted().transform((bb.x0 - 9 * fig.dpi / 72, (bb.y0 + bb.y1) / 2))
+    ax.scatter([kx], [ky], s=40, facecolor="white", edgecolor=MUTED, linewidth=1.5, zorder=8, clip_on=False)
+    add_logos(fig, ax, t_trm, ["samsung"], shift=True)
+    add_logos(fig, ax, t_hrm, ["sapient"], shift=True)
+    add_logos(fig, ax, t_ours, ["claude"])
+
+    save(fig, "maze_loops", "Mazes solved against loops")
     plt.close(fig)
 
 
