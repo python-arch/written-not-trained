@@ -370,20 +370,14 @@
   </div>
   <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
 </figure>
-<figure class="reveal" style="--hide: 45%">
+<figure class="reveal" style="--hide: 88%">
   <div class="layers">
-  <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
+  <img class="data" src="figures/hanoi_data.svg" width="557" height="309" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/hanoi_base.svg" width="557" height="309" loading="lazy" alt="Accuracy against disks, from 1 to 20. The transformer Claude wrote scores 100% at every size. Claude 3.7 Sonnet with thinking falls from 93.8% at 5 disks to 10.4% at 8 and 0% at 11. DeepSeek-R1 falls from 84.9% at 5 disks to 0% at 9. The paper tests up to 12 disks.">
   </div>
-  <figcaption><strong>Figure 7. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+  <figcaption><strong>Figure 7. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks. The reasoning models collapse past 5 to 7 disks. Their curves are read from the vector data of Figure 8 in Shojaee et al. (2025), with the paper's default prompts.</figcaption>
 </figure>
 </div>
-
-<details>
-  <summary>The loop in numbers</summary>
-  <p>Without the loop, every step would need a separate copy of the block. The maze transformer would then need 306 blocks and 3,259,341 weights for the longest test maze, rising to 834 blocks and 8,867,229 weights for the largest 100×100 maze.</p>
-  <p>In the curve above, any shortest path counts. We verified the twice-the-path-length rule at every loop on all 1,000 training mazes, which is why the curve can count the test mazes whose path is complete. The runs at 1,800, 3,600 and 7,200 loops were checked in full.</p>
-</details>
 
 <p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 6 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%. Our trained looped graph search and parity models also hold steady with extra loops.</p>
 
@@ -534,6 +528,14 @@
 
 <p>Beyond mazes, Claude wrote transformers for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. The rest of this section explains what each transformer has to do and where a comparison needs care.</p>
 
+<figure class="reveal narrow" style="--hide: 45%">
+  <div class="layers">
+  <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
+  </div>
+  <figcaption><strong>Figure 10. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+</figure>
+
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
 
 <p>The maze transformer has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the puzzles it was given when asked directly.</p>
@@ -577,15 +579,7 @@
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 10. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
-</figure>
-
-<figure class="reveal" style="--hide: 62%">
-  <div class="layers">
-  <img class="data" src="figures/hanoi_data.svg" width="518" height="346" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/hanoi_base.svg" width="518" height="346" loading="lazy" alt="Moves needed versus number of disks, on a log scale. The hand-written transformer solves every size from 7 to 20 disks, up to 1,048,575 moves, with no mistakes. Reasoning models began to collapse at 7–8 disks in 2025 tests, and Apple's paper tests up to 12 disks.">
-  </div>
-  <figcaption><strong>Figure 11. Moves against disks.</strong> Each blue dot is one size the transformer solved. The gold band marks where the reasoning models in Shojaee et al. (2025) begin to collapse. The dashed line marks 12 disks, the largest size Apple's paper tests.</figcaption>
+  <figcaption><strong>Figure 11. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
 </figure>
 
 <p>Tower of Hanoi needs no search, since each move is a simple decision, so the puzzle tests stamina rather than cleverness. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The Hanoi transformer Claude wrote needs none of that. A single small block makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
