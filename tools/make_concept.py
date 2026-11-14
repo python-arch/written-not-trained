@@ -199,7 +199,8 @@ svg = (f'<svg class="concept-svg" viewBox="0 0 {W} {H}" role="img" aria-label="T
        f'itself, draws a path that goes wrong and cuts through a wall, and solves 26% of test mazes. On the right, a scheming cartoon Claude holds a '
        f'control bar whose strings set the weights of a small network, which loops and finds the right path, solving 100% of test mazes.">'
        + "".join(parts) + "</svg>")
-html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption>When Claude solves a maze itself, it often goes wrong. When it writes '
-        'the network instead, setting every weight by hand, the looped network finds the path in every test maze.</figcaption>\n</figure>')
+html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption><strong>Claude fails most mazes, yet writes the network that solves them all.</strong> On the left, '
+        'Claude Opus 5.5 searches for the shortest path itself and solves 26% of the Maze-Hard test mazes it is given. On the right, '
+        'it sets every weight of a small looped transformer by hand, with no training. That network solves 100% of them.</figcaption>\n</figure>')
 open(sys.argv[1], "w", encoding="utf-8").write(html)
 print("path lengths", len(good), len(wrong), "wall", wall)
