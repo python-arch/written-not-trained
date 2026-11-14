@@ -298,14 +298,14 @@
 <!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
-  <img class="data" src="figures/maze_training_data.svg" width="518" height="307" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg" width="518" height="307" loading="lazy" alt="Line chart of test mazes solved against hours. The transformer Claude wrote steps from 0% to 100% at 1 hour, the time it took to write, with no training, and holds there until its line ends at 1.5 hours. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM rises to 85.3% by 8 hours. A standard transformer reaches 42% after 8 hours.">
+  <img class="data" src="figures/maze_training_data.svg" width="518" height="399" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_base.svg" width="518" height="399" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 1 hour and 100% for the transformer Claude wrote, with no training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. A legend below names the four series.">
   </div>
   <div class="layers tall">
-  <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="342" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg" width="355" height="342" loading="lazy" alt="Line chart of test mazes solved against hours. The transformer Claude wrote steps from 0% to 100% at 1 hour, the time it took to write, with no training, and holds there until its line ends at 1.5 hours. The same architecture trained by gradient descent stays at 0%, drawn as a navy dashed line. TRM rises to 85.3% by 8 hours. A standard transformer reaches 42% after 8 hours.">
+  <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_tall_base.svg" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 1 hour and 100% for the transformer Claude wrote, with no training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. A legend below names the four series.">
   </div>
-  <figcaption><strong>Figure 3. Writing beats training.</strong> Claude spent an hour writing the transformer, so its line steps from 0% to 100% at 1 hour, with no training. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%.</figcaption>
+  <figcaption><strong>Figure 3. Writing beats training.</strong> Claude spent an hour writing the transformer, which solves 100% of the test mazes with no training, marked by the star. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%.</figcaption>
 </figure>
 </div>
 

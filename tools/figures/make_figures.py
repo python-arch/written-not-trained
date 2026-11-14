@@ -185,6 +185,9 @@ def crop_box(fig, pad: float = 0.1):
     for t in fig.texts:
         if t.get_visible() and t.get_text().strip():
             boxes.append(t.get_window_extent(r))
+    for lg in fig.legends:                       # figure-level legends count too
+        if lg.get_visible():
+            boxes.append(lg.get_window_extent(r))
     u = Bbox.union([b for b in boxes if b is not None and abs(b.y0) < 1e5 and abs(b.y1) < 1e5])
     W, H = fig.get_size_inches()
     y0 = max(0.0, u.y0 / fig.dpi - pad)
@@ -1231,76 +1234,86 @@ TRM_PLACEHOLDER = [(5.5, 79.6), (6.3, 82.1), (7.1, 83.4), (8.0, 85.3)]
 
 
 def _maze_training(plt, d, tall: bool) -> None:
-    """Two navy lines carry the story: Claude's written network at 100% with no training (a star at 0 h), and the
-    same architecture trained by gradient descent at 0%. TRM (our run, to its best point) and a standard transformer
-    are muted grey; TRM as released sits apart, in its own slot to the right."""
+    """Test mazes solved against hours. The left of the chart (light orange, "Written weights") holds Claude's
+    transformer as one big star at 1 hour and 100%, with no training. The right (light grey, "Gradient-based methods")
+    holds the training runs: TRM, a standard transformer, and the same architecture trained by gradient descent at 0%.
+    A legend below the chart names the four series."""
+    from matplotlib.lines import Line2D
     from matplotlib.ticker import FixedLocator
 
     v = json.loads((HERE / "maze_training.json").read_text(encoding="utf-8"))
-    XMAX = 8.0
+    XMAX, SPLIT = 8.0, 1.7
     if tall:
-        fig = plt.figure(figsize=(3.7, 4.6))
-        ax = fig.add_axes([0.17, 0.15, 0.76, 0.62])
-        ylim = (-34, 126)
+        fig = plt.figure(figsize=(3.7, 5.9))
+        ax = fig.add_axes([0.17, 0.36, 0.76, 0.56])
     else:
-        fig = plt.figure(figsize=(5.4, 4.0))
-        ax = fig.add_axes([0.11, 0.2, 0.84, 0.64])
-        ylim = (-9, 120)
-    for a_ in (ax,):
-        a_.set_ylim(*ylim)
-        a_.yaxis.set_major_locator(FixedLocator([0, 50, 100]))
-        a_.grid(axis="y", color=GRID, lw=0.7)
-        a_.set_axisbelow(True)
-        a_.tick_params(length=0, labelsize=F * 8.2)
-        a_.spines["left"].set_visible(False)
-        a_.spines["bottom"].set_visible(not tall)
+        fig = plt.figure(figsize=(5.4, 4.7))
+        ax = fig.add_axes([0.11, 0.3, 0.84, 0.6])
+    ax.set_ylim(-9, 122)
+    ax.yaxis.set_major_locator(FixedLocator([0, 50, 100]))
+    ax.grid(axis="y", color=GRID, lw=0.7, zorder=1)
+    ax.set_axisbelow(True)
+    ax.tick_params(length=0, labelsize=F * 8.2)
+    for s in ("left", "top", "right"):
+        ax.spines[s].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
     ax.set_yticklabels(["0", "50", "100"])
-    ax.set_xlim(-0.4, XMAX)
+    ax.set_xlim(-0.4, XMAX + 0.6)
     ax.xaxis.set_major_locator(FixedLocator(range(0, int(XMAX) + 1)))
     ax.set_xticklabels([str(h) for h in range(0, int(XMAX) + 1)])
     ax.set_xlabel("Time (hours)", fontsize=F * 8.4)
     ax.set_ylabel("Test mazes solved (%)", fontsize=F * 8.4)
     big, label, small = F * 14, F * 8.4, F * 7.8
 
-    # Muted grey: a standard transformer, and TRM (our run, up to its best point).
+    # Two regions: written weights on the left, gradient-based methods on the right.
+    ax.axvspan(-0.4, SPLIT, color="#fdeee6", lw=0, zorder=0)
+    ax.axvspan(SPLIT, XMAX + 0.6, color="#f1f1ef", lw=0, zorder=0)
+    ax.text((-0.4 + SPLIT) / 2, 114, "Written\nweights" if tall else "Written weights", fontsize=small * 1.05,
+            color=WRITTEN_TEXT, fontweight="semibold", ha="center", va="center", linespacing=1.15)
+    ax.text((SPLIT + XMAX + 0.6) / 2, 114, "Gradient-based methods", fontsize=small * 1.05, color=MUTED,
+            fontweight="semibold", ha="center", va="center")
+
+    # A standard transformer and TRM (our run up to its best point, then the placeholder points).
     sx, sy = [p[0] for p in v["std"]], [p[1] for p in v["std"]]
     ax.plot(sx, sy, color=STD_INK, lw=2.0, zorder=3, solid_joinstyle="round", solid_capstyle="round", gid="data")
     ax.scatter(sx[1:], sy[1:], s=34, marker="o", facecolor="white", edgecolor=STD_INK, linewidth=1.7, zorder=4, gid="data")
-    ax.text(XMAX, sy[-1] + 6, "Transformer 42%", fontsize=small, color=MUTED, ha="right", va="bottom", gid="data")
+    ax.text(sx[-1] + (0.32 if tall else 0.15), sy[-1], f"{max(sy):g}%", fontsize=small, color=MUTED, ha="left", va="center", gid="data")
     best = max(range(len(v["trm"])), key=lambda i: v["trm"][i][1])
     trm = v["trm"][: best + 1] + TRM_PLACEHOLDER
     tx, ty = [p[0] for p in trm], [p[1] for p in trm]
     ax.plot(tx, ty, color=TRAINED, lw=2.0, zorder=3, solid_joinstyle="round", solid_capstyle="round", gid="data")
     ax.scatter(tx[1:], ty[1:], s=40, marker="o", color=TRAINED, edgecolor="white", linewidth=1.4, zorder=4, gid="data")
-    trm_lab = ax.text(XMAX, 92.6, "TRM 85.3%", fontsize=small, color=MUTED, ha="right", va="center", gid="data")
+    ax.text(tx[-1] + (0.32 if tall else 0.15), ty[-1], f"{ty[-1]:g}%", fontsize=small, color=TRAINED_TEXT, ha="left", va="center",
+            gid="data")
 
-    # The story: the same architecture trained by gradient descent, at 0% (yellow) ...
+    # The same architecture trained by gradient descent, at 0%.
     ends = [r["points"][-1][0] for r in v["gd"].values()]
     x_gd = max(ends)
     ax.plot([0, x_gd], [0, 0], color=GD_INK, lw=2.4, dashes=(3.0, 2.2), dash_capstyle="round", zorder=8, gid="data")
-    zero = ax.annotate("0%", xy=(x_gd, 0), xytext=(6, 0), textcoords="offset points", fontsize=big,
-                       fontweight="bold", color=YELLOW_TEXT, ha="left", va="center", gid="data")
-    if tall:
-        ax.text(0.0, -9, "Same architecture,\ntrained by gradient descent", fontsize=small, color=YELLOW_TEXT, ha="left",
-                va="top", linespacing=1.3, gid="data")
-    else:
-        ax.annotate("Same architecture,\ntrained by gradient descent", xy=(1, 0.5), xycoords=zero, xytext=(7, 0),
-                    textcoords="offset points", fontsize=small, color=YELLOW_TEXT, ha="left", va="center",
-                    linespacing=1.3, gid="data")
-    # ... and the transformer Claude wrote, at 100% with no training (orange).
-    W_AT, W_END = 1.0, 1.5                         # Claude took an hour to write the network: 0% until then, then 100%
-    ax.plot([0, W_AT, W_AT, W_END], [0, 0, 100, 100], color=WRITTEN, lw=3.2, zorder=7, solid_joinstyle="round",
-            solid_capstyle="round", gid="data")
-    ax.scatter([W_AT], [100], s=210 if tall else 260, marker="*", color=WRITTEN, edgecolor="white", linewidth=0.8,
+    ax.annotate("0%", xy=(x_gd, 0), xytext=(6, 0), textcoords="offset points", fontsize=label * 1.15,
+                fontweight="bold", color=YELLOW_TEXT, ha="left", va="center", gid="data")
+
+    # The transformer Claude wrote: one big star at 1 hour, 100%, with no training.
+    W_AT = 1.0
+    ax.scatter([W_AT], [100], s=520 if tall else 700, marker="*", color=WRITTEN, edgecolor="white", linewidth=1.0,
                zorder=9, clip_on=False, gid="data")
-    c = ax.annotate("Written by Claude in 1 hour,\nno training" if tall else "Written by Claude in 1 hour, no training",
-                    xy=(W_AT, 100), xytext=(13, 9), textcoords="offset points", fontsize=label, color=WRITTEN_TEXT,
-                    fontweight="bold", ha="left", va="bottom", linespacing=1.25, gid="data")
-    ax.annotate("100%", xy=(W_END, 100), xytext=(5 if tall else 7, 0), textcoords="offset points",
-                fontsize=label * 1.35 if tall else big, fontweight="bold",
-                color=WRITTEN_TEXT, ha="left", va="center", gid="data")
-    add_logos(fig, ax, c, ["claude"], shift=True)
-    add_logos(fig, ax, trm_lab, ["samsung"])
+    ax.annotate("100%", xy=(W_AT, 100), xytext=(14, -1), textcoords="offset points", fontsize=big * (0.85 if tall else 1),
+                fontweight="bold", color=WRITTEN_TEXT, ha="left", va="center", gid="data")
+
+    # Legend below the chart.
+    handles = [Line2D([0], [0], marker="*", ls="none", ms=15, color=WRITTEN, mec="white", mew=0.8),
+               Line2D([0], [0], color=TRAINED, lw=2.0, marker="o", ms=6, mfc=TRAINED, mec="white", mew=1.2),
+               Line2D([0], [0], color=STD_INK, lw=2.0, marker="o", ms=6, mfc="white", mec=STD_INK, mew=1.5),
+               Line2D([0], [0], color=GD_INK, lw=2.4, dashes=(3.0, 2.2))]
+    labels = ["Written by Claude, no training", "TRM", "Standard transformer",
+              "Same architecture, gradient descent"]
+    if tall:
+        fig.legend(handles, labels, loc="upper left", bbox_to_anchor=(0.04, 0.27), ncol=1, frameon=False,
+                   fontsize=small, handlelength=2.4, labelspacing=0.55, handletextpad=0.7)
+    else:
+        fig.legend([handles[i] for i in (0, 2, 1, 3)], [labels[i] for i in (0, 2, 1, 3)], loc="upper center",
+                   bbox_to_anchor=(0.53, 0.175), ncol=2, frameon=False, fontsize=small, handlelength=2.2,
+                   columnspacing=1.4, labelspacing=0.6, handletextpad=0.6)
 
     name = "maze_training_tall" if tall else "maze_training"
     save(fig, name, "Test mazes solved against training time")
