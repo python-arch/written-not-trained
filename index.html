@@ -233,7 +233,7 @@
           <source src="figures/maze_hero.webm" type="video/webm">
         </video>
       </div>
-      <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard. Each frame shows the numbers every cell holds after one more pass through the network's single layer. First, a wave of distances spreads outward from the goal one cell per pass. Once it reaches the start, the path traces its way back to the goal. <a href="demo/maze.html">Run it in your browser.</a></figcaption>
+      <figcaption>The network Claude wrote, solving the first test maze of Maze-Hard one loop at a time. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it reaches the start. The path then grows from the start back to the goal, one cell per loop. <a href="demo/maze.html">Run it in your browser.</a></figcaption>
     </figure>
     <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
       <div class="layers wide">
