@@ -1,53 +1,79 @@
-# Written, Not Trained
+<h1 align="center">Hand-Written Looped Transformers That Beat Their Author</h1>
 
-**Claude hand-wrote a tiny transformer that beats Claude at mazes.**
+<p align="center">
+  <a href="https://python-arch.github.io/">Abdelrahman Elsayed</a>*,
+  <a href="https://ahmedheakl.github.io/">Ahmed Heakl</a>*,
+  <a href="https://amshaker.github.io/">Abdelrahman Shaker</a>,
+  <a href="https://sites.google.com/view/fahadkhans">Fahad Khan</a>,
+  <a href="https://salman-h-khan.github.io/">Salman Khan</a>,
+  <a href="https://www.anthropic.com/claude">Claude Opus 5.5</a>
+  <br>
+  <sub>* Equal contribution</sub>
+</p>
 
-Abdelrahman Elsayed\*, Ahmed Heakl\*, Salman Khan · MBZUAI
+<p align="center">
+  <a href="https://mbzuai.ac.ae/"><img src="assets/mbzuai_logo.svg" alt="MBZUAI, Mohamed bin Zayed University of Artificial Intelligence" height="48"></a>
+</p>
 
-**[Read the post](https://python-arch.github.io/written-not-trained/)** · Run it in your browser: [mazes](https://python-arch.github.io/written-not-trained/demo/maze.html) · [Tower of Hanoi](https://python-arch.github.io/written-not-trained/demo/index.html)
+<p align="center">
+  <a href="https://python-arch.github.io/written-not-trained/"><b>Read the blog post</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://python-arch.github.io/written-not-trained/demo/maze.html">Maze demo</a>
+  &nbsp;·&nbsp;
+  <a href="https://python-arch.github.io/written-not-trained/demo/index.html">Tower of Hanoi demo</a>
+</p>
 
-## What this is
+<p align="center">
+  <img src="assets/teaser.png" width="100%" alt="Two panels. On the left, a confused cartoon Claude is asked to solve a maze itself, draws a path that runs into a wall, and solves 26% of the test mazes. On the right, a scheming cartoon Claude works the weights of a small transformer like a puppeteer, and the transformer loops until it finds the right path, solving 100% of the test mazes.">
+</p>
 
-Claude Opus 5.5 designed these neural networks and set every weight itself, with nothing learned. On Maze-Hard, Claude solves 13 of 50 test mazes on its own. The tiny transformer it wrote solves all 1,000. Its single layer runs again and again, until the whole path is found.
+Claude Opus 5.5 set every weight of a small looped transformer by hand, with no training. That transformer solves 100% of the test mazes in [Maze-Hard](https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k), a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. When Claude is asked for the paths directly, it solves only 26% of them.
+
+The transformer is a single layer with 19,936 weights. What lets it solve mazes this hard is a loop. Each pass through the layer moves a shortest-path search one step further, so a bigger maze needs more passes rather than more weights. The same weights solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes. We call this approach *looped weight-space programming*. Claude used it to write transformers for other hard tasks too, from Sudoku-Extreme to a 20-disk Tower of Hanoi. Each of them scores 100% on its test problems.
 
 ## Results
 
-| Task | Hand-written network | Compared with |
+| Task | The transformer Claude wrote | What we compare with |
 |---|---|---|
-| **Maze-Hard** (30×30 mazes) | **All 1,000 test mazes**, with 19,936 weights | Claude Opus 5.5: 13 of 50 test mazes (Davis et al., NeurIPS 2026) |
-| **Shortest routes**, longer than any it was checked on | **100%**, with 6,966 weights | **0%** for trained models up to 99× bigger |
-| **Parity** (odd or even number of 1s) | **Right at every length tested, up to 4,095 bits**, checked only up to 20 | Trained models: chance beyond 21 bits |
-| **Reasoning chains** (`x1 = x0 + 3`, …) | **100% at 12 to 32 steps**, checked only up to 8 | Best trained model: 93.7% on its training lengths, 3.5% beyond |
-| **BIG-Bench Hard:** Boolean Expressions / Dyck Languages | **100% / 100%** | Best of four small open models: 69.6% / 33.2% |
-| **Tower of Hanoi, 20 disks** | **1,048,575 moves, zero mistakes** | MAKER (2025): over 3 million LLM calls |
-| **Checker Jumping, up to 40 per side** | **Every size, fewest possible moves** | Claude 3.7 Sonnet and DeepSeek-R1 (2025): failed from about 3 per side |
-| **BIG-Bench Extra Hard:** Web of Lies / Shuffled Objects | **100% / 100%** | Best LLM we list: 81.2 / 56.9 (Oct 2025) |
-| **Ouro-1.4B**, a looped language model trained by others, 8 loops on GSM8K (grade-school math) | **75.2%** with a fix that needs no training | 66.6% without it |
+| **Maze-Hard** (30×30 mazes) | **100%** with 19,936 weights | LDT (trained, 1.8M weights) 99.8%<br>Claude Opus 5.5 26% |
+| **Sudoku-Extreme** | **100%** of the puzzles we ran | Sotaku v2 (trained) 98.96% |
+| **GraphWalks** (prompts of up to 1M tokens) | **100%** F1 | Gemini 4 Carbon 96.2% |
+| **Graph search**, routes longer than Claude checked | **100%** with 6,966 weights | 0% for trained models up to 99× bigger |
+| **Parity**, strings longer than Claude checked | **100%** at every length tried, up to 4,095 bits | Trained models fall to chance (45.5–53.8%) |
+| **Reasoning chains**, longer than Claude checked | **100%** at 12 to 32 steps | The best trained model drops to 3.5% |
+| **Boolean Expressions** (BIG-Bench Hard) | **100%** | SmolLM2-360M 69.6% |
+| **Dyck Languages** (BIG-Bench Hard) | **100%** | Pythia-410M 33.2% |
+| **Web of Lies** (BIG-Bench Extra Hard) | **100%** | Qwen3-235B-A22B 81.2% |
+| **Shuffled Objects** (BIG-Bench Extra Hard) | **100%** | Qwen3-235B-A22B 56.9%, by writing a program |
+| **Tower of Hanoi**, 20 disks | **1,048,575 moves, zero mistakes** | MAKER needed over 3 million LLM calls |
+| **Checker Jumping**, up to 40 per side | **The fewest possible moves at every size** | Claude 3.7 Sonnet Thinking and DeepSeek-R1 fail from about 3 per side |
 
-## Run it in Python
+As a side result, Claude also found why Ouro-1.4B, a looped language model trained by others, gets worse when it runs extra loops. Its fix needs no training and lifts Ouro from 66.6% to 75.2% on GSM8K at 8 loops. The blog post covers every result in full, together with how each number was measured.
 
-`weights/` holds all ten networks (Maze-Hard, graph search, parity, reasoning chains, Boolean Expressions, Dyck Languages, Tower of Hanoi, Checker Jumping, Web of Lies and Shuffled Objects) and `run.py`, one short loop that runs any of them. It needs only numpy.
+## Run the weights
 
-```
+The `weights/` folder holds ten of the transformers together with `run.py`, one short script that runs any of them. It needs only Python 3 and numpy.
+
+```bash
 cd weights
 python run.py maze --random 30
 python run.py hanoi 10
 ```
 
-Each command prints the answer and checks it. `weights/README.md` covers all ten.
+Each command prints the answer and checks it. [`weights/README.md`](weights/README.md) shows how to run all ten.
 
 ## Credits
 
-This work builds on [Weight-Space Programming](https://rikiyat.github.io/blog/weight-space-programming/) (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026). The benchmarks are Maze-Hard (Wang et al.), BIG-Bench Hard (Suzgun et al.) and BIG-Bench Extra Hard (Kazemi et al.), and the puzzles come from Shojaee et al. (2025). The post lists all related work.
+This work builds on [Weight-Space Programming](https://rikiyat.github.io/blog/weight-space-programming/) (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026). Maze-Hard and Sudoku-Extreme come from the [HRM paper](https://arxiv.org/abs/2506.21734) (Wang et al.), BIG-Bench Hard from Suzgun et al. and BIG-Bench Extra Hard from Kazemi et al. The Tower of Hanoi and Checker Jumping puzzles follow [The Illusion of Thinking](https://arxiv.org/abs/2506.06941) (Shojaee et al., 2025). The blog post lists all related work.
 
 ## Citation
 
-If you use this work, please cite it:
+If you use this work, please cite it as follows.
 
 ```bibtex
 @misc{elsayed2026written,
-  title        = {{Written, Not Trained: Claude hand-wrote a tiny transformer that beats Claude at mazes}},
-  author       = {Elsayed, Abdelrahman and Heakl, Ahmed and Khan, Salman},
+  title        = {{Hand-Written Looped Transformers That Beat Their Author}},
+  author       = {Elsayed, Abdelrahman and Heakl, Ahmed and Shaker, Abdelrahman and Khan, Fahad and Khan, Salman and {Claude Opus 5.5}},
   year         = {2026},
   month        = nov,
   howpublished = {\url{https://python-arch.github.io/written-not-trained/}},
@@ -57,4 +83,4 @@ If you use this work, please cite it:
 
 ## License
 
-The code and weights are under the MIT license ([LICENSE](LICENSE)). The text, figures and animations are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Anyone can use, copy and change all of it, with credit to the authors. It comes as is, with no warranty.
+Everything in this repository and on the blog, including the code, weights, text, figures and animations, is released under the [MIT license](LICENSE).
