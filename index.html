@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hand-Written Looped Transformers That Beat Their Author</title>
-<meta name="description" content="Claude solves 13 of 50 hard mazes when asked directly. Asked instead to set every weight of a small looped transformer, it wrote one that solves all 1,000 test mazes, with no training.">
+<meta name="description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta name="author" content="Abdelrahman Elsayed, Ahmed Heakl, Abdelrahman Shaker, Fahad Khan, Salman Khan">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#ffffff">
@@ -13,7 +13,7 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Hand-Written Looped Transformers That Beat Their Author">
 <meta property="og:title" content="Hand-Written Looped Transformers That Beat Their Author">
-<meta property="og:description" content="Claude solves 13 of 50 hard mazes when asked directly. Asked instead to set every weight of a small looped transformer, it wrote one that solves all 1,000 test mazes, with no training.">
+<meta property="og:description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta property="og:url" content="https://python-arch.github.io/written-not-trained/">
 <meta property="og:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
 <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi with 20 disks, 1,048,575 moves and zero mistakes.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Hand-Written Looped Transformers That Beat Their Author">
-<meta name="twitter:description" content="Claude solves 13 of 50 hard mazes when asked directly. Asked instead to set every weight of a small looped transformer, it wrote one that solves all 1,000 test mazes, with no training.">
+<meta name="twitter:description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta name="twitter:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
 <meta name="twitter:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi with 20 disks, 1,048,575 moves and zero mistakes.">
 
@@ -219,7 +219,7 @@
 <header class="hero">
   <div class="wrap">
     <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming</div>
-    <h1>Hand-Written Looped Transformers That Beat Their Author<span class="claim">Claude set every weight of a small looped transformer by hand, with no training. That transformer solves all 1,000 test mazes of <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, while Claude solves 13 of 50 on its own.</span></h1>
+    <h1>Hand-Written Looped Transformers That Beat Their Author<span class="claim">Claude set every weight of a small looped transformer by hand, with no training. That transformer solves 100% of the test mazes in <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, while Claude solves 26% on its own.</span></h1>
     <div class="meta">
       <div><b class="label">Authors</b><a href="https://python-arch.github.io/">Abdelrahman Elsayed</a>*, <a href="https://ahmedheakl.github.io/">Ahmed Heakl</a>*, <a href="https://amshaker.github.io/">Abdelrahman Shaker</a>, <a href="https://sites.google.com/view/fahadkhans">Fahad Khan</a>, <a href="https://salman-h-khan.github.io/">Salman Khan</a><span class="eq">* Equal contribution</span></div>
       <div><b class="label">Affiliation</b><a class="aff" href="https://mbzuai.ac.ae/"><img src="figures/mbzuai_logo.svg" width="124" height="35" alt="MBZUAI, Mohamed bin Zayed University of Artificial Intelligence"></a></div>
@@ -281,13 +281,13 @@
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
   <img class="data" src="figures/maze_training_data.svg" width="518" height="291" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg" width="518" height="291" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The network Claude wrote, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+  <img src="figures/maze_training_base.svg" width="518" height="291" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The architecture Claude wrote, trained from random weights in 6 versions of up to 2.8M weights, stays at 0% throughout, drawn as a hatched band.">
   </div>
   <div class="layers tall">
   <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="319" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg" width="355" height="319" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The network Claude wrote, trained from scratch in 6 versions of up to 2.8M weights, stays at 0% throughout.">
+  <img src="figures/maze_training_tall_base.svg" width="355" height="319" loading="lazy" alt="Line chart of test mazes solved against hours. The network Claude wrote is at 100% from 1 hour on, with no training. TRM, a model built for mazes that we trained, reaches a best of 77.4%. A standard transformer that we trained for 8 hours reaches a best of 42%. A dashed line marks TRM as released by its authors, at 85.3%. The architecture Claude wrote, trained from random weights in 6 versions of up to 2.8M weights, stays at 0% throughout, drawn as a hatched band.">
   </div>
-  <figcaption>The network Claude wrote needed no training, so it is placed at 1 hour. The dashed line is TRM as released by its authors.</figcaption>
+  <figcaption>The network Claude wrote needed no training, so it is placed at 1 hour. The hatched band along 0% is the same architecture with its weights reset to random and then trained, in six versions. The dashed line is TRM as released by its authors.</figcaption>
 </figure>
 </div>
 
