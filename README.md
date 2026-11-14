@@ -29,7 +29,7 @@
 
 Claude Opus 5.5 set every weight of a small looped transformer by hand, with no training. That transformer solves 100% of the test mazes in [Maze-Hard](https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k), a benchmark of 30×30 mazes whose shortest paths run longer than 110 steps. When Claude is asked for the paths directly, it solves only 26% of them.
 
-The transformer is a single layer with 19,936 weights. What lets it solve mazes this hard is a loop. Each pass through the layer moves a shortest-path search one step further, so a bigger maze needs more passes rather than more weights. The same weights solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes. We call this approach *looped weight-space programming*. Claude used it to write transformers for other hard tasks too, from Sudoku-Extreme to a 20-disk Tower of Hanoi. Each of them scores 100% on its test problems.
+The transformer is a single block with 19,936 weights. What lets it solve mazes this hard is a loop. Each pass through the block moves a shortest-path search one step further, so a bigger maze needs more passes rather than more weights. The same weights solve 100% of the mazes we generated at 60×60 and at 100×100, even though Claude tested the transformer only on 30×30 mazes. We call this approach *looped weight-space programming*. Claude used it to write transformers for other hard tasks too, from Sudoku-Extreme to a 20-disk Tower of Hanoi. Each of them scores 100% on its test problems.
 
 ## Results
 
