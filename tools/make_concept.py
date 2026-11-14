@@ -2,7 +2,7 @@
 
 Usage: python3 -I make_concept.py <out.html>   (writes an inline <figure> with an <svg>)
 """
-import random, sys
+import math, random, sys
 from collections import deque
 
 NAVY, GOLD, INK, MUTED, LINE, SOFT, WALL, RED = "#154677", "#8a6a1f", "#1d1d1f", "#5f6368", "#d7d9dd", "#f6f6f7", "#3b4048", "#c0392b"
@@ -79,8 +79,65 @@ def maze(ox, oy, path, color, crash=None, solved=False):
     return "".join(out)
 
 
+
+ORANGE, ORANGE_D, DARK = "#d97757", "#b85f42", "#2b1d16"
+
+
+def spark(cx, cy, r=40, seed=3):
+    """A Claude-style orange spark (an original mascot body, not Anthropic's logo)."""
+    rr = random.Random(seed)
+    out = []
+    n = 11
+    for i in range(n):
+        a = math.radians(i * 360 / n + rr.uniform(-6, 6) - 90)
+        L = r * rr.uniform(0.82, 1.0)
+        out.append(f'<line x1="{cx:.1f}" y1="{cy:.1f}" x2="{cx + L * math.cos(a):.1f}" y2="{cy + L * math.sin(a):.1f}" '
+                   f'stroke="{ORANGE}" stroke-width="{r * 0.3:.1f}" stroke-linecap="round"/>')
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="{r * 0.5:.1f}" fill="{ORANGE}"/>')
+    return "".join(out)
+
+
+def claude_dumb(cx, cy):
+    """The Claude that tries to solve the maze itself: googly eyes, tongue out, sweating, confused."""
+    o = [spark(cx, cy, 40, seed=3)]
+    o.append(f'<circle cx="{cx - 9}" cy="{cy - 3}" r="7" fill="#fff" stroke="{DARK}" stroke-width="1.6"/>')
+    o.append(f'<circle cx="{cx - 12.5}" cy="{cy + 0.5}" r="3" fill="{DARK}"/>')
+    o.append(f'<circle cx="{cx + 9}" cy="{cy - 6}" r="4.6" fill="#fff" stroke="{DARK}" stroke-width="1.6"/>')
+    o.append(f'<circle cx="{cx + 10.5}" cy="{cy - 8}" r="2" fill="{DARK}"/>')
+    o.append(f'<path d="M{cx - 9},{cy + 8} Q{cx},{cy + 6} {cx + 9},{cy + 10}" fill="none" stroke="{DARK}" stroke-width="2.4" stroke-linecap="round"/>')
+    o.append(f'<path d="M{cx + 1},{cy + 9} q2,9 7,5 q2,-3 -1,-6 z" fill="#e8798f" stroke="{DARK}" stroke-width="1.2"/>')
+    o.append(f'<path d="M{cx + 30},{cy - 26} q-6,9 0,13 q6,-4 0,-13 z" fill="#8fc8ea"/>')
+    for (dx, dy, fs, rot) in ((40, -34, 26, 12), (54, -6, 18, -10), (-50, -36, 20, -14)):
+        o.append(f'<text x="{cx + dx}" y="{cy + dy}" font-size="{fs}" font-weight="800" fill="{ORANGE_D}" '
+                 f'transform="rotate({rot} {cx + dx} {cy + dy})" class="cx-q">?</text>')
+    o.append(f'<text x="{cx}" y="{cy + 64}" text-anchor="middle" class="cx-name">Claude</text>')
+    return "".join(o)
+
+
+def claude_villain(cx, cy):
+    """The Claude that writes the weights: a scheming mastermind with a monocle."""
+    o = [spark(cx, cy, 40, seed=8)]
+    o.append(f'<line x1="{cx - 17}" y1="{cy - 14}" x2="{cx - 4}" y2="{cy - 8}" stroke="{DARK}" stroke-width="3.4" stroke-linecap="round"/>')
+    o.append(f'<line x1="{cx + 17}" y1="{cy - 14}" x2="{cx + 4}" y2="{cy - 8}" stroke="{DARK}" stroke-width="3.4" stroke-linecap="round"/>')
+    for ex in (-9, 9):
+        o.append(f'<ellipse cx="{cx + ex}" cy="{cy - 1}" rx="5.2" ry="3.6" fill="#fff" stroke="{DARK}" stroke-width="1.4"/>')
+        o.append(f'<circle cx="{cx + ex + 1.5}" cy="{cy}" r="2.1" fill="{DARK}"/>')
+    o.append(f'<circle cx="{cx + 9}" cy="{cy - 1}" r="8" fill="none" stroke="{DARK}" stroke-width="1.6"/>')
+    o.append(f'<path d="M{cx + 16},{cy + 3} q8,8 2,20" fill="none" stroke="{DARK}" stroke-width="1" stroke-dasharray="1.5 2"/>')
+    o.append(f'<path d="M{cx - 9},{cy + 9} Q{cx + 1},{cy + 15} {cx + 11},{cy + 6}" fill="none" stroke="{DARK}" stroke-width="2.6" stroke-linecap="round"/>')
+    o.append(f'<path d="M{cx + 11},{cy + 6} l3,-3" stroke="{DARK}" stroke-width="2.6" stroke-linecap="round"/>')
+    o.append(f'<text x="{cx + 52}" y="{cy + 5}" class="cx-name">Claude</text>')
+    return "".join(o)
+
+
+def glove(hx, hy):
+    """A white cartoon glove gripping the control bar at (hx, hy)."""
+    return (f'<rect x="{hx - 14}" y="{hy - 13}" width="28" height="20" rx="9" fill="#fff" stroke="{DARK}" stroke-width="1.8"/>'
+            f'<path d="M{hx - 5},{hy - 12} v9 M{hx + 2},{hy - 12} v9 M{hx + 9},{hy - 11} v8" stroke="{DARK}" stroke-width="1.3" stroke-linecap="round"/>'
+            f'<rect x="{hx - 10}" y="{hy - 20}" width="20" height="8" rx="3" fill="#fff" stroke="{DARK}" stroke-width="1.6"/>')
+
 def claude(cx, cy, side="below"):
-    """A generic gold 'mind' (not Anthropic's logo): a circle with three thinking dots."""
+    """Plain gold 'mind' icon, no longer used: a circle with three thinking dots."""
     lab = (f'<text x="{cx}" y="{cy + 56}" text-anchor="middle" class="cx-name">Claude</text>' if side == "below" else
            f'<text x="{cx + 46}" y="{cy + 5}" class="cx-name">Claude</text>')
     return (f'<circle cx="{cx}" cy="{cy}" r="34" fill="{GOLD}"/>'
@@ -102,17 +159,18 @@ parts = [f'<rect x="0" y="0" width="{PW}" height="{H}" rx="18" fill="{SOFT}"/>',
 
 # panel A
 ca = (110, 140)
-parts.append(claude(*ca))
+parts.append(claude_dumb(*ca))
 parts.append(f'<path d="M{ca[0] + 40},{ca[1] - 6} C{ca[0] + 95},{ca[1] - 30} {mx_a - 50},{my - 20} {mx_a - 10},{my + 20}" fill="none" stroke="{GOLD}" stroke-width="2.5" stroke-dasharray="2 7" stroke-linecap="round"/>')
 parts.append(maze(mx_a, my, wrong, GOLD, crash=wall))
 parts.append(outcome(30, 376, "13 / 50", GOLD))
 
 # panel B: Claude holds a control bar; strings run to the weight grid; the looped network solves the maze
 cb = (PW + 20 + 110, 104)
-parts.append(claude(*cb, side="right"))
+parts.append(claude_villain(*cb))
 bar_y, bx0, bx1 = 166, cb[0] - 70, cb[0] + 70
-parts.append(f'<line x1="{cb[0]}" y1="{cb[1] + 34}" x2="{cb[0]}" y2="{bar_y}" stroke="{GOLD}" stroke-width="3" stroke-linecap="round"/>')
+parts.append(f'<path d="M{cb[0] - 6},{cb[1] + 30} C{cb[0] - 30},{cb[1] + 44} {cb[0] - 22},{bar_y - 34} {cb[0]},{bar_y - 20}" fill="none" stroke="{ORANGE}" stroke-width="7" stroke-linecap="round"/>')
 parts.append(f'<line x1="{bx0}" y1="{bar_y}" x2="{bx1}" y2="{bar_y}" stroke="{GOLD}" stroke-width="5" stroke-linecap="round"/>')
+parts.append(glove(cb[0], bar_y + 2))
 gx0, gy0, gc, gr, gs = cb[0] - 76, 200, 8, 4, 19
 for i in range(gc):
     sx = bx0 + (bx1 - bx0) * i / (gc - 1)
@@ -134,8 +192,8 @@ parts.append(f'<path d="M{lx + 6},{ly - 10} L{lx + 10},{ly - 6} L{lx + 14},{ly -
 parts.append(maze(mx_b, my, good, NAVY, solved=True))
 parts.append(outcome(PW + 48, 376, "1,000 / 1,000", NAVY))
 
-svg = (f'<svg class="concept-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Two panels. On the left, Claude is asked to solve a maze '
-       f'itself, draws a path that goes wrong and cuts through a wall, and solves 13 of 50 test mazes. On the right, Claude holds a '
+svg = (f'<svg class="concept-svg" viewBox="0 0 {W} {H}" role="img" aria-label="Two panels. On the left, a confused cartoon Claude is asked to solve a maze '
+       f'itself, draws a path that goes wrong and cuts through a wall, and solves 13 of 50 test mazes. On the right, a scheming cartoon Claude holds a '
        f'control bar whose strings set the weights of a small network, which loops and finds the right path, solving all 1,000 test mazes.">'
        + "".join(parts) + "</svg>")
 html = ('<figure class="concept">\n  ' + svg + '\n  <figcaption>When Claude solves a maze itself, it often goes wrong. When it writes '
