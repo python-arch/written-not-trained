@@ -16,11 +16,12 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import random
 import subprocess
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from make_hero import (BG, MP4, SS, WEBM, clamp, font, mix, smooth, text_fixed)  # noqa: E402
@@ -38,13 +39,13 @@ FPS = 60
 WALL = (52, 56, 63)
 WAVE_OLD = (205, 226, 251)                           # blue ramp #cde2fb: cells the wave reached a while ago
 WAVE_NEW = (109, 167, 236)                           # blue ramp #6da7ec: cells it just reached
-FORMATS = {"wide": (1280, 720), "tall": (720, 850)}
+FORMATS = {"wide": (1280, 720), "tall": (720, 960)}
 
 # timeline (seconds). The opening is slow so each stage can be read; then the loops speed up.
 T_LOOP = 0.45
-W_STAGE = 2.4                                        # each banner stage is up this long (2 s fully visible)
-T_PASS1 = 2 * W_STAGE                                # the first pass starts after stages 1 and 2
-T_WAVE0 = 5 * W_STAGE                                # the wave starts after the first pass (stages 3 to 5)
+W_STAGE = 2.4                                        # the timing unit for the opening and the banner stages
+T_PASS1 = 2 * W_STAGE                                # the first pass starts here (during banner stage 1)
+T_WAVE0 = 5 * W_STAGE                                # the wave starts after the first pass (end of banner stage 2)
 
 
 class Timeline:
@@ -103,19 +104,14 @@ class Timeline:
         return float(self.R)
 
     def stages(self):
-        """(text, part it describes, start, end). One at a time in the banner."""
+        """(text, part it describes, start, end). One at a time in the banner: the five most important steps."""
         w = W_STAGE
         t2, t3, t4 = self.t2, self.t3, self.t4
         return [
-            ("Each maze cell becomes one token, 900 in all", "input", 0.0, w),
-            ("Each token holds 35 numbers", "embed", w, 2 * w),
-            ("Attention lets each cell read its four neighbours", "attn", 2 * w, 3 * w),
-            ("Neurons update each cell's distance, pointer and path", "mlp", 3 * w, 4 * w),
-            ("The same block runs again, loop after loop", "loop", 4 * w, 5 * w),
-            ("A wave of distances spreads out from the goal", "maze_goal", t2, t3),
-            (f"The wave reaches the start at loop {self.D}", "maze_start", t3, t3 + w),
-            ("The path grows from the start back to the goal", "maze", t3 + w, t4),
-            (f"Path complete at loop {self.done}", "readout", t4, t4 + w),
+            ("Attention lets each cell read its four neighbours", "attn", 0.0, 2.5 * w),
+            ("The same block runs again, loop after loop", "loop", 2.5 * w, 5 * w),
+            ("A wave of distances spreads out from the goal", "maze_goal", t2, t3 + w),
+            ("The path grows from the start back to the goal", "maze", t3 + w, t4 + w),
             (f"Extra loops leave the answer unchanged, up to loop {self.R:,}", "count", t4 + w, self.length - T_LOOP - 0.05),
         ]
 
@@ -125,37 +121,120 @@ ACCENT_SOFT = (253, 241, 235)
 CAP = 1.0                                           # passes per second shown at most: the pulse never strobes
 GROUPS = [6, 24, 8, 8, 40]                          # MLP neurons by job: wave, pointer, pointer clear, chain, clean-up
 # One colour per banner stage, from the palette's text shades: blue #1c5cab, aqua #0f7d56, yellow #a87200, orange #c4471a.
-# Orange (the path) is kept for the stage where the path grows; neighbouring stages differ.
+# Orange (the path) is kept for the stage where the path grows, blue for the wave; neighbouring stages differ, and the
+# loop stage avoids yellow, which would not stand out on the orange loop arrow.
 _B, _A, _Y, _O = (28, 92, 171), (15, 125, 86), (168, 114, 0), (196, 71, 26)
-STAGE_COLORS = [_B, _A, _Y, _B, _A, _B, _Y, _O, _A, _Y]
+STAGE_COLORS = [_Y, _A, _B, _O, _A]
 BANNER = {"wide": dict(x=40, y=26, r=21, size=26, lead=35, maxw=520),
           "tall": dict(x=24, y=18, r=20, size=24, lead=32, maxw=620)}
 
 # Every position is in output pixels. "flow" is the direction data moves through the diagram.
 LAYOUT = {
     "wide": dict(
-        flow="up", cx=270, fs=dict(lab=19, small=16, box=19, count=22, of=16),
+        flow="down", cx=270, fs=dict(lab=19, small=16, box=19, count=22, of=16),
         maze=(640, 52, 20.5),
-        cells=(135, 646, 18, 5), cells_label=(270, 694),
-        embed=(190, 570, 350, 610), embed_note=(362, 597),
-        block=(70, 260, 470, 500), tag=(88, 286),
-        mlp_label=316, dots=(336, 350, 8), attn_label=404, heads=(420, 40, 14),
-        readout=(195, 150, 345, 190),
-        io=(535, 225), loop_x=494, count=(506, 372),
-        out=[(345, 170), (626, 170)],
+        cells=(135, 190, 18, 5), cells_label=(417, 205),
+        embed=(190, 262, 350, 300), embed_note=(362, 287),
+        block=(70, 400, 470, 570), tag=(88, 426),
+        attn_label=430, heads=(440, 40, 14), mlp_label=518, dots=(534, 548, 8),
+        readout=(195, 600, 345, 638),
+        io=(382, 585), loop_x=494, count=(506, 495),
+        out=[(345, 619), (626, 619)],
+        # the thought bubble (stages 3 and 4): zone it covers, cloud (cx, cy, R, bump), close-up (x, y, cell),
+        # trail circles (x, y, r), note (x, y, size, lines, tilt), swirl (from, to, loops)
+        zone=(0, 120, 636, 376), bubble=(245, 258, 100, 10), zoom=(153, 166, 23),
+        trail=[(114, 392, 4.5), (129, 378, 7.5)],
+        note=(512, 342, 38, ["loop imagination"], -4), swirl=((470, 310), (364, 240), 1),
+        digit=13, arrow=(2.3, 6.8, 2.9), corner=8,
     ),
     "tall": dict(
         flow="down", cx=340, fs=dict(lab=20, small=17, box=20, count=24, of=17),
-        maze=(160, 440, 400 / 30),
-        cells=(216, 112, 16, 5), cells_label=(476, 126),
-        embed=(265, 150, 415, 182), embed_note=(428, 172),
-        block=(140, 206, 540, 362), tag=(156, 232),
-        attn_label=232, heads=(242, 32, 12), mlp_label=302, dots=(318, 332, 8),
-        readout=(275, 384, 405, 414),
-        io=(194, 374), loop_x=562, count=(580, 290),
-        out=[(340, 414), (340, 436)],
+        maze=(160, 546, 400 / 30),
+        cells=(216, 170, 16, 5), cells_label=(476, 184),
+        embed=(265, 222, 415, 254), embed_note=(428, 244),
+        block=(140, 336, 540, 470), tag=(156, 360),
+        attn_label=360, heads=(368, 32, 12), mlp_label=424, dots=(440, 452, 8),
+        readout=(275, 494, 405, 522),
+        io=(320, 482), loop_x=562, count=(580, 420),
+        out=[(340, 522), (340, 542)],
+        zone=(0, 76, 720, 316), bubble=(236, 204, 104, 10), zoom=(140, 108, 24),
+        trail=[(146, 330, 4.5), (157, 318, 7)],
+        note=(524, 284, 36, ["loop imagination"], -4), swirl=((474, 254), (362, 192), 1),
+        digit=13.5, arrow=(2.4, 7, 3), corner=8.5,
     ),
 }
+
+# ---- the thought bubble: what the block works out near the goal, loop by loop (from maze_inside_trace.json)
+ROWS, COLS = range(10, 18), range(3, 11)            # the close-up: 8 x 8 cells around the goal
+DIRS = {"D": (1, 0), "L": (0, -1), "R": (0, 1), "U": (-1, 0)}
+MARK = (237, 161, 0)                                # yellow #eda100: the close-up frame and the focus box on the maze
+NOTE_INK = (196, 71, 26)                            # dark orange #c4471a: the handwritten note and its arrow
+BUBBLE_FILL = (253, 241, 235)                       # the block's orange tint
+BUBBLE_LINE = (241, 160, 128)                       # a light orange pen
+CLOSE_GRID = (228, 227, 221)
+CAVEAT = HERE / "fonts" / "Caveat-Variable.ttf"     # SIL Open Font License, fonts/Caveat-OFL.txt
+
+
+def swirl_points(p0, p1, loops, N=260):
+    """A loop-de-loop from p0 to p1: a prolate cycloid laid along the line between them."""
+    (x0, y0), (x1, y1) = p0, p1
+    L = math.hypot(x1 - x0, y1 - y0)
+    ux, uy = (x1 - x0) / L, (y1 - y0) / L
+    nx, ny = -uy, ux
+    a = L / (2 * math.pi * loops)
+    b = 1.75 * a
+    t0, t1 = math.pi, math.pi + 2 * math.pi * loops
+    pts = []
+    for i in range(N + 1):
+        t = t0 + (t1 - t0) * i / N
+        along = a * (t - t0) - b * (math.sin(t) - math.sin(t0))
+        side = -b * (math.cos(t) - math.cos(t0))
+        pts.append((x0 + ux * along + nx * side, y0 + uy * along + ny * side))
+    return pts
+
+
+def jitter(pts, amp, seed, closed=True):
+    """Move each point along its normal by a smooth random amount (fixed seed: the same wobble every frame)."""
+    rnd = random.Random(seed)
+    n = len(pts)
+    K = max(3, n // 22)
+    ctrl = [rnd.uniform(-amp, amp) for _ in range(n // K + 3)]
+    out = []
+    for i, (x, y) in enumerate(pts):
+        j = i / K
+        j0, f = int(j), j - int(j)
+        f = f * f * (3 - 2 * f)
+        off = ctrl[j0] * (1 - f) + ctrl[j0 + 1] * f
+        xa, ya = pts[i - 1] if (i > 0 or closed) else pts[i]
+        xb, yb = pts[(i + 1) % n] if (closed or i + 1 < n) else pts[i]
+        dx, dy = xb - xa, yb - ya
+        L = math.hypot(dx, dy) or 1.0
+        out.append((x - dy / L * off, y + dx / L * off))
+    return out
+
+
+def sketch(dr, pts, col, width, amp, seed, closed=True):
+    """Two pen strokes, each with its own wobble; closed shapes overshoot their start a little."""
+    for pass_ in range(2):
+        q = jitter(pts, amp, seed * 7 + pass_, closed)
+        if closed:
+            q = q + q[: max(2, len(q) // 30)]
+        dr.line(q, fill=col, width=width, joint="curve")
+
+
+def cloud_points(cx, cy, R, A, N=480):
+    """A scalloped cloud around a squircle, so it hugs the square close-up."""
+    pts = []
+    for i in range(N):
+        th = 2 * math.pi * i / N
+        c, s_ = math.cos(th), math.sin(th)
+        r = R * (abs(c) ** 8 + abs(s_) ** 8) ** (-1 / 8) + A * abs(math.sin(6 * th))
+        pts.append((cx + r * c, cy + r * s_))
+    return pts
+
+
+def circle_points(cx, cy, r, N=72):
+    return [(cx + r * math.cos(2 * math.pi * i / N), cy + r * math.sin(2 * math.pi * i / N)) for i in range(N)]
 
 
 def wrap(dr, text, f, maxw):
@@ -216,7 +295,16 @@ class Scene:
         fs = g["fs"]
         self.f = dict(lab=font("Regular", fs["lab"] * k), small=font("Regular", fs["small"] * k),
                       box=font("SemiBold", fs["box"] * k), count=font("SemiBold", fs["count"] * k),
-                      of=font("Regular", fs["of"] * k), letter=font("Bold", 12 * k))
+                      of=font("Regular", fs["of"] * k), letter=font("Bold", 12 * k),
+                      digit=font("SemiBold", g["digit"] * k), corner=font("Bold", g["corner"] * k))
+        # the thought bubble: the real per-loop state of the cells near the goal
+        self.ins = json.loads((HERE / "maze_inside_trace.json").read_text())
+        assert self.ins["question"] == tr["question"] and self.ins["reach_loop"] == tr["reach_loop"]
+        self.cloud = self.make_cloud()
+        self.note = self.make_note()
+        sw = g["swirl"]
+        base = [(x * k, y * k) for x, y in swirl_points(sw[0], sw[1], sw[2])]
+        self.swirl = [jitter(base, 1.1 * k, seed=70 + j, closed=False) for j in range(2)]
         # the loop: the block's input, through the block, out, and back round to the input
         cx = g["cx"]
         bx0, by0, bx1, by1 = g["block"]
@@ -505,6 +593,149 @@ class Scene:
         if moving and not inside:
             self.dot(dr, self.cycle.at(u), 0.55 + 0.45 * quiet)
 
+    # ------------------------------------------------------------------ the thought bubble (stages 3 and 4)
+    def bubble_alpha(self, t):
+        """(input fade, bubble) between 0 and 1. In with stage 3 (the wave), out with the end of stage 4 (the path).
+        The input strip and embed fade out first and the bubble fades in after, so the two never show at once."""
+        st = self.tl.stages()
+        a, b = st[2][2], st[3][3]
+        hide = smooth(clamp((t - a) / 0.3)) * (1 - smooth(clamp((t - (b - 0.3)) / 0.3)))
+        show = smooth(clamp((t - a - 0.3) / 0.4)) * (1 - smooth(clamp((t - (b - 0.75)) / 0.4)))
+        return hide, show
+
+    def make_cloud(self):
+        k, g = SS, self.g
+        layer = Image.new("RGBA", (self.W, self.H), (0, 0, 0, 0))
+        dr = ImageDraw.Draw(layer)
+        cx, cy, R, A = g["bubble"]
+        base = [(x * k, y * k) for x, y in cloud_points(cx, cy, R, A)]
+        dr.polygon(base, fill=BUBBLE_FILL + (255,))
+        sketch(dr, base, BUBBLE_LINE + (255,), round(2.0 * k), 2.2 * k, seed=11)
+        for j, (x, y, r) in enumerate(g["trail"]):
+            pts = [(px * k, py * k) for px, py in circle_points(x, y, r)]
+            dr.polygon(pts, fill=BUBBLE_FILL + (255,))
+            sketch(dr, pts, BUBBLE_LINE + (255,), round(1.8 * k), 0.9 * k, seed=20 + j)
+        return layer
+
+    def make_note(self):
+        """'loop imagination', handwritten in dark orange, slightly tilted."""
+        k, g = SS, self.g
+        x, y, size, lines, rot = g["note"]
+        f = ImageFont.truetype(str(CAVEAT), int(size * k))
+        f.set_variation_by_axes([650])
+        tmp = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
+        lead = size * 1.0 * k
+        w = int(max(tmp.textlength(l, font=f) for l in lines) + 20 * k)
+        h = int(lead * len(lines) + 24 * k)
+        layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(layer)
+        for j, line in enumerate(lines):
+            d.text((w / 2, 10 * k + lead * (j + 0.5)), line, font=f, fill=NOTE_INK + (255,), anchor="mm")
+        layer = layer.rotate(-rot, resample=Image.BICUBIC, expand=True)
+        return layer, (int(x * k - layer.width / 2), int(y * k - layer.height / 2))
+
+    def cell_state(self, i, L):
+        """(fill colour, digit shown 0..1, arrow shown 0..1, path 0..1) of cell i at loop L, from the trace."""
+        tr = self.ins
+        if self.q[i] == "#":
+            return WALL, 0.0, 0.0, 0.0
+        col, grow, arrow, path = BG, 0.0, 0.0, 0.0
+        rl = tr["reach_loop"][i]
+        if rl >= 0:
+            grow = clamp(L - (rl - 1)) if rl > 0 else 1.0
+            col = mix(BG, mix(WAVE_NEW, WAVE_OLD, clamp((L - rl) / 10)), grow)
+        sl = tr["step_loop"][i]
+        if sl >= 0:
+            arrow = clamp(L - (sl - 1))
+        ol = tr["on_loop"][i]
+        if ol >= 0:
+            path = clamp(L - (ol - 1)) if ol > 0 else 1.0
+            col = mix(col, ACCENT, path)
+        return col, grow, arrow, path
+
+    def zbox(self, r, c):
+        x, y, s = (v * SS for v in self.g["zoom"])
+        x0, y0 = x + (c - COLS[0]) * s, y + (r - ROWS[0]) * s
+        return x0, y0, x0 + s, y0 + s
+
+    def draw_zoom(self, dr, L):
+        """The close-up: distance counted in threes, each cell's next step, and the path, as the block holds them."""
+        k, s = SS, self.g["zoom"][2] * SS
+        a_tip, a_base, a_half = (v * k for v in self.g["arrow"])
+        for r in ROWS:
+            for c in COLS:
+                dr.rectangle(self.zbox(r, c), fill=self.cell_state(r * self.side + c, L)[0] + (255,))
+        x0, y0, _, _ = self.zbox(ROWS[0], COLS[0])
+        _, _, x1, y1 = self.zbox(ROWS[-1], COLS[-1])
+        for j in range(len(COLS) + 1):
+            dr.line([(x0 + j * s, y0), (x0 + j * s, y1)], fill=CLOSE_GRID + (255,), width=max(1, k))
+        for j in range(len(ROWS) + 1):
+            dr.line([(x0, y0 + j * s), (x1, y0 + j * s)], fill=CLOSE_GRID + (255,), width=max(1, k))
+        for r in ROWS:
+            for c in COLS:
+                i = r * self.side + c
+                if self.q[i] == "#":
+                    continue
+                bx0, by0, bx1, by1 = box = self.zbox(r, c)
+                col, grow, arrow, path = self.cell_state(i, L)
+                cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2 - 1.5 * k
+                ink = mix(FG, BG, path)
+                if grow > 0.01:
+                    dr.text((cx, cy), str(self.ins["phase"][i]), font=self.f["digit"], fill=mix(col, ink, grow) + (255,),
+                            anchor="mm")
+                if arrow > 0.01:
+                    dy, dx = DIRS[self.ins["step"][i]]
+                    ccy = (by0 + by1) / 2
+                    tip = (cx + dx * (s / 2 - a_tip), ccy + dy * (s / 2 - a_tip))
+                    base = (cx + dx * (s / 2 - a_base), ccy + dy * (s / 2 - a_base))
+                    px, py = -dy * a_half, dx * a_half
+                    dr.polygon([tip, (base[0] + px, base[1] + py), (base[0] - px, base[1] - py)],
+                               fill=mix(col, mix(MUTED, BG, path), arrow) + (255,))
+                if i == self.ins["goal"]:
+                    dr.text((bx0 + 2 * k, by0 + 1 * k), "G", font=self.f["corner"], fill=ink + (255,), anchor="lt")
+                    dr.rectangle(box, outline=FG + (255,), width=2 * k)
+        dr.rectangle((x0 - k, y0 - k, x1 + k, y1 + k), outline=MARK + (255,), width=3 * k)
+
+    def draw_bubble(self, img, t, L):
+        """The block's thoughts: a bubble with the close-up, the note and its swirl, and a focus box on the maze."""
+        hide, a = self.bubble_alpha(t)
+        if hide < 0.005:
+            return img
+        k = SS
+        base = img.convert("RGBA")
+        zone = tuple(int(v * k) for v in self.g["zone"])               # the input strip and embed fade out
+        region = base.crop(zone)
+        base.paste(Image.blend(region, Image.new("RGBA", region.size, BG + (255,)), hide), zone[:2])
+        if a < 0.005:
+            return base.convert("RGB")
+        over = self.cloud.copy()
+        dr = ImageDraw.Draw(over)
+        self.draw_zoom(dr, L)
+        note, (nx, ny) = self.note
+        over.alpha_composite(note, (nx, ny))
+        st = self.tl.stages()
+        u = smooth(clamp((t - (st[2][2] + 0.5)) / 1.1))          # the swirl is written on after the bubble appears
+        if u > 0:
+            for pts in self.swirl:
+                n = max(2, int(len(pts) * u))
+                dr.line(pts[:n], fill=NOTE_INK + (255,), width=round(2.2 * k), joint="curve")
+            if u >= 0.98:
+                pts = self.swirl[0]
+                (xa, ya), (xb, yb) = pts[-6], pts[-1]
+                ang = math.atan2(yb - ya, xb - xa)
+                for side in (-1, 1):
+                    q = ang + math.pi + side * 0.5
+                    dr.line([(xb, yb), (xb + 11 * k * math.cos(q), yb + 11 * k * math.sin(q))], fill=NOTE_INK + (255,),
+                            width=round(2.2 * k))
+        n = self.side                                              # the focus box on the maze
+        fx0, fy0 = self.gx + COLS[0] * self.cell, self.gy + ROWS[0] * self.cell
+        fx1, fy1 = self.gx + (COLS[-1] + 1) * self.cell, self.gy + (ROWS[-1] + 1) * self.cell
+        dr.rectangle((fx0 - k, fy0 - k, fx1 + k, fy1 + k), outline=MARK + (255,), width=round(2.5 * k))
+        if a < 0.999:
+            over.putalpha(over.getchannel("A").point(lambda v: int(v * a)))
+        base.alpha_composite(over)
+        return base.convert("RGB")
+
     def dot(self, dr, p, a):
         k = SS
         x, y = p
@@ -519,6 +750,7 @@ class Scene:
         hl = (st[2], st[3], st[4]) if st else None
         self.draw_grid(dr, L, hl)
         self.draw_arch(dr, t, L, hl)
+        img = self.draw_bubble(img, t, L)
         img = self.draw_banner(img, st)
         return img.reduce(SS)
 
