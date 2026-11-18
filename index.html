@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hand-Written Looped Transformers That Beat Their Author</title>
+<title>Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning</title>
 <meta name="description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta name="author" content="Abdelrahman Elsayed, Ahmed Heakl, Abdelrahman Shaker, Fahad Khan, Salman Khan, Claude Opus 5.5">
 <meta name="color-scheme" content="light">
@@ -11,8 +11,8 @@
 <link rel="canonical" href="https://python-arch.github.io/written-not-trained/">
 
 <meta property="og:type" content="article">
-<meta property="og:site_name" content="Hand-Written Looped Transformers That Beat Their Author">
-<meta property="og:title" content="Hand-Written Looped Transformers That Beat Their Author">
+<meta property="og:site_name" content="Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning">
+<meta property="og:title" content="Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning">
 <meta property="og:description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta property="og:url" content="https://python-arch.github.io/written-not-trained/">
 <meta property="og:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
@@ -20,7 +20,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi with 20 disks, 1,048,575 moves and zero mistakes.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Hand-Written Looped Transformers That Beat Their Author">
+<meta name="twitter:title" content="Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning">
 <meta name="twitter:description" content="Claude solves 26% of hard mazes when asked directly. When asked instead to set every weight of a small looped transformer, it wrote one that solves 100% of the test mazes, with no training.">
 <meta name="twitter:image" content="https://python-arch.github.io/written-not-trained/figures/social.png">
 <meta name="twitter:image:alt" content="Written, Not Trained. Claude hand-wrote a tiny transformer that beats Claude at mazes. Tower of Hanoi with 20 disks, 1,048,575 moves and zero mistakes.">
@@ -128,6 +128,14 @@
   @media (max-width: 639px) { h2 { font-size: 1.62rem; margin-top: 60px; } h3 { font-size: 1.22rem; } }
   .eyebrow { margin: 44px 0 0; }
   p { margin: 0 0 16px; }
+  /* Printing (e.g. to PDF): keep headings with their text and keep lists, figures and tables in one piece. */
+  @media print {
+    h1, h2, h3, figcaption { break-after: avoid; page-break-after: avoid; }
+    h2, h3 { break-before: auto; }
+    figure, .fig-pair, .table-wrap, table, .findings, .findings li, .epigraph { break-inside: avoid; page-break-inside: avoid; }
+    p { orphans: 3; widows: 3; }
+    h2::after, .epigraph::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
   /* Epigraph at the top of the post. */
   .epigraph { position: relative; max-width: 760px; margin: 34px auto 42px; padding: 6px 0 0 64px; }
   .epigraph::before { content: "\201C"; position: absolute; left: 0; top: -22px; font-family: var(--serif); font-size: 6.4rem; line-height: 1; color: #eb6834; }
@@ -238,8 +246,8 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Looped weight-space programming</div>
-    <h1>Hand-Written Looped Transformers That Beat Their Author<span class="claim">Claude set every weight of a small looped transformer by hand, with no training. That transformer solves 100% of the test mazes in <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, while Claude solves only 26% when asked for the paths directly.</span></h1>
+    <div class="kicker"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#154677"/><path d="M19 13h10v28h16v10H19z" fill="#fff"/></svg>Research blog</div>
+    <h1>Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning<span class="claim">Claude set every weight of a small looped transformer by hand, with no training. That transformer solves 100% of the test mazes in <a href="https://huggingface.co/datasets/sapientinc/maze-30x30-hard-1k">Maze-Hard</a>, while Claude solves only 26% when asked for the paths directly.</span></h1>
     <div class="meta">
       <div><b class="label">Authors</b><a href="https://python-arch.github.io/">Abdelrahman Elsayed</a>*, <a href="https://ahmedheakl.github.io/">Ahmed Heakl</a>*, <a href="https://amshaker.github.io/">Abdelrahman Shaker</a>, <a href="https://sites.google.com/view/fahadkhans">Fahad Khan</a>, <a href="https://salman-h-khan.github.io/">Salman Khan</a>, <a href="https://www.anthropic.com/claude">Claude Opus 5.5</a><span class="eq">* Equal contribution</span></div>
       <div><b class="label">Affiliation</b><a class="aff" href="https://mbzuai.ac.ae/"><img src="figures/mbzuai_logo.svg" width="124" height="35" alt="MBZUAI, Mohamed bin Zayed University of Artificial Intelligence"></a></div>
@@ -406,7 +414,7 @@
 </figure>
 </div>
 
-<p>The written transformer tops the chart. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written transformer needed no training at all. The written transformer also holds up under the stricter scoring of the HRM and TRM papers, where only the path marked in the dataset counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM.</p>
+<p>The written transformer tops the chart. Frontier LLMs trail far behind, with none of the three that Davis et al. tested solving more than 26%. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, a training set and a search at answer time, whereas the written transformer needed no gradient training. The written transformer also holds up under the stricter scoring of the HRM and TRM papers, where only the path marked in the dataset counts. It still scores 100% there, while those papers report 74.5% for HRM and 85.3% for TRM.</p>
 
 <details>
   <summary>Accuracy against size, stricter scoring, TRM's three scores, and a re-run check</summary>
@@ -693,7 +701,7 @@
 
 <p>We plan to study multitask composition and training initialized from constructed weights. The first is a single transformer for many tasks, in which the modules from this post live side by side while a hand-written router sends each input to the right one. The second is to use hand-written weights as a starting point for training. If training starts from a looped solution that already scores 100%, will it keep the ability to handle bigger inputs, or wash it out?</p>
 
-<p>More broadly, our results suggest that for some problems, what holds small models back is not their size but finding the right weights. An LLM that cannot solve a problem directly may still write a transformer that does.</p>
+<p>More broadly, our results suggest that for algorithmic tasks with a known procedure, what holds small models back is not their size but finding the right weights. An LLM that cannot solve a problem directly may still write a transformer that does.</p>
 
 <h2 id="code">Weights and demo</h2>
 <p><a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Maze-Hard transformer in your browser</a> on real test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
@@ -705,7 +713,7 @@
 <h2 id="citation">Citation</h2>
 <p>If you use this work, please cite it as follows.</p>
 <pre>@misc{elsayed2026written,
-  title        = {{Hand-Written Looped Transformers That Beat Their Author}},
+  title        = {{Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning}},
   author       = {Elsayed, Abdelrahman and Heakl, Ahmed and Shaker, Abdelrahman and Khan, Fahad and Khan, Salman and {Claude Opus 5.5}},
   year         = {2026},
   month        = nov,
