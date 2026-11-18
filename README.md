@@ -1,4 +1,4 @@
-<h1 align="center">Hand-Written Looped Transformers That Beat Their Author</h1>
+<h1 align="center">Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning</h1>
 
 <p align="center">
   <a href="https://python-arch.github.io/">Abdelrahman Elsayed</a>*,
@@ -72,7 +72,7 @@ If you use this work, please cite it as follows.
 
 ```bibtex
 @misc{elsayed2026written,
-  title        = {{Hand-Written Looped Transformers That Beat Their Author}},
+  title        = {{Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning}},
   author       = {Elsayed, Abdelrahman and Heakl, Ahmed and Shaker, Abdelrahman and Khan, Fahad and Khan, Salman and {Claude Opus 5.5}},
   year         = {2026},
   month        = nov,

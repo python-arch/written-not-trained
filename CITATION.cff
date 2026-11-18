@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
-title: "Hand-Written Looped Transformers That Beat Their Author"
+title: "Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning"
 authors:
   - family-names: Elsayed
     given-names: Abdelrahman
@@ -24,7 +24,7 @@ repository-code: "https://github.com/python-arch/written-not-trained"
 license: MIT
 preferred-citation:
   type: blog
-  title: "Hand-Written Looped Transformers That Beat Their Author"
+  title: "Looped Weight-Space Programming: LLM-Written Transformers for Long Algorithmic Reasoning"
   authors:
     - family-names: Elsayed
       given-names: Abdelrahman
