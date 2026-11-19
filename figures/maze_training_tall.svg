@@ -1621,7 +1621,7 @@ z
    </g>
    <g id="data">
     <!-- 100% -->
-    <g style="fill: #c4471a" transform="translate(86.0464 53.258708) scale(0.14042 -0.14042)">
+    <g style="fill: #c4471a" transform="translate(78.6908 53.258708) scale(0.14042 -0.14042)">
      <defs>
       <path id="Inter-Bold-53e" d="M 2341 4656 
 L 2341 0 
@@ -1713,7 +1713,7 @@ z
 " style="stroke: #ffffff"/>
     </defs>
     <g>
-     <use xlink:href="#m104a28ea76" x="72.0464" y="47.150656" style="fill: #eb6834; stroke: #ffffff"/>
+     <use xlink:href="#m104a28ea76" x="64.6908" y="47.150656" style="fill: #eb6834; stroke: #ffffff"/>
     </g>
    </g>
   </g>

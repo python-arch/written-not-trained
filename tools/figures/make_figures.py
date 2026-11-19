@@ -1235,7 +1235,7 @@ TRM_PLACEHOLDER = [(5.5, 79.6), (6.3, 82.1), (7.1, 83.4), (8.0, 85.3)]
 
 def _maze_training(plt, d, tall: bool) -> None:
     """Test mazes solved against hours. The left of the chart (light orange, "Written weights") holds Claude's
-    transformer as one big star at 1 hour and 100%, with no training. The right (light grey, "Gradient-based methods")
+    transformer as one big star at 39 minutes (its final weights) and 100%, with no training. The right (light grey, "Gradient-based methods")
     holds the training runs: TRM, a standard transformer, and the same architecture trained by gradient descent at 0%.
     A legend below the chart names the four series."""
     from matplotlib.lines import Line2D
@@ -1293,8 +1293,8 @@ def _maze_training(plt, d, tall: bool) -> None:
     ax.annotate("0%", xy=(x_gd, 0), xytext=(6, 0), textcoords="offset points", fontsize=label * 1.15,
                 fontweight="bold", color=YELLOW_TEXT, ha="left", va="center", gid="data")
 
-    # The transformer Claude wrote: one big star at 1 hour, 100%, with no training.
-    W_AT = 1.0
+    # The transformer Claude wrote: one big star at 39 minutes, when its final weights were ready, at 100%.
+    W_AT = 39 / 60
     ax.scatter([W_AT], [100], s=520 if tall else 700, marker="*", color=WRITTEN, edgecolor="white", linewidth=1.0,
                zorder=9, clip_on=False, gid="data")
     ax.annotate("100%", xy=(W_AT, 100), xytext=(14, -1), textcoords="offset points", fontsize=big * (0.85 if tall else 1),
