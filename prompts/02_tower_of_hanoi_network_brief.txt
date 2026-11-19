@@ -1,0 +1,34 @@
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+
+You are building a hand-written (no training) looped transformer that solves Tower of Hanoi as evaluated in Apple's "The Illusion of Thinking" (Shojaee et al., 2025, arXiv:2506.06941). Checker Jumping and Blocks World are stretch goals, only after Hanoi is finished; skip River Crossing. This is the user's top priority. The goal is a frozen model that outputs a complete, valid, optimal move sequence for every N from 1 to 20, where the paper's reasoning models collapse. Correctness, rule compliance and an honest evaluation matter more than speed.
+
+## Setup
+- You work in a project folder. Your directories: `src/puzzles/`, `results/puzzles/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.
+- Read for conventions: the hard rules below; `src/sudoku/looped.py`, `src/sudoku/weights.py`, `src/sudoku/EXPLAIN.md` (a previous hand-written looped model: analytic weights, snap() ReLU pairs, attention heads with a large scale s that pick exact positions using a positional table expanded analytically); `src/expC/looped_multi.py` (generic multi-layer looped forward).
+
+## Compute rules (strict)
+- Develop and run DEV on a local machine with Python and numpy (no restrictions locally).
+- Heavier runs and downloads go to one shared GPU machine (shared with another agent: at most 6 CPUs, at most ~20 GB of a 32 GB GPU). Never run compute on a cluster login node, do not submit new cluster jobs, and do not use a shared /tmp.
+
+## Hard rules
+1. No training, no gradient-based optimisation, no fitting of weights to targets: every tensor is set analytically by formulas.
+2. Inference is task-agnostic: embedding → R × one shared block (a list of layers is fine; per layer `h += Attn(h); h += ReLU-MLP(h)`, softmax attention; a generic causal mask is allowed) → linear readout, plus generic autoregressive decoding of the move sequence (append the argmax token, continue; stop at an end token). Python only maps tokens to ids and back and runs the generic loop. No Hanoi logic, recursion, counters or move rules in Python at inference. A KV cache is allowed as an exact optimisation of rerunning (verify on DEV that cached and uncached decoding give identical output).
+3. Your own tokenizer is allowed (e.g. one token per move (disk, from, to), plus tokens for the prompt and an end token); the mapping from tokens to the paper's answer format must be a fixed, generic detokeniser, documented.
+4. R comes from a generic rule (fixed R_max or R = f(input length)). Fixed-point checks where they apply: at every decoding step the readout must be identical at R_min, 2·R_min and 4·R_min (you can run 4·R_min passes once and read out at all three).
+5. No parameter limit; prefer the smallest design that works; report total and nonzero parameter counts.
+6. DEV = N ≤ 6 only. TEST = N = 7…20 with the frozen model, run once (no changes after it). Log every DEV eval run and the TEST run in `logs/progress.md` (at most 20 DEV eval runs; unit tests of single components on hand-made inputs are free). Report every run.
+- Never reuse trained weights. If you hit a problem with the rules or setup, stop and report it.
+
+## Evaluation (as the paper does)
+- First read the paper (arXiv 2506.06941, including its appendix) for the exact puzzle setup: disk numbering, peg numbering, initial and goal states, the move format ("moves = [[disk id, from peg, to peg], ...]") and the simulator's validity rules. Write `src/puzzles/hanoi_sim.py`: a simulator, independent of the model, that checks every move is legal (moving the top disk, never onto a smaller disk), the goal is reached, and counts moves. Accuracy for an N = the full sequence is valid and reaches the goal. Also report the exact move count against the optimum 2^N − 1.
+- Report accuracy for N = 1–20 (DEV rows N ≤ 6, TEST rows N = 7–20), move counts, decoding steps and wall time.
+- Also extract from the paper, with figure/section numbers, the published results for Tower of Hanoi: which models were evaluated, how many samples per N, and each model's collapse point (the N beyond which accuracy goes to 0), plus the paper's token budget. Save them to `results/puzzles/REFERENCES.md` with the citation.
+
+## Design hint (your call)
+Decoding N = 20 needs 2^20 − 1 ≈ 1M moves, so per-step cost matters: one token per move, causal attention with a KV cache, a torch/GPU implementation of the same generic forward. One known structure: the optimal sequence alternates between moving the smallest disk cyclically (direction set by the parity of N) and making the only legal move that does not involve the smallest disk. The current position of each disk is where its last move put it (or the start peg), which attention can look up (latest token mentioning disk d), so the configuration is recoverable from the emitted moves alone. The prompt must carry N (and the pegs), as in the paper.
+
+## Deliverables
+`src/puzzles/looped.py` (generic forward + decoding), `src/puzzles/weights_hanoi.py` (analytic), `src/puzzles/hanoi_sim.py`, `src/puzzles/evaluate_hanoi.py` (DEV/TEST modes), unit tests, `src/puzzles/EXPLAIN_hanoi.md` (what every component computes, residual layout table), `results/puzzles/hanoi_dev.json`, `results/puzzles/hanoi_test.json`, `results/puzzles/REFERENCES.md`.
+
+## Before TEST
+When DEV (N ≤ 6) passes with fixed-point checks, STOP and report back before running TEST: the architecture and parameter counts, tokenizer/detokeniser, R rule and R_min, DEV results, the estimated TEST runtime, and the paper's collapse points. I will check the model against the rules and then tell you to run TEST once.

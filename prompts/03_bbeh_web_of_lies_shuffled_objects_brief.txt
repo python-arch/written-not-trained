@@ -1,0 +1,31 @@
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+
+You are building hand-written (no training) looped transformers for BIG-Bench Extra Hard (BBEH; Kazemi et al. 2025, arXiv:2502.19187; github.com/google-deepmind/bbeh): web_of_lies and shuffled_objects first; dyck_languages and word_sorting (modified-alphabet subtask) are stretch goals, only after the first two are done. The user wants the strongest result: beat the paper's best published per-task scores (o3-mini high: Web of Lies 43.0, Shuffled Objects 49.5; Dyck 56.0 by DeepSeek R1; Word Sorting 77.5). These are in `results/bbeh/REFERENCES.md`. Correctness, rule compliance and honest evaluation matter more than speed.
+
+## Setup
+- You work in a project folder. Your directories: `src/bbeh/`, `results/bbeh/` (REFERENCES.md there is mine; leave it), `data/bbeh/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.
+- Read for conventions: the hard rules below; `src/sudoku/looped.py`, `src/sudoku/weights.py`, `src/sudoku/EXPLAIN.md` (a previous hand-written looped model: analytic weights, snap() ReLU pairs, attention heads with a large scale s that pick exact positions using a positional table expanded analytically); `src/expC/looped_multi.py`, `src/expB/` (written multi-hop models). For the stretch Dyck task, a hand-written BBH Dyck solver exists under `src/bbh/` (read its EXPLAIN file), which you may reuse.
+
+## Data protocol (strict)
+- BBEH Mini (20 items per task) is DEV: you may read it freely. The other 180 items per task are TEST: never open, print, list the contents of, or compute statistics on them. Get the repo, e.g. `git clone` or a zip download into `data/bbeh/`. List directory and file names to find the Mini file and the task files, but read only the Mini items. Infer the item schema from the Mini file.
+- The TEST script loads a task's full item file programmatically, removes the Mini items (by exact input match), asserts that exactly 180 remain, runs the frozen model once, scores them, and prints only aggregate numbers. Use the repo's official scoring/normalisation function if it has one (otherwise exact match after the paper's normalisation), and say which.
+- DEV: the 20 Mini items, plus a synthetic generator you write from the Mini items and the paper's task descriptions (Appendix A.16 for Shuffled Objects, A.21 for Web of Lies). Make the generator broader and harder than the Mini items (all variants the paper describes: Web of Lies subset 1 and subset 2 with cycles and "unknown"; Shuffled Objects variant 1 with no-effect swaps and variant 2 with named actions that recur later), so nothing is tuned to 20 items.
+
+## Compute rules (strict)
+- Develop and run DEV on a local machine with Python and numpy (no restrictions locally).
+- Heavier runs and downloads go to one shared GPU machine (shared with another agent: at most 4 CPUs, modest GPU memory). Never run compute on a cluster login node, do not submit new cluster jobs, and do not use a shared /tmp.
+
+## Hard rules
+1. TEST is never used for selection and runs exactly once per final model.
+2. No training, no gradient-based optimisation, no fitting of weights to labels/targets: every tensor is set analytically by formulas.
+3. Report every run: log each DEV eval call and the TEST run in `logs/progress.md`. At most 20 DEV eval calls per task (a run of the full model on DEV items counts as one; unit tests of single components on hand-made inputs are free).
+4. Inference is task-agnostic: embedding → R × one shared block (a list of layers is fine: per layer `h += Attn(h); h += ReLU-MLP(h)`, softmax attention, no norm) → linear readout, plus generic autoregressive decoding for multi-token answers (append argmax token, rerun or use an exact KV cache, stop at an end token). Python only tokenises, runs the generic loop and detokenises: no parsing of sentences, no truth propagation, no swap tracking in Python. Your own tokenizer is allowed (character-level, or another fixed generic scheme that handles any input string, including names never seen on DEV); document it.
+5. R comes from a generic rule (fixed R_max or R = f(input length)). Fixed-point requirement: for every TEST input, the readout is identical at R_min, 2·R_min and 4·R_min (every decoding step).
+6. No parameter limit; prefer the smallest design that works; report total and nonzero parameter counts.
+- Never look up benchmark answers or test items; never reuse trained weights. If you hit a problem with the rules, the data or the setup, stop and report it.
+
+## Deliverables (per task)
+`src/bbeh/looped.py` (generic forward + decoding), `src/bbeh/weights_<task>.py` (analytic), `src/bbeh/gen_<task>.py` (DEV generator), `src/bbeh/evaluate.py` (DEV/TEST modes; TEST prints only aggregates), unit tests, `src/bbeh/EXPLAIN_<task>.md`, `results/bbeh/<task>_dev.json`.
+
+## Before TEST
+When web_of_lies and shuffled_objects pass DEV (Mini + generator) with the fixed-point test, STOP and report back before running TEST: per task, the architecture and parameter counts, tokenizer, R rule and R_min, DEV accuracy (Mini and generated, by variant), fixed-point results, DEV calls used, and anything that worried you. I will check the models against the rules and then tell you to run TEST once.

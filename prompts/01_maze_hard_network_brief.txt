@@ -1,0 +1,37 @@
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+
+You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Goal set by the user: beat the published HRM (74.5%) and TRM (85.3%) Maze-Hard exact-match accuracy, which a correct algorithm written into the weights should do. Work carefully: correctness and rule compliance matter more than speed.
+
+## Setup
+- You work in a project folder. Your directories: `src/maze/`, `results/maze/`, `data/maze/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.
+- Read for conventions: the hard rules below; `src/sudoku/looped.py`, `src/sudoku/weights.py`, `src/sudoku/EXPLAIN.md` (a previous hand-written looped model, per-token readout, analytic weights, snap() ReLU pairs, "unit heads" with scale s=100, cell-index positional table expanded analytically into coordinates); `src/expC/looped_multi.py` (generic multi-layer looped forward).
+
+## Compute rules (strict)
+- Develop and run DEV on a local machine with Python and numpy (no restrictions locally).
+- Heavier runs and downloads go to one shared GPU machine (shared with another agent: at most 4 CPUs, modest GPU memory). Never run compute on a cluster login node, do not submit new cluster jobs, and do not use a shared /tmp.
+
+## Hard rules (the project's and the user's)
+1. TEST is never used for selection and runs exactly once, for the final model. Before that, you do not read TEST items in any way (no printing, no inspection, no statistics of TEST); the TEST script prints only aggregate numbers.
+2. No gradient-based optimisation and no fitting of weights to labels/targets; every tensor is set analytically by formulas (analysis of DEV is fine).
+3. Report every run: log each DEV eval call and the TEST run in `logs/progress.md`.
+4. Inference is task-agnostic: a generic loop + readout. Python only maps characters to ids, runs embed → R × the same shared block → linear readout, and maps ids back. No maze logic, BFS or path tracing in Python at inference.
+- Never look up benchmark answers or test items; never reuse trained weights.
+- At most 20 DEV eval calls (a run of the full model on DEV items counts as one; unit tests of single components on hand-made inputs are free). Count and log them.
+- If you find a problem with the rules, the data or the setup, stop and report it rather than working around it.
+
+## Written-model constraints (as Exp B/C)
+- One shared block (a list of layers is fine, as in Exp C and Sudoku: per layer `h += Attn(h); h += ReLU-MLP(h)`, softmax attention, no norm), an embedding that is a sum of per-field tables (e.g. character id + cell index expanded into coordinates), and a linear per-token readout. d_model ≤ 64, heads ≤ 4 per layer.
+- The number of loops R comes from a generic rule (R = n + c with n the input length, or a fixed R_max).
+- Fixed-point requirement: for every TEST input the readout must be identical at R_min, 2·R_min and 4·R_min.
+- You may port the generic forward to torch (GPU) for speed if numpy is too slow; it must stay generic. If you use float32, verify on DEV that results match float64.
+
+## Data and protocol
+- Dataset: the HRM release's Maze-Hard, on Hugging Face as `sapientinc/maze-30x30-hard-1k` (verify the exact repo and file names; HRM's `dataset/build_maze_dataset.py` reads it). Download the files with huggingface_hub. The official train split is DEV (checks only; nothing is trained). The official test split is TEST: run once at the end, scored by exact match of the full output grid, as HRM/TRM do (an item counts only if every cell is right).
+- Before writing anything: on DEV, check (a) the format (characters for wall/open/start/goal/path, grid size), (b) that each given solution is a shortest S→G path, and (c) whether shortest paths are unique (count shortest paths with a BFS dynamic program on every DEV maze). If they are not unique, work out the dataset's tie-break rule from DEV (e.g. a move-order preference or BFS parent order) and report it. Save the findings to `results/maze/uniqueness.json` and log them.
+- A design that fits the constraints (your call): two BFS waves, from S and from G, propagated through 4-neighbour attention (the positional table gives r, c and their squares, so a head can attend exactly to the neighbours of a cell); per cell a reached flag and a distance counter; a cell is on the path iff it is open, reached by both waves and dS + dG = dS(G); the readout writes the path character there and copies the input character elsewhere. Make sure unreachable cells cannot match by accident at any R (fixed point), and make the tie-break match the dataset's if paths are not unique.
+
+## Deliverables
+`src/maze/looped.py` (generic forward), `src/maze/weights.py` (every tensor analytic), `src/maze/evaluate.py` (DEV and TEST modes; TEST prints only aggregate numbers), unit tests, `src/maze/EXPLAIN.md` (what every component computes, residual layout table, as in src/sudoku/EXPLAIN.md), `results/maze/dev.json`.
+
+## Stop before TEST
+When DEV is done and the fixed-point test passes on DEV, STOP and report back (do not run TEST yet). I will check the model against the rules and then tell you to run TEST once. Your report: the uniqueness/tie-break finding; the architecture (d_model, layers, heads, MLP widths, parameter count total and nonzero); the R rule and R_min; DEV accuracy and fixed-point results; DEV calls used; anything that worried you.

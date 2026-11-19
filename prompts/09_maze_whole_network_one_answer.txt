@@ -1,0 +1,166 @@
+This is a one-shot task. You have no tools: you cannot run code, look at any data or test anything. Write the complete Python module described below in a single response. It will be run once, exactly as you write it, on 200 Maze-Hard training mazes.
+
+## Task description
+
+Excerpts of the brief given to the agent that originally did this task (its parts about the compute cluster, file locations, logging and the TEST protocol are left out), followed by a rule update that agent received before it wrote any weights.
+
+You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Goal set by the user: beat the published HRM (74.5%) and TRM (85.3%) Maze-Hard exact-match accuracy, which a correct algorithm written into the weights should do. Work carefully: correctness and rule compliance matter more than speed.
+
+Hard rules:
+2. No gradient-based optimisation and no fitting of weights to labels/targets; every tensor is set analytically by formulas (analysis of DEV is fine).
+4. Inference is task-agnostic: a generic loop + readout. Python only maps characters to ids, runs embed → R × the same shared block → linear readout, and maps ids back. No maze logic, BFS or path tracing in Python at inference.
+- Never look up benchmark answers or test items; never reuse trained weights.
+
+Written-model constraints:
+- One shared block (a list of layers is fine, as in Exp C and Sudoku: per layer `h += Attn(h); h += ReLU-MLP(h)`, softmax attention, no norm), an embedding that is a sum of per-field tables (e.g. character id + cell index expanded into coordinates), and a linear per-token readout. d_model ≤ 64, heads ≤ 4 per layer.
+- The number of loops R comes from a generic rule (R = n + c with n the input length, or a fixed R_max).
+- Fixed-point requirement: for every TEST input the readout must be identical at R_min, 2·R_min and 4·R_min.
+
+Data:
+- Dataset: the HRM release's Maze-Hard, on Hugging Face as `sapientinc/maze-30x30-hard-1k`. The official train split is DEV (checks only; nothing is trained). The official test split is TEST: run once at the end, scored by exact match of the full output grid, as HRM/TRM do (an item counts only if every cell is right).
+- Before writing anything: on DEV, check (a) the format (characters for wall/open/start/goal/path, grid size), (b) that each given solution is a shortest S→G path, and (c) whether shortest paths are unique (count shortest paths with a BFS dynamic program on every DEV maze). If they are not unique, work out the dataset's tie-break rule from DEV (e.g. a move-order preference or BFS parent order) and report it. Save the findings to `results/maze/uniqueness.json` and log them. (Here you cannot look at DEV.)
+- A design that fits the constraints (your call): two BFS waves, from S and from G, propagated through 4-neighbour attention (the positional table gives r, c and their squares, so a head can attend exactly to the neighbours of a cell); per cell a reached flag and a distance counter; a cell is on the path iff it is open, reached by both waves and dS + dG = dS(G); the readout writes the path character there and copies the input character elsewhere. Make sure unreachable cells cannot match by accident at any R (fixed point), and make the tie-break match the dataset's if paths are not unique.
+
+Rule update:
+Rule update from the user: there is no parameter limit, and the earlier d_model ≤ 64 / heads ≤ 4 caps no longer apply. Use whatever width, number of layers and heads the design needs, but prefer the smallest design that works. In your report, give the parameter count (total and nonzero) of the best working model. Every other rule is unchanged: analytic weights, generic loop, fixed-point test, ≤ 20 DEV calls, stop before TEST.
+
+## The generic loop: looped.py (verbatim)
+
+```python
+"""Generic looped transformer forward (task-agnostic, README hard rule 4). Nothing here knows mazes.
+
+  h   = sum_f E_f[token field f]                          (embedding = sum of per-field tables)
+  for t in 1..R:  for each layer of the ONE shared block:
+        h += sum_heads softmax(Q K^T / sqrt(d_head)) V W_O      (bidirectional, no mask, no norm)
+        h += W2 ReLU(W1 h + b1) + b2
+  logits = h W_out + b_out                                (linear per-token readout, every token)
+
+Two backends with the same arithmetic: numpy (float64, reference) and torch (float64 or float32, CPU or GPU).
+Parameters are a plain dict of numpy arrays (see weights.build()); each head has its own Wq, Wk (d, dk), Wv (d, dv),
+Wo (dv, d). A layer may have 0 heads.
+"""
+import numpy as np
+
+
+# ----------------------------------------------------------------------------------------------------------- numpy
+def softmax(x):
+    x = x - x.max(axis=-1, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=-1, keepdims=True)
+
+
+def embed(P, tokens):
+    """tokens: int array (B, n, F); P['embed'] is a list of F tables (V_f, d)."""
+    return sum(P["embed"][f][tokens[..., f]] for f in range(tokens.shape[-1]))
+
+
+def attention(L, h):
+    out = np.zeros_like(h)
+    for hd in L["heads"]:
+        q, k, v = h @ hd["Wq"], h @ hd["Wk"], h @ hd["Wv"]
+        a = softmax(q @ k.transpose(0, 2, 1) / np.sqrt(q.shape[-1]))
+        out = out + (a @ v) @ hd["Wo"]
+    return out
+
+
+def mlp(L, h):
+    return np.maximum(h @ L["W1"] + L["b1"], 0.0) @ L["W2"] + L["b2"]
+
+
+def block(P, h):
+    for L in P["layers"]:
+        h = h + attention(L, h)
+        h = h + mlp(L, h)
+    return h
+
+
+def readout(P, h):
+    return h @ P["W_out"] + P["b_out"]
+
+
+def run(P, tokens, R, snapshots=()):
+    """Embed, R passes of the shared block, per-token readout. snapshots: loop counts t at which (logits, h) are
+    also returned (same computation, only observed)."""
+    h = embed(P, np.asarray(tokens))
+    snaps = {}
+    for t in range(1, R + 1):
+        h = block(P, h)
+        if t in snapshots:
+            snaps[t] = (readout(P, h), h.copy())
+    return readout(P, h), h, snaps
+
+
+# ----------------------------------------------------------------------------------------------------------- torch
+def to_torch(P, device="cpu", dtype=None):
+    import torch
+    dtype = dtype or torch.float64
+    T = lambda x: torch.as_tensor(np.asarray(x), dtype=dtype, device=device)
+    return {"embed": [T(e) for e in P["embed"]],
+            "layers": [{"heads": [{k: T(hd[k]) for k in ("Wq", "Wk", "Wv", "Wo")} for hd in L["heads"]],
+                        **{k: T(L[k]) for k in ("W1", "b1", "W2", "b2")}} for L in P["layers"]],
+            "W_out": T(P["W_out"]), "b_out": T(P["b_out"])}
+
+
+def _stack_heads(L):
+    """all heads of a layer side by side: Wq, Wk (d, H*dk), Wv (d, H*dv), Wo (H*dv, d). Needs equal head dims."""
+    import torch
+    hs = L["heads"]
+    return {k: torch.cat([hd[k] for hd in hs], dim=0 if k == "Wo" else 1) for k in ("Wq", "Wk", "Wv", "Wo")}, len(hs)
+
+
+def run_torch(PT, tokens, R, snapshots=(), on_loop=None, fused=False):
+    """Same computation as run() in torch. tokens: LongTensor (B, n, F) on the parameters' device.
+    fused=True computes the same softmax attention with torch's scaled_dot_product_attention (all heads at once,
+    default scale 1/sqrt(d_head), no mask); it avoids materialising the n x n matrix, for large n.
+    Returns final logits, final h, {t: (logits, h)} for t in snapshots. on_loop(t, h) is an optional observer."""
+    import torch
+    import torch.nn.functional as F
+    h = sum(PT["embed"][f][tokens[..., f]] for f in range(tokens.shape[-1]))
+    B, n, _ = h.shape
+    stacked = [_stack_heads(L) if (fused and L["heads"]) else None for L in PT["layers"]]
+    snaps = {}
+    for t in range(1, R + 1):
+        for L, st in zip(PT["layers"], stacked):
+            if st is not None:
+                Wc, H = st
+                sp = lambda x: x.view(B, n, H, -1).transpose(1, 2)
+                o = F.scaled_dot_product_attention(sp(h @ Wc["Wq"]), sp(h @ Wc["Wk"]), sp(h @ Wc["Wv"]))
+                h = h + o.transpose(1, 2).reshape(B, n, -1) @ Wc["Wo"]
+            elif L["heads"]:
+                att = torch.zeros_like(h)
+                for hd in L["heads"]:
+                    q, k, v = h @ hd["Wq"], h @ hd["Wk"], h @ hd["Wv"]
+                    a = torch.softmax(q @ k.transpose(1, 2) / float(np.sqrt(q.shape[-1])), dim=-1)
+                    att = att + (a @ v) @ hd["Wo"]
+                h = h + att
+            h = h + torch.relu(h @ L["W1"] + L["b1"]) @ L["W2"] + L["b2"]
+        if on_loop is not None:
+            on_loop(t, h)
+        if t in snapshots:
+            snaps[t] = (h @ PT["W_out"] + PT["b_out"], h.clone())
+    return h @ PT["W_out"] + PT["b_out"], h, snaps
+```
+
+## How your module is run
+
+Your module is one Python file that imports only numpy (and, if you need them, the standard library modules math and itertools). It must define:
+
+- `build() -> dict`: the parameters P in the layout looped.py expects: `P["embed"]` is a list of F tables, each of shape (V_f, d); `P["layers"]` is a list of layers, each `{"heads": [{"Wq": (d, dk), "Wk": (d, dk), "Wv": (d, dv), "Wo": (dv, d)}, ...], "W1": (d, m), "b1": (m,), "W2": (m, d), "b2": (d,)}`; `P["W_out"]` has shape (d, V_out) and `P["b_out"]` shape (V_out,). All float64 numpy arrays.
+- `encode(grids) -> int array of shape (B, n, F)`: `grids` is a list of B mazes, each a string of 900 characters (30 rows of 30, row-major, no newlines) from '#' (wall), ' ' (open), 'S' (start) and 'G' (goal). Token i is the cell (i // 30, i % 30); F is your number of embedding fields.
+- `decode(ids) -> list of B strings of 900 characters`: `ids` is the int array (B, n) of argmax readout ids, one per cell.
+- `r_min(n) -> int`: the number of loops R for an input of n tokens (n = 900 here).
+
+The harness is fixed and the same for every attempt:
+
+```python
+P = build()
+tokens = encode(grids)
+logits, h, _ = looped.run(P, tokens, r_min(900))   # float64; looped.run_torch (same arithmetic) may be used for speed
+out = decode(logits.argmax(-1))
+```
+
+Each output is scored on two measures: (1) exact match with the dataset's labelled solution, which is the input with 'o' on the cells of one shortest S-to-G path and every other character unchanged; (2) valid shortest path: the output equals the input except that some ' ' cells became 'o', and the 'o' cells form one simple path from S to G whose length is the shortest possible (any shortest path counts).
+
+The harness runs on a laptop CPU in float64 and stops an attempt after 2 hours for the 200 mazes. As a guide, one block of about 64 dimensions with 4 heads takes about 20 minutes at R = 1,800.
+
+Respond with the complete module in a single ```python code block.

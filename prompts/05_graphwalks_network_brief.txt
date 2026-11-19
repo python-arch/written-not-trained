@@ -1,0 +1,137 @@
+[Shareable version of the brief given to the builder (a headless Claude Code session, Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+
+## Your task
+
+Write the weights of a looped transformer that answers GraphWalks breadth-first-search problems. GraphWalks is
+OpenAI's long-context benchmark. Nothing is trained: every weight is written by code you write.
+
+Each problem is one text prompt. It has:
+- a fixed instruction block;
+- a short worked example;
+- a directed graph given as a list of edges, one per line, in the form `<node> -> <node>`;
+- an operation.
+
+The operation is either "Perform a BFS from node X and return only the nodes at exactly depth N (not nodes at
+intermediate depths)" or "Find the parents of node X". The prompt ends by asking for the answer on the last line, as
+`Final Answer: [node1, node2, ...]`, or `Final Answer: []` for the empty set.
+
+**TEST** is 200 BFS problems from GraphWalks' 256k-to-1M-token file. They come from the same file and are the same
+sizes as DEV file B, but they ask for BFS, not parents. DEV has BFS problems only up to about 220,000 characters
+(file A). No TEST problem is longer than 1,800,000 characters. You never see TEST. When you say you are done, the
+orchestrator freezes your files and runs TEST once, on the GPU path (`torch32`).
+
+**Scoring:** per problem, with GraphWalks' official extraction and F1 (`tools/grader.py`).
+- Only the last line of the response is read. It must contain `Final Answer:` and a bracketed list.
+- The list is split on commas and each item stripped of spaces; that set is compared with the true set by F1.
+- Both empty scores 1. A last line without `Final Answer:` or without a bracketed list scores 0.
+- The TEST score is the mean F1 over the 200 problems.
+
+## Data in your folder
+
+DEV is GraphWalks problems outside TEST. No DEV problem shares a graph with a TEST problem.
+- `dev/A_128k_and_shorter.jsonl`: 750 problems (350 BFS, 400 parents), up to about 220,000 characters.
+- `dev/B_256k_to_1M_parents.jsonl`: 200 parents problems, the same sizes as TEST.
+
+Each line is `{"id", "prompt", "answer_nodes", "problem_type"}`. You may analyse DEV inputs and answers with any code
+you like, as often as you like.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character, as given in the `prompt` field.
+  This is the same text a language model gets. Nothing is removed, added or reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about edges, arrows, node IDs or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs, including `Final Answer: [` and `]`.
+- **Arithmetic.** The runner has these paths (`runner/README.md`):
+  - on this machine, `numpy` (float64) and `numpy32` (float32, following the GPU path as closely as numpy can);
+  - on the GPU, `torch32` (float32, fused attention, TF32 off).
+
+  DEV runs on this machine use `numpy` or `numpy32`, as you choose. DEV runs on the GPU and TEST use `torch32`. The
+  written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 5 × 10¹⁵ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit. Peak GPU memory must stay under 30 GB on one
+  32 GB GPU.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its graph or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the instruction text and the prompt format,
+     but no graph or answer from the DEV files.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **GPU runs.** This machine has no GPU, so long prompts are slow here. For a GPU run, ask the orchestrator:
+   - give the network folder and either a DEV file with problem ids, or a file of inputs you made (`--own`; the format
+     is in `tools/dev_run.py`);
+   - a GPU run holds at most 5 prompts over 1,000,000 characters (any number of shorter ones);
+   - the orchestrator runs `tools/dev_run.py` with those files on the cluster GPUs (backend `torch32`), with the prompts
+     split across GPUs in parallel;
+   - it replies with the checker's full output and nothing else.
+
+   Each GPU run counts as one of the 20, on DEV or on your own inputs. You have no cluster access yourself.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of GraphWalks.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or search anything outside it.
+   - No web or network access of any kind: no search, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, the output of the GPU runs you
+   ask for, and answers to questions about these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV files, GPU-run limits), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the two DEV files.
+- `tools/`:
+  - `grader.py`: the official extraction and F1.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt at 1,800,000 characters;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.

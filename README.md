@@ -62,6 +62,10 @@ python run.py hanoi 10
 
 Each command prints the answer and checks it. [`weights/README.md`](weights/README.md) shows how to run all ten.
 
+## Prompts
+
+The [`prompts/`](prompts/) folder holds the first message Claude received in each experiment, word for word. That includes the task descriptions for writing each transformer, the prompts behind Table 1 of the blog post and the prompt for writing the whole maze transformer in one answer. [`prompts/README.md`](prompts/README.md) says which file belongs to which result.
+
 ## Credits
 
 This work builds on [Weight-Space Programming](https://rikiyat.github.io/blog/weight-space-programming/) (Takehi, Teoh, Zhang and Khattab, MIT CSAIL, 2026). Maze-Hard and Sudoku-Extreme come from the [HRM paper](https://arxiv.org/abs/2506.21734) (Wang et al.), BIG-Bench Hard from Suzgun et al. and BIG-Bench Extra Hard from Kazemi et al. The Tower of Hanoi and Checker Jumping puzzles follow [The Illusion of Thinking](https://arxiv.org/abs/2506.06941) (Shojaee et al., 2025). The blog post lists all related work.

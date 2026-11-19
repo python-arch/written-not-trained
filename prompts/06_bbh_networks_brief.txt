@@ -1,0 +1,36 @@
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+
+You are building hand-written (no training) looped transformers for two BIG-Bench Hard tasks: boolean_expressions and dyck_languages (multistep_arithmetic_two is a stretch, only after both are done). Goal set by the user: beat every baseline (pythia-160m, pythia-410m, SmolLM2-135M, SmolLM2-360M under lm-eval's BBH 3-shot setting; I run those separately). A correct algorithm written into the weights should be exact. Work carefully: correctness and rule compliance matter more than speed.
+
+## Setup
+- You work in a project folder. Your directories: `src/bbh/`, `results/bbh/` (except `results/bbh/baselines/`, which is mine), `data/bbh/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.
+- Read for conventions: the hard rules below; `src/expC/looped_multi.py` (generic multi-layer looped forward, last-token readout), `src/sudoku/looped.py`, `src/sudoku/weights.py`, `src/sudoku/EXPLAIN.md` (a previous hand-written looped model: analytic weights, snap() ReLU pairs, attention heads with scale s=100 that pick exact positions using a positional table expanded analytically into coordinates and their squares), `src/expB/` (written parity / multi-hop models).
+
+## Compute rules (strict)
+- Develop and run DEV on a local machine with Python and numpy (no restrictions locally).
+- Heavier runs and downloads go to one shared GPU machine (shared with another agent: at most 4 CPUs; only the TEST run and its data download need it). Never run compute on a cluster login node, do not submit new cluster jobs, and do not use a shared /tmp.
+
+## Hard rules (the project's and the user's)
+1. TEST is never used for selection and runs exactly once per final model. You must not read TEST items: never open, print or inspect the BBH test data (the HF dataset `lukaemon/bbh`, or `bbh/*.json` in the official BIG-Bench-Hard GitHub repo). The TEST script loads them programmatically and prints only aggregate numbers.
+2. No gradient-based optimisation and no fitting of weights to labels/targets; every tensor is set analytically by formulas.
+3. Report every run: log each DEV eval call and the TEST run in `logs/progress.md`.
+4. Inference is task-agnostic: a generic loop + readout, plus generic autoregressive decoding when an answer has several tokens (append the argmax token and rerun; stop at an end token). Python only maps characters to ids, runs the loop and maps ids back. No parsing, evaluation, bracket matching or stack logic in Python.
+- Never look up benchmark answers or test items; never reuse trained weights.
+- At most 20 DEV eval calls per task (a run of the full model on DEV items counts as one; unit tests of single components on hand-made inputs are free). Count and log them.
+- If you find a problem with the rules, the data or the setup, stop and report it rather than working around it.
+
+## Written-model constraints (as Exp B/C)
+- Embedding (a sum of per-field tables: e.g. character id + position expanded analytically), R × one shared block (a list of layers is fine: per layer `h += Attn(h); h += ReLU-MLP(h)`, softmax attention, no norm), linear readout. d_model ≤ 64, heads ≤ 4 per layer. Your own character-level tokenizer is allowed; any fixed detokenisation rule (e.g. how output tokens are joined) must be generic and documented.
+- R comes from a generic rule (R = n + c with n the input length, or a fixed R_max).
+- Fixed-point requirement: for every TEST input the readout must be identical at R_min, 2·R_min and 4·R_min (at every decoding step).
+
+## DEV and TEST
+- DEV: a synthetic generator per task, built ONLY from the task description and the official few-shot examples. Get those from the official BIG-Bench-Hard repo's `cot-prompts/<task>.txt` (github.com/suzgunmirac/BIG-Bench-Hard; it holds the task description and the 3 few-shot examples; do not open anything under `bbh/`), or from lm-eval's bbh fewshot task yaml. Cover every format variation the description and examples show (boolean_expressions: True/False, not/and/or, parentheses, Python precedence not > and > or, the trailing " is", answer "True"/"False"; dyck_languages: the instruction prefix "Complete the rest of the sequence, making sure that the parentheses are closed properly. Input: ", the four bracket types () [] {} <>, space-separated tokens, the answer = the closing brackets space-separated). Make DEV broader and harder than you expect TEST to be (longer, deeper nesting), so the model is not tuned to a narrow slice.
+- TEST: the official 250 items per task, loaded from the HF dataset `lukaemon/bbh` (the one lm-eval uses; config = task name, split = test); exact match of your output string against the target (both stripped). Run once at the end.
+- Design ideas (your call): boolean_expressions as parallel rewriting to a fixed point (resolve `not L`, `( L )`, `L and L`, `L or L` only where precedence and context allow, marking consumed characters blank; "nearest non-blank neighbour" lookups by attention); dyck_languages via depth computed by neighbour propagation over the loop, then decoding the closer of the most recent unmatched opener at each step (the generated closers are part of the rerun input), ending when the depth returns to 0.
+
+## Deliverables (per task)
+`src/bbh/looped.py` (generic forward + generic decoding), `src/bbh/weights_<task>.py` (every tensor analytic), `src/bbh/gen_<task>.py` (DEV generator), `src/bbh/evaluate.py` (DEV and TEST modes; TEST prints only aggregate numbers), unit tests, `src/bbh/EXPLAIN_<task>.md`, `results/bbh/<task>_dev.json`.
+
+## Stop before TEST
+When both tasks pass DEV and the fixed-point test on DEV, STOP and report back (do not run TEST yet). I will check the models against the rules and then tell you to run TEST once. Your report, per task: the architecture (d_model, layers, heads, MLP widths, parameter count total and nonzero), tokenizer and detokenisation rule, R rule and R_min, DEV accuracy and fixed-point results, DEV calls used, and anything that worried you.
