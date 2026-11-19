@@ -354,7 +354,7 @@
 
 <p><strong>Snapping back.</strong> At the end of every loop, each switch is pushed back to 0 or 1. Any small numerical error is wiped out before the next loop can build on it, which is why the transformer stays accurate through thousands of loops.</p>
 
-<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. The transformer runs 1,800 loops in total, far more than any test maze needs. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
+<p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave reaches the start, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
 <details>
   <summary>The block piece by piece, and what breaks when you switch parts off</summary>
@@ -432,22 +432,22 @@
 
 <div class="table-wrap">
 <table class="text-first">
-  <thead><tr><th>On the paper's test mazes</th><th class="num">Shortest path found (%)</th></tr></thead>
+  <thead><tr><th>On the paper's test mazes</th><th class="num">Shortest path found (%)</th><th class="num">95% interval</th></tr></thead>
   <tbody>
-    <tr class="llm"><td>The paper's prompt (Davis et al., NeurIPS 2026)</td><td class="num">26</td></tr>
-    <tr class="llm"><td>Told how to search</td><td class="num">48</td></tr>
-    <tr class="llm"><td>Told how, one cell per token</td><td class="num">44</td></tr>
-    <tr class="llm"><td>Told how, answer with just the path</td><td class="num">50</td></tr>
-    <tr class="llm"><td>Told how, just the path, the maze as a list of cells instead of a grid</td><td class="num">38</td></tr>
+    <tr class="llm"><td>The paper's prompt (Davis et al., NeurIPS 2026)</td><td class="num">26</td><td class="num">15.9–39.6</td></tr>
+    <tr class="llm"><td>Told how to search</td><td class="num">48</td><td class="num">34.8–61.5</td></tr>
+    <tr class="llm"><td>Told how, one cell per token</td><td class="num">44</td><td class="num">31.2–57.7</td></tr>
+    <tr class="llm"><td>Told how, answer with just the path</td><td class="num">50</td><td class="num">36.6–63.4</td></tr>
+    <tr class="llm"><td>Told how, just the path, the maze as a list of cells instead of a grid</td><td class="num">38</td><td class="num">25.9–51.8</td></tr>
   </tbody>
   <tbody class="group">
-    <tr class="written"><td>Writing a transformer, with testing (the transformer in this post)</td><td class="num">100</td></tr>
+    <tr class="written"><td>Writing a transformer, with testing (the transformer in this post)</td><td class="num">100</td><td class="num">92.9–100</td></tr>
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 1. Claude with better prompts.</strong> The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Each maze got one try, so a gap of a few points is noise.</p>
+<p class="note"><strong>Table 1. Claude with better prompts.</strong> The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Every row uses the same test mazes, with one try per maze. The 95% intervals of our four runs overlap. Paired tests on the same mazes find no significant difference for any single change of prompt (p from 0.21 to 1.0).</p>
 
-<p>Describing the algorithm helps, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (22 against 24). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
+<p>Describing the algorithm helps, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (44% against 48%). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 
 <p>Writing the transformer is a different task. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We suspect this helps because each design choice can be checked on its own. The design rests on a handful of ideas, such as counting distance in threes, each of which can be checked separately. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
@@ -457,6 +457,27 @@
   <summary>How the design changed</summary>
   <p>Claude had also written the task description it worked from. That description suggested a first design with two waves, one from each end. The waves used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal, counted in threes, pointers with a tie-break, and a chain from the start.</p>
   <p>In the single-answer tries, the instructions did say how many loops our transformer runs.</p>
+</details>
+
+<p>Writing the transformer was also cheap. The maze transformer took 196,771 output tokens, about $19 at Claude Opus 5.5's API list prices. Claude had the final weights 39 minutes after it received the task. Its checks of those weights brought the whole build to 2 hours 41 minutes. The only human input was the task description. Solving mazes directly, by contrast, cost $0.14 to $0.34 for every maze in our runs, yet found the shortest path in at most half of them. The written transformer pays for itself after about 55 to 134 mazes and needs no API calls after that.</p>
+
+<details>
+  <summary>What it cost Claude to write each transformer</summary>
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>Transformer</th><th class="num">Output tokens</th><th class="num">Cost (USD)</th><th class="num">Build time</th><th class="num">Training-set runs</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>Maze-Hard</td><td class="num">196,771</td><td class="num">18.71</td><td class="num">2 h 41 min</td><td class="num">3</td></tr>
+    <tr class="written"><td>Sudoku-Extreme</td><td class="num">70,647</td><td class="num">3.16</td><td class="num">2 h 22 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Tower of Hanoi</td><td class="num">122,305</td><td class="num">4.98</td><td class="num">27 min</td><td class="num">–</td></tr>
+    <tr class="written"><td>GraphWalks</td><td class="num">86,323</td><td class="num">4.35</td><td class="num">1 h 57 min</td><td class="num">2</td></tr>
+    <tr class="written"><td>Web of Lies and Shuffled Objects (BIG-Bench Extra Hard)</td><td class="num">501,182</td><td class="num">37.06</td><td class="num">3 h 14 min</td><td class="num">4</td></tr>
+    <tr class="written"><td>Boolean Expressions and Dyck Languages (BIG-Bench Hard)</td><td class="num">155,871</td><td class="num">6.38</td><td class="num">50 min</td><td class="num">3</td></tr>
+    <tr class="written"><td>Graph search</td><td class="num">71,081</td><td class="num">2.55</td><td class="num">16 min</td><td class="num">3</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note"><strong>Table 2. The cost of writing each transformer.</strong> Each row counts every API response in the session that wrote the transformer, up to the moment it was ready for the test set, so testing is left out. Costs use Claude Opus 5.5's API list prices of $4 per million input tokens, $20 per million output tokens, $0.20 per million cache reads and $5 per million cache writes. The builds ran on a Claude subscription, so these are list-price equivalents rather than money spent. Most of each cost is cache reads. Build time runs from the task description to the transformer being ready for the test set, with delays on our side removed. Training-set runs are full runs of the transformer on the training data, capped at 20 per build, while tests of single parts are not counted. The Tower of Hanoi session kept no count of its runs. After the task description, Claude received only fixed messages, such as "continue", the outputs of GPU runs it asked for and rule updates, none of which gave hints.</p>
 </details>
 
 
@@ -525,7 +546,7 @@
   </tbody>
 </table>
 </div>
-  <p class="note"><strong>Table 2. Graph search in full.</strong> Accuracy in %. The written transformer has three looped blocks with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
+  <p class="note"><strong>Table 3. Graph search in full.</strong> Accuracy in %. The written transformer has three looped blocks with 6,966 weights, of which only 642 are not zero. The trained models were trained on the checking range, with their settings tuned and their best version kept. Each test was run once. The two smaller trained models fail to learn even the checking range well. The puzzles also have no shortcut, since no single clue in the input beats a baseline that guesses the most common answer by more than 1 point.</p>
   <p>The full parity and chains tables, along with how those two transformers work, are in <a href="#app-parity">appendix A</a>.</p>
 </details>
 
@@ -546,9 +567,9 @@
 
 <p>The maze transformer has no need to take anything back, because once the wave reaches a cell, that cell's distance is final. Hard Sudoku is different, since sometimes the only way forward is to guess. <a href="https://huggingface.co/datasets/sapientinc/sudoku-extreme">Sudoku-Extreme</a> is the hard Sudoku benchmark from the HRM paper, also used by TRM and LDT. Each puzzle is a 9×9 grid with some digits filled in and a unique solution. Even the newest frontier LLMs solve only about half of them, with Claude Opus 5.5 solving 54% of the puzzles it was given when asked directly.</p>
 
-<p>The Sudoku transformer Claude wrote applies constraint propagation and backtracking to all 81 cells in parallel. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the transformer has to guess. It first saves a copy of the whole grid in memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the transformer restores the saved grid, in which that guess is now ruled out. One step of this search takes five blocks, which the transformer runs for 40,000 loops with room for 24 saved grids.</p>
+<p>The Sudoku transformer Claude wrote applies constraint propagation and backtracking to all 81 cells in parallel. Each cell keeps a list of the digits it could still be. Three attention heads let it read its row, its column and its 3×3 box, so it can cross out digits already taken and spot a digit that has only one place left. When nothing more can be crossed out, the transformer has to guess. It first saves a copy of the whole grid in memory, then guesses a digit for the cell with the fewest options and carries on. Should the guess lead to a contradiction, such as a cell with no digits left, the transformer restores the saved grid, in which that guess is now ruled out. One step of this search takes five blocks, which the transformer runs for 40,000 loops with room for 24 saved grids. Claude set both limits itself, from the training puzzles, which needed at most 5,585 loops and 13 saved grids. On the test puzzles, the hardest needed 14,904 loops and 16 saved grids, so no puzzle reached either limit.</p>
 
-<p>The Sudoku transformer solved every one of the 141,040 test puzzles we ran, including the first 10,000 on which HRM, TRM and Sotaku v2 are scored. On those puzzles, the best trained model, <a href="https://github.com/chenglou/sotaku">Sotaku v2</a>, reaches 98.96%. The cost is compute. Because the transformer runs all 40,000 loops on every puzzle, it does about 50 times more arithmetic per puzzle than TRM, even though most puzzles are solved within the first few thousand loops.</p>
+<p>The Sudoku transformer solved every one of the 141,040 test puzzles we ran, including the first 10,000 on which HRM, TRM and Sotaku v2 are scored. On those puzzles, the best trained model, <a href="https://github.com/chenglou/sotaku">Sotaku v2</a>, reaches 98.96%. The cost is compute. Because the transformer runs all 40,000 loops on every puzzle, it does about 50 times more arithmetic per puzzle than TRM, even though half the puzzles are solved within 273 loops and 99% within 3,213.</p>
 
 <details>
   <summary>The full comparison, computing per puzzle, and the search's limits</summary>
@@ -566,10 +587,10 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 3. Sudoku-Extreme results.</strong> Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
+<p class="note"><strong>Table 4. Sudoku-Extreme results.</strong> Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
   <p>The transformer reads the puzzle as text, one character per token, and writes back the solved grid. Per puzzle, it does 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. </p>
   <p>Each column covers the same puzzles in the test set's fixed order, which the LDT code sets. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper scored its model on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
-  <p>On the 1,000 training puzzles, the search needs at most 5,585 loops and 13 saved grids, well within the 40,000 loops and 24 saved grids the transformer has. Before the test, the transformer itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
+  <p>The limits would matter for a puzzle that reached them. When we stopped the transformer early on training puzzles, it wrote a full grid with wrong digits, so a puzzle that needed more than 40,000 loops would get a plausible-looking wrong answer. When we rebuilt it with room for only 4 or 8 saved grids, every puzzle that needed more wrote a 1 in every cell, an answer that is visibly wrong, while the puzzles that fit were still solved. Before the test, the transformer itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
 </details>
 
 <h3 id="hanoi">Tower of Hanoi up to 20 disks</h3>
@@ -623,7 +644,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 4. GraphWalks results.</strong> F1, the standard GraphWalks score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores are Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
+<p class="note"><strong>Table 5. GraphWalks results.</strong> F1, the standard GraphWalks score, compares the nodes in each answer with the true ones, averaged over the 200 problems. Each problem was run once. LLM scores are Google's self-computed runs, from its <a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/">Gemini 4 Carbon announcement</a> (28 October 2026).</p>
   <p>The transformer is two blocks, looped 400 times, with nothing trained. The first block has one attention head and 811 neurons, while the second has 12 neurons. Its 400 loops are enough for any N up to 397.</p>
 </details>
 
@@ -651,7 +672,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 5. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped part is two blocks with 89 neurons.</p>
+<p class="note"><strong>Table 6. BIG-Bench Hard results.</strong> BIG-Bench Hard, accuracy in %. For every model, an answer counts only if it matches the reference answer, ignoring spaces. Boolean chance is 50%. Only 6,756 of the Boolean transformer's weights and 8,491 of the Dyck transformer's aren't zero. Of the Boolean transformer's weights, 149,504 form a fixed lookup table of positions with 2,048 rows, which lets it read inputs of up to about 2,048 characters. Its looped part is two blocks with 89 neurons.</p>
 
 <div class="table-wrap">
 <table>
@@ -669,7 +690,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 6. BIG-Bench Extra Hard results.</strong> BIG-Bench Extra Hard, accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
+<p class="note"><strong>Table 7. BIG-Bench Extra Hard results.</strong> BIG-Bench Extra Hard, accuracy in %. "Plain reasoning" means the model reasons in text. "Program synthesis" means it writes a program that is then run. The question sets differ, so compare the scores loosely.</p>
   <p>Our transformers got 180 of 180 on each task, a score that a separate check confirmed by re-running both transformers. The task's 20 public example questions are not counted. The Feb 2025 rows come from the BBEH paper (Kazemi et al.), on all 200 questions per task. The Oct 2025 rows come from <a href="https://arxiv.org/abs/2510.22849">Stein et al.</a> (Tables C.2 and C.5), on a random 80% of each task's questions.</p>
   <p>The Extra Hard transformers read BBEH's fixed question templates. None of the extra everyday words they know appear in the test questions. The Shuffled Objects transformer assumes the options are listed in the order the objects were first handed out, as in every public example. Both transformers need 64-bit numbers and a high-precision version of the step that turns attention scores into weights. With the standard library version, Web of Lies drops to 139 of 180. Web of Lies has 10,903,996 weights, of which only 44,550 are not zero. Shuffled Objects has 6,663,936, of which only 40,316 are not zero.</p>
 </details>
@@ -746,7 +767,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 7. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
+<p class="note"><strong>Table 8. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
 <div class="table-wrap">
 <table class="text-first">
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
@@ -760,7 +781,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 8. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
+<p class="note"><strong>Table 9. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
 
 
 </details>
@@ -816,7 +837,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 9. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
+<p class="note"><strong>Table 10. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
 
 <div class="table-wrap">
 <table>
@@ -827,7 +848,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 10. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
+<p class="note"><strong>Table 11. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
 
 <details>
   <summary>Uncertainty, and how this compares with STARS</summary>
