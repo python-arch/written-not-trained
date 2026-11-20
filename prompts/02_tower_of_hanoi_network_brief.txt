@@ -1,6 +1,6 @@
-[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
 
-You are building a hand-written (no training) looped transformer that solves Tower of Hanoi as evaluated in Apple's "The Illusion of Thinking" (Shojaee et al., 2025, arXiv:2506.06941). Checker Jumping and Blocks World are stretch goals, only after Hanoi is finished; skip River Crossing. This is the user's top priority. The goal is a frozen model that outputs a complete, valid, optimal move sequence for every N from 1 to 20, where the paper's reasoning models collapse. Correctness, rule compliance and an honest evaluation matter more than speed.
+You are building a hand-written (no training) looped transformer that solves Tower of Hanoi as evaluated in Apple's "The Illusion of Thinking" (Shojaee et al., 2025, arXiv:2506.06941). Checker Jumping and Blocks World are stretch goals, only after Hanoi is finished; skip River Crossing. The goal is a frozen model that outputs a complete, valid, optimal move sequence for every N from 1 to 20. Correctness, rule compliance and an honest evaluation matter more than speed.
 
 ## Setup
 - You work in a project folder. Your directories: `src/puzzles/`, `results/puzzles/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.

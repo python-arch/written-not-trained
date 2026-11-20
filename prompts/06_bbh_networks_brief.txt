@@ -1,6 +1,6 @@
-[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
 
-You are building hand-written (no training) looped transformers for two BIG-Bench Hard tasks: boolean_expressions and dyck_languages (multistep_arithmetic_two is a stretch, only after both are done). Goal set by the user: beat every baseline (pythia-160m, pythia-410m, SmolLM2-135M, SmolLM2-360M under lm-eval's BBH 3-shot setting; I run those separately). A correct algorithm written into the weights should be exact. Work carefully: correctness and rule compliance matter more than speed.
+You are building hand-written (no training) looped transformers for two BIG-Bench Hard tasks: boolean_expressions and dyck_languages (multistep_arithmetic_two is a stretch, only after both are done). Work carefully: correctness and rule compliance matter more than speed.
 
 ## Setup
 - You work in a project folder. Your directories: `src/bbh/`, `results/bbh/` (except `results/bbh/baselines/`, which is mine), `data/bbh/`. Do not edit other directories, except appending dated lines to the project log `logs/progress.md`.

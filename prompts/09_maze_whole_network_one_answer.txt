@@ -4,7 +4,7 @@ This is a one-shot task. You have no tools: you cannot run code, look at any dat
 
 Excerpts of the brief given to the agent that originally did this task (its parts about the compute cluster, file locations, logging and the TEST protocol are left out), followed by a rule update that agent received before it wrote any weights.
 
-You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Goal set by the user: beat the published HRM (74.5%) and TRM (85.3%) Maze-Hard exact-match accuracy, which a correct algorithm written into the weights should do. Work carefully: correctness and rule compliance matter more than speed.
+You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Work carefully: correctness and rule compliance matter more than speed.
 
 Hard rules:
 2. No gradient-based optimisation and no fitting of weights to labels/targets; every tensor is set analytically by formulas (analysis of DEV is fine).
