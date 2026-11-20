@@ -953,7 +953,7 @@
 
 <h3 id="prompts">E. The prompts</h3>
 
-<p>The first message Claude received in each experiment, word for word. Details of our compute setup, such as machine names, accounts, paths and job ids, are removed or made generic, and so are the score targets we set in the early briefs. The same files are in the <a href="https://github.com/python-arch/written-not-trained/tree/main/prompts">prompts folder</a> of the code repository.</p>
+<p>The first message Claude received in each experiment. Details of our compute setup, such as machine names, accounts, paths and job ids, are removed or made generic. The same files are in the <a href="https://github.com/python-arch/written-not-trained/tree/main/prompts">prompts folder</a> of the code repository.</p>
 
 <details class="appendix">
   <summary>Read the appendix</summary>
@@ -964,7 +964,7 @@
 
 <details class="prompt">
   <summary>Maze-Hard <span class="fname">01_maze_hard_network_brief.txt</span></summary>
-<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Work carefully: correctness and rule compliance matter more than speed.
 
@@ -1153,7 +1153,7 @@ what you have. That is a valid result.</pre>
 
 <details class="prompt">
   <summary>Tower of Hanoi <span class="fname">02_tower_of_hanoi_network_brief.txt</span></summary>
-<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building a hand-written (no training) looped transformer that solves Tower of Hanoi as evaluated in Apple's "The Illusion of Thinking" (Shojaee et al., 2025, arXiv:2506.06941). Checker Jumping and Blocks World are stretch goals, only after Hanoi is finished; skip River Crossing. The goal is a frozen model that outputs a complete, valid, optimal move sequence for every N from 1 to 20. Correctness, rule compliance and an honest evaluation matter more than speed.
 
@@ -1332,7 +1332,7 @@ what you have. That is a valid result.</pre>
 
 <details class="prompt">
   <summary>Boolean Expressions and Dyck Languages (BIG-Bench Hard) <span class="fname">06_bbh_networks_brief.txt</span></summary>
-<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building hand-written (no training) looped transformers for two BIG-Bench Hard tasks: boolean_expressions and dyck_languages (multistep_arithmetic_two is a stretch, only after both are done). Work carefully: correctness and rule compliance matter more than speed.
 
@@ -1372,7 +1372,7 @@ When both tasks pass DEV and the fixed-point test on DEV, STOP and report back (
 
 <details class="prompt">
   <summary>Web of Lies and Shuffled Objects (BIG-Bench Extra Hard) <span class="fname">03_bbeh_web_of_lies_shuffled_objects_brief.txt</span></summary>
-<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+<pre class="prompt">[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building hand-written (no training) looped transformers for BIG-Bench Extra Hard (BBEH; Kazemi et al. 2025, arXiv:2502.19187; github.com/google-deepmind/bbeh): web_of_lies and shuffled_objects first; dyck_languages and word_sorting (modified-alphabet subtask) are stretch goals, only after the first two are done. Correctness, rule compliance and honest evaluation matter more than speed.
 
@@ -1442,7 +1442,7 @@ A short report: the files you wrote; the DEV eval calls (hypothesis -&gt; result
 </details>
 <details class="prompt">
   <summary>Maze-Hard under a cap on the number of weights (five builds) <span class="fname">13_maze_size_limit_network_brief.txt</span></summary>
-<pre class="prompt">[The brief given to each of the five maze builds under a cap on the number of weights, word for word. The five copies differ only in &lt;LIMIT&gt;: 1,000, 5,000, 10,000, 20,000 or 40,000. The builder received it as its first message and as BRIEF.md in its folder.]
+<pre class="prompt">[The brief given to each of the five maze builds under a cap on the number of weights. The five copies differ only in &lt;LIMIT&gt;: 1,000, 5,000, 10,000, 20,000 or 40,000. The builder received it as its first message and as BRIEF.md in its folder.]
 
 ## Your task
 
@@ -1576,7 +1576,7 @@ what you have. That is a valid result.</pre>
 </details>
 <details class="prompt">
   <summary>Sudoku-Extreme with at most 1,000 loops <span class="fname">04b_sudoku_extreme_loop_limit_network_brief.txt</span></summary>
-<pre class="prompt">[The brief given to the builder (a headless Claude Code session, Claude Opus 5.5) for the Sudoku build under a 1,000-loop limit, word for word. It is brief 04 with the loop limit added; the other changes say where DEV runs are evaluated (the orchestrator's server) and drop GPU-run output from the list of messages, since the tool now returns it.]
+<pre class="prompt">[The brief given to the builder (a headless Claude Code session, Claude Opus 5.5) for the Sudoku build under a 1,000-loop limit. It is brief 04 with the loop limit added; the other changes say where DEV runs are evaluated (the orchestrator's server) and drop GPU-run output from the list of messages, since the tool now returns it.]
 
 ## Your task
 
@@ -2997,7 +2997,7 @@ exact McNemar test; also output tokens and Claude Code's cost estimate.</pre>
 
 <details class="prompt">
   <summary>The readers&#x27; message, their architecture description and the scorer&#x27;s prompt <span class="fname">14_blind_reading_prompts.txt</span></summary>
-<pre class="prompt">[The blind reading of the maze transformer. The three reader sessions each got the first message below, word for word, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
+<pre class="prompt">[The blind reading of the maze transformer. The three reader sessions each got the first message below, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
 
 === FIRST MESSAGE TO EACH READER ===
 Your folder holds the weights of a small neural network (`weights.npz`, and the same numbers as text in
