@@ -494,6 +494,15 @@
 
 <p>If a transformer of 20,000 weights can solve every maze, why don't trained models of that size? Perhaps the architecture is the secret, in which case training would find the solution too if it had the same one. So we gave gradient descent the same starting point Claude had. We took the transformer Claude wrote, reset its weights to random, and trained it on the same 1,000 training mazes.</p>
 
+<p>We trained these models on the same 1,000 training mazes:</p>
+<ul>
+  <li><strong>The transformer Claude wrote, reset to random weights.</strong> As written, without normalisation, in 6 runs (3 learning rates × 2 seeds). Then with RMSNorm added, in six versions of 8 hours each: the original size at three learning rates, twice the loops, 2 or 4 blocks per loop, and 4 or 16 times the width, up to 2.8 million weights.</li>
+  <li><strong>The same six versions with a curriculum</strong>, from 10×10 mazes up to 30×30, with 2,000 more mazes we generated.</li>
+  <li><strong>A class-balanced loss</strong>, alone and together with supervision of the distance and pointer states after each loop, at three learning rates.</li>
+  <li><strong>A plain transformer encoder the size of TRM</strong> (8 blocks, width 256, 8 heads, 6.4 million weights, no loop), with a standard recipe on 3,000 mazes.</li>
+  <li><strong>TRM itself</strong> (6.8 million weights), with its authors' recipe on one GPU.</li>
+</ul>
+
 <p>All runs ended at 0%. As written, the transformer has no normalisation, which made all six of our first runs break down within 30 training steps. Once we added RMSNorm, training ran smoothly, but each transformer learned only to copy the maze back unchanged. Longer runs on six versions of the transformer, ranging from the original size up to 2.8 million weights with more loops, more blocks per loop or up to 16 times the width, also ended at 0%. So did runs with a curriculum that started on 10×10 mazes and worked upward. After 8 hours each, none of them had solved a single maze of any size.</p>
 
 <p>All runs converge to copying the input. Path cells make up only about one cell in eight, so a model that simply copies the maze back already gets 87.4% of cells right. Every run ended at or just below that level, with none getting past 87.5%. To do any better, a transformer has to mark path cells. In the written transformer, though, a path cell is marked only after the wave has crossed the maze, which takes a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way to follow.</p>
