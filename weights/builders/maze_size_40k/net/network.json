@@ -1,0 +1,56 @@
+{
+ "d_model": 40,
+ "fields": [
+  "char_nibble0",
+  "char_nibble1",
+  "pos_digit0",
+  "pos_digit1",
+  "first"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 4,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 4,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 4,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 4,
+     "dv": 3,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 25
+  },
+  {
+   "heads": [],
+   "d_ff": 4
+  }
+ ],
+ "loops": {
+  "const": 500,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "#",
+  "\n",
+  "S",
+  "G",
+  " ",
+  "o"
+ ]
+}

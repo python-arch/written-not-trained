@@ -1,0 +1,43 @@
+Claude on its own, answering inside Claude Code
+===============================================
+
+[PURPOSE]
+The same task and prompt as run 2 (told how to search), on the same 50 mazes, one try each. Only the harness changes:
+Claude answers inside Claude Code instead of the raw API, as a plain message, with every tool switched off.
+
+[SETTINGS]
+harness: Claude Code CLI 2.1.327, headless (claude -p), one fresh process per maze, started in an empty folder
+model: claude-opus-5-5
+effort: high (--effort high)
+tools: none at all, so no code can run (no Bash, no Python, no file writes):
+  --tools ""                    no built-in tools
+  --strict-mcp-config           no MCP servers (with no --mcp-config given)
+  --disable-slash-commands      no skills or commands
+  checked per maze from the stream-json init event: the tools list and MCP servers must be empty, and the answer
+  must contain no tool use; a maze that fails this check is not scored
+system prompt: Claude Code's own, with the run-2 system prompt below appended (--append-system-prompt); replacing it
+  would remove the harness this check is about
+sessions: not saved (--no-session-persistence); output as stream-json with --verbose (init event, tokens and cost)
+each maze sampled once; scored by the same scorer as runs 1-5 (shortest path, and any valid path)
+
+[APPENDED SYSTEM PROMPT, same as run 2]
+You are a maze solver. You will be given a 30 x 30 maze. Every cell of the maze is exactly one of the following four characters:
+'#' - wall (impassable)
+' ' - free cell
+'S' - the start cell (exactly one)
+'G' - the goal cell (exactly one)
+Find a path of orthogonally adjacent (up/down/left/right) free cells that connects S to G without passing through any wall. Diagonal moves are not allowed. Mark every free cell that lies on the path with the character o. The cells #, S, and G are unchanged, and free cells that are not on the path remain ' '. Respond with ONLY the completed 30 x 30 grid: exactly 30 lines, each containing exactly 30 characters drawn from the set {#, ' ', S, G, o}. Do not include row numbers, column markers, blank lines, code fences, prose, or any other text. Whitespace inside each row is significant: a leading or trailing space is itself a free cell, not formatting. Example response format (shown for a 6 x 6 maze for brevity; your output must be 30 rows of 30 characters):
+######
+#Sooo#
+#  #o#
+#  #o#
+## ooG
+######
+[END APPENDED SYSTEM PROMPT]
+
+[USER MESSAGE TEMPLATE, same as run 2]
+Solve this maze:
+<the 30 x 30 maze: 30 lines of 30 characters from '#', ' ', 'S', 'G', joined by newlines>
+
+Method: use breadth-first search. Start at G and spread out one step at a time. The free cells next to G are 1 step away. The free cells next to those that you have not reached yet are 2 steps away. Keep going, one step at a time, until you reach S. Then walk the path from S to G: from S, step to a neighbouring cell that is one step closer to G, and repeat until you reach G. The cells you pass through form a shortest path.
+[END USER MESSAGE TEMPLATE]

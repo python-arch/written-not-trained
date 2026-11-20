@@ -1,0 +1,3 @@
+{"task": "sudoku", "cap": 1e14, "budget": 20, "metric": "solved",
+ "files": {"D": "train_1000.jsonl"},
+ "gpu_run": {"max_flops": 2e15}}

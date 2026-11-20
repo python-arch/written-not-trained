@@ -1,0 +1,111 @@
+{
+ "d_model": 450,
+ "fields": [
+  "byte",
+  "position"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 28,
+     "dv": 12,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 13,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 13,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 19,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 763
+  }
+ ],
+ "loops": {
+  "const": 16,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "feast ",
+  " from ",
+  "\nsuccumb ",
+  "\n",
+  "attack ",
+  "\novercome ",
+  "object a",
+  "object b",
+  "object c",
+  "object d",
+  "object e",
+  "object f",
+  "object g",
+  "object h",
+  "object i",
+  "object j",
+  "object k",
+  "object l"
+ ]
+}

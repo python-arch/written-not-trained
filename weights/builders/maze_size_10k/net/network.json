@@ -1,0 +1,57 @@
+{
+ "d_model": 20,
+ "fields": [
+  "bit0",
+  "bit1",
+  "bit2",
+  "bit3",
+  "bit4",
+  "bit5",
+  "bit6",
+  "high",
+  "line",
+  "col"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 3,
+     "dv": 2,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 2,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 2,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 2,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 13
+  }
+ ],
+ "loops": {
+  "const": 480,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  " ",
+  "#",
+  "S",
+  "G",
+  "o",
+  "\n"
+ ]
+}

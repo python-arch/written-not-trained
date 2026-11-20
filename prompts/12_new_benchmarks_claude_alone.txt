@@ -1,0 +1,52 @@
+New benchmarks: Claude on its own (CLRS-Text, PlanBench, SATLIB)
+================================================================
+
+[PURPOSE]
+The comparison for the written transformers on the new benchmarks: Claude answers the same TEST prompts itself, as a
+plain message, with no tools. 50 TEST items per group, drawn at random (fixed seed) from the items the networks ran:
+CLRS-Text strongly_connected_components, mst_prim and lcs_length (all five test splits together); PlanBench task 1
+Blocksworld, Mystery Blocksworld and Logistics; SATLIB uf20-91, uf50-218 and uuf50-218. 450 items, one try each.
+
+[SETTINGS] (the same harness as 10_maze_claude_code_check.txt)
+harness: Claude Code CLI, headless (claude -p), one fresh process per item, started in an empty folder
+model: claude-opus-5-5
+effort: high (--effort high)
+tools: none at all (--tools "", --strict-mcp-config with no MCP config, --disable-slash-commands); checked per item
+  from the stream-json init event (tools and MCP servers empty) and the stream (no tool use); an item that fails this
+  check is not scored
+system prompt: Claude Code's own, with the text below appended (--append-system-prompt)
+sessions: not saved (--no-session-persistence); output as stream-json with --verbose
+time cap: one hour per item; a capped item counts as no answer
+retries: only for infrastructure failures (no reply produced), each in a new empty folder, and logged
+
+[APPENDED SYSTEM PROMPT]
+You are answering one problem on your own. You have no tools: work it out yourself, then give your answer in the format the message asks for.
+[END APPENDED SYSTEM PROMPT]
+
+[USER MESSAGE TEMPLATE]
+<the item's prompt, exactly as the network received it>
+
+<the answer instruction for its benchmark, below>
+[END USER MESSAGE TEMPLATE]
+
+[ANSWER INSTRUCTION, CLRS-Text; <name> is scc_id, pi or b]
+Give the final output `<name>` in the dataset's format, for example `[0 1 2 0 1]`. End your reply with `ANSWER:` followed by the final output alone, in plain text.
+[END]
+
+[ANSWER INSTRUCTION, PlanBench]
+Write the plan, one action per line, worded as in the example plan, and end it with `[PLAN END]`. End your reply with `ANSWER:` followed by the plan alone, in plain text.
+[END]
+
+[ANSWER INSTRUCTION, SATLIB]
+End your reply with `ANSWER:` followed by your answer alone, in plain text: `SAT` and one signed literal per variable in order, or `UNSAT`.
+[END]
+
+[SCORING]
+The answer is the text of Claude's final reply after its last `ANSWER:` (the whole reply if there is none), with one
+surrounding pair of backticks removed. It is graded by the same grader as the network's TEST answer on that item:
+- CLRS-Text: the final output must equal the dataset's exactly;
+- PlanBench: the plan is replayed under PlanBench's PDDL rules and must reach the goal; plan length is reported;
+- SATLIB: a satisfying assignment is checked against every clause; UNSAT is right only on an unsatisfiable formula
+  (Claude is not asked for a proof, so on uuf50-218 a bare UNSAT counts as right, as it does for the network).
+Reported per group: solved, wrong, no answer, Wilson 95% intervals, the network on the same 50 items, and the paired
+exact McNemar test; also output tokens and Claude Code's cost estimate.

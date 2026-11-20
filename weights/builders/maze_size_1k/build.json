@@ -1,0 +1,1 @@
+{"task": "maze_hard", "cap": 100000000000000.0, "budget": 20, "metric": "solved", "max_weights": 1000, "files": {"D": "dev_maze.jsonl"}}

@@ -1,0 +1,68 @@
+{
+ "d_model": 28,
+ "fields": [
+  "bit0",
+  "bit1",
+  "bit2",
+  "bit3",
+  "bit4",
+  "bit5",
+  "bit6",
+  "bit7",
+  "pos_mod9",
+  "pos_mod10",
+  "pos_mod11"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 1,
+     "dv": 2,
+     "mask": "causal"
+    }
+   ],
+   "d_ff": 2
+  },
+  {
+   "heads": [
+    {
+     "dk": 7,
+     "dv": 2,
+     "mask": "none"
+    },
+    {
+     "dk": 6,
+     "dv": 2,
+     "mask": "causal"
+    },
+    {
+     "dk": 7,
+     "dv": 2,
+     "mask": "none"
+    },
+    {
+     "dk": 7,
+     "dv": 2,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 10
+  }
+ ],
+ "loops": {
+  "const": 0,
+  "lin": 1,
+  "div": 2,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "#",
+  " ",
+  "o",
+  "S",
+  "G",
+  "\n"
+ ]
+}

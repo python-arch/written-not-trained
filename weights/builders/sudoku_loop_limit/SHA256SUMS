@@ -1,0 +1,8 @@
+7dc71413f5a78bdead8add9499eadf149e41bef18f62a8afbf09d145ba12ebb7  ./BUILD_NOTE.md
+4bd384617999a295d01ebca2adc0113e5a9fbcb08c1b01ce957c9c93b1eb968e  ./build.json
+cd8c3e400cd47d527c058af9ffc21f5172caff5701d253256acdaf3c374c3187  ./example_dev_prompt.txt
+9e935f02e1a80c4044cd98d4db82cfbff94ac89509ee80f993cd58a6ca7d47ec  ./grader.py
+fa9ff9f5592c36f1dd05c3d7c859fc807fce47ef6e228b6f74b5c95ef97fb0fb  ./net/network.json
+5f494c4a4b3b8c9982df868ccc597012602120f09b2384cb69789c2236a9ea00  ./net/tokenizer.py
+b0b49c82f9f4922ef577f0cad952f3789ad2863b088c8b9a1fba220cd61daae7  ./net/weights.npz
+ebc5c90cd89c83fcbe0430d1ffe7b88cb0672ed1f23940065caa35cf5be98587  ./write_weights.py

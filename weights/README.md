@@ -88,3 +88,7 @@ the ids into the answer text, the answer checks, and the `--random` input makers
 | maze | 35 | 1 | 4 | 922 | none | 2n (n = cells) |
 
 Use float64 and the exact softmax `exp(s - max) / sum` from run.py: attention scores reach about 1e13, and a library softmax (torch.softmax) returned all-zero rows, so web_of_lies scored 139/180 instead of 180/180.
+
+## Networks written by builder sessions
+
+The `builders` folder holds the transformers written by headless Claude Code sessions: Sudoku-Extreme, GraphWalks, three CLRS-Text algorithms, SATLIB, PlanBench, five Maze-Hard builds under a cap on the number of weights, and a Sudoku-Extreme build under a cap on the number of loops. They run with their own `runner/`; see `builders/README.md`.

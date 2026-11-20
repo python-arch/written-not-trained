@@ -1,0 +1,1 @@
+{"task": "clrs_strongly_connected_components", "cap": 100000000000000.0, "budget": 20, "metric": "solved", "files": {"D": "dev_strongly_connected_components.jsonl"}}

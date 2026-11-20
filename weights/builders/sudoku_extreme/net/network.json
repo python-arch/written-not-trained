@@ -1,0 +1,74 @@
+{
+ "d_model": 372,
+ "fields": [
+  "byte",
+  "position"
+ ],
+ "layers": [
+  {
+   "heads": [],
+   "d_ff": 80
+  },
+  {
+   "heads": [
+    {
+     "dk": 9,
+     "dv": 18,
+     "mask": "none"
+    },
+    {
+     "dk": 9,
+     "dv": 18,
+     "mask": "none"
+    },
+    {
+     "dk": 9,
+     "dv": 18,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 238
+  },
+  {
+   "heads": [],
+   "d_ff": 36
+  },
+  {
+   "heads": [
+    {
+     "dk": 1,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 1,
+     "dv": 1,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 26
+  },
+  {
+   "heads": [],
+   "d_ff": 2878
+  }
+ ],
+ "loops": {
+  "const": 40000,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9"
+ ]
+}

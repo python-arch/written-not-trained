@@ -1,0 +1,57 @@
+[The blind reading of the maze transformer. The three reader sessions each got the first message below, word for word, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
+
+=== FIRST MESSAGE TO EACH READER ===
+Your folder holds the weights of a small neural network (`weights.npz`, and the same numbers as text in
+`weights.txt`) and a description of its architecture (`ARCH.md`). There is nothing else.
+
+What does this network compute? What does each of the 35 numbers per token stand for, and what does each head do?
+
+- Work it out from the weights. You may write and run any code you like in this folder (Python 3 with numpy is
+  installed), including running the network on inputs you make.
+- Work only inside this folder: do not read, list or look through anything outside it. No web or network access of
+  any kind.
+- Time limit: 3 hours of working time.
+- During the session you will receive only "continue".
+- Write your answer in `ANSWER.md`, then say "done".
+
+=== ARCH.md (in the reader's folder) ===
+# A looped network
+
+- **Input:** a sequence of n tokens. Each token is three integers (a, b, c), with 0 ≤ a < 128, 0 ≤ b < 128 and
+  0 ≤ c < 5.
+- **State:** h, an n × 35 array (35 numbers per token). At the start, row i is E0[a_i] + E1[b_i] + E2[c_i].
+- **One block**, applied R = 2n times with the same weights:
+  - Attention, 4 heads of width 8. Head k uses columns 8k to 8k + 7 of Wq, Wk and Wv, and rows 8k to 8k + 7 of Wo.
+    - Q = h Wq, K = h Wk, V = h Wv.
+    - A_k = softmax over j of Q_k K_kᵀ / √8. There is no mask: every token can attend to every token. Subtract each
+      row's maximum before taking exp, because scores can be very large.
+    - h ← h + Σ_k A_k V_k Wo_k.
+  - MLP: h ← h + relu(h W1 + b1) W2 + b2, with 86 hidden units.
+  - No normalisation.
+- **Output:** at every token, logits = h Wout + bout (5 numbers). The output at that token is the argmax, a symbol
+  from 0 to 4.
+
+## Files
+- `weights.npz`: the arrays above (numpy), under the names used here.
+- `weights.txt`: the same numbers as text, one array after another.
+
+=== SCORER PROMPT ===
+You are scoring an answer against a rubric. Below are three parts: the ground truth (the design note of a small
+neural network), the rubric, and the answer written by someone who saw only the network's weights and its bare
+architecture.
+
+For each of the 11 rubric items, give 1 if the answer states it, in any words, and 0 if it does not. Follow the
+rubric's rules: names may differ, and an item stated and then contradicted elsewhere in the answer scores 0. Judge
+only what the answer says. Do not credit what it could have meant.
+
+Reply with JSON only, a list of 11 objects: {"item": <1-11>, "score": <0 or 1>, "evidence": "<the sentence of the
+answer that supports the score, copied exactly, or empty>"}.
+
+=== GROUND TRUTH ===
+{GROUND_TRUTH}
+
+=== RUBRIC ===
+{RUBRIC}
+
+=== ANSWER ===
+{ANSWER}

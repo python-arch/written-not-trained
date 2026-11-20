@@ -1,0 +1,611 @@
+{
+ "blocksworld": {
+  "actions": {
+   "pick-up": {
+    "params": [
+     "?ob"
+    ],
+    "pre": [
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "ontable",
+      "?ob"
+     ],
+     [
+      "handempty"
+     ]
+    ],
+    "add": [
+     [
+      "holding",
+      "?ob"
+     ]
+    ],
+    "del": [
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "ontable",
+      "?ob"
+     ],
+     [
+      "handempty"
+     ]
+    ]
+   },
+   "put-down": {
+    "params": [
+     "?ob"
+    ],
+    "pre": [
+     [
+      "holding",
+      "?ob"
+     ]
+    ],
+    "add": [
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "handempty"
+     ],
+     [
+      "ontable",
+      "?ob"
+     ]
+    ],
+    "del": [
+     [
+      "holding",
+      "?ob"
+     ]
+    ]
+   },
+   "stack": {
+    "params": [
+     "?ob",
+     "?underob"
+    ],
+    "pre": [
+     [
+      "clear",
+      "?underob"
+     ],
+     [
+      "holding",
+      "?ob"
+     ]
+    ],
+    "add": [
+     [
+      "handempty"
+     ],
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "on",
+      "?ob",
+      "?underob"
+     ]
+    ],
+    "del": [
+     [
+      "clear",
+      "?underob"
+     ],
+     [
+      "holding",
+      "?ob"
+     ]
+    ]
+   },
+   "unstack": {
+    "params": [
+     "?ob",
+     "?underob"
+    ],
+    "pre": [
+     [
+      "on",
+      "?ob",
+      "?underob"
+     ],
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "handempty"
+     ]
+    ],
+    "add": [
+     [
+      "holding",
+      "?ob"
+     ],
+     [
+      "clear",
+      "?underob"
+     ]
+    ],
+    "del": [
+     [
+      "on",
+      "?ob",
+      "?underob"
+     ],
+     [
+      "clear",
+      "?ob"
+     ],
+     [
+      "handempty"
+     ]
+    ]
+   }
+  },
+  "nl": {
+   "pick-up": "pick up the {}",
+   "put-down": "put down the {}",
+   "stack": "stack the {} on top of the {}",
+   "unstack": "unstack the {} from on top of the {}"
+  }
+ },
+ "mystery_blocksworld": {
+  "actions": {
+   "attack": {
+    "params": [
+     "?ob"
+    ],
+    "pre": [
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "planet",
+      "?ob"
+     ],
+     [
+      "harmony"
+     ]
+    ],
+    "add": [
+     [
+      "pain",
+      "?ob"
+     ]
+    ],
+    "del": [
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "planet",
+      "?ob"
+     ],
+     [
+      "harmony"
+     ]
+    ]
+   },
+   "succumb": {
+    "params": [
+     "?ob"
+    ],
+    "pre": [
+     [
+      "pain",
+      "?ob"
+     ]
+    ],
+    "add": [
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "harmony"
+     ],
+     [
+      "planet",
+      "?ob"
+     ]
+    ],
+    "del": [
+     [
+      "pain",
+      "?ob"
+     ]
+    ]
+   },
+   "overcome": {
+    "params": [
+     "?ob",
+     "?underob"
+    ],
+    "pre": [
+     [
+      "province",
+      "?underob"
+     ],
+     [
+      "pain",
+      "?ob"
+     ]
+    ],
+    "add": [
+     [
+      "harmony"
+     ],
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "craves",
+      "?ob",
+      "?underob"
+     ]
+    ],
+    "del": [
+     [
+      "province",
+      "?underob"
+     ],
+     [
+      "pain",
+      "?ob"
+     ]
+    ]
+   },
+   "feast": {
+    "params": [
+     "?ob",
+     "?underob"
+    ],
+    "pre": [
+     [
+      "craves",
+      "?ob",
+      "?underob"
+     ],
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "harmony"
+     ]
+    ],
+    "add": [
+     [
+      "pain",
+      "?ob"
+     ],
+     [
+      "province",
+      "?underob"
+     ]
+    ],
+    "del": [
+     [
+      "craves",
+      "?ob",
+      "?underob"
+     ],
+     [
+      "province",
+      "?ob"
+     ],
+     [
+      "harmony"
+     ]
+    ]
+   }
+  },
+  "nl": {
+   "attack": "attack {}",
+   "succumb": "succumb {}",
+   "overcome": "overcome {} from {}",
+   "feast": "feast {} from {}"
+  }
+ },
+ "logistics": {
+  "actions": {
+   "load-truck": {
+    "params": [
+     "?obj",
+     "?truck",
+     "?loc"
+    ],
+    "pre": [
+     [
+      "obj",
+      "?obj"
+     ],
+     [
+      "truck",
+      "?truck"
+     ],
+     [
+      "location",
+      "?loc"
+     ],
+     [
+      "at",
+      "?truck",
+      "?loc"
+     ],
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ]
+    ],
+    "add": [
+     [
+      "in",
+      "?obj",
+      "?truck"
+     ]
+    ],
+    "del": [
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ]
+    ]
+   },
+   "load-airplane": {
+    "params": [
+     "?obj",
+     "?airplane",
+     "?loc"
+    ],
+    "pre": [
+     [
+      "obj",
+      "?obj"
+     ],
+     [
+      "airplane",
+      "?airplane"
+     ],
+     [
+      "location",
+      "?loc"
+     ],
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ],
+     [
+      "at",
+      "?airplane",
+      "?loc"
+     ]
+    ],
+    "add": [
+     [
+      "in",
+      "?obj",
+      "?airplane"
+     ]
+    ],
+    "del": [
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ]
+    ]
+   },
+   "unload-truck": {
+    "params": [
+     "?obj",
+     "?truck",
+     "?loc"
+    ],
+    "pre": [
+     [
+      "obj",
+      "?obj"
+     ],
+     [
+      "truck",
+      "?truck"
+     ],
+     [
+      "location",
+      "?loc"
+     ],
+     [
+      "at",
+      "?truck",
+      "?loc"
+     ],
+     [
+      "in",
+      "?obj",
+      "?truck"
+     ]
+    ],
+    "add": [
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ]
+    ],
+    "del": [
+     [
+      "in",
+      "?obj",
+      "?truck"
+     ]
+    ]
+   },
+   "unload-airplane": {
+    "params": [
+     "?obj",
+     "?airplane",
+     "?loc"
+    ],
+    "pre": [
+     [
+      "obj",
+      "?obj"
+     ],
+     [
+      "airplane",
+      "?airplane"
+     ],
+     [
+      "location",
+      "?loc"
+     ],
+     [
+      "in",
+      "?obj",
+      "?airplane"
+     ],
+     [
+      "at",
+      "?airplane",
+      "?loc"
+     ]
+    ],
+    "add": [
+     [
+      "at",
+      "?obj",
+      "?loc"
+     ]
+    ],
+    "del": [
+     [
+      "in",
+      "?obj",
+      "?airplane"
+     ]
+    ]
+   },
+   "drive-truck": {
+    "params": [
+     "?truck",
+     "?loc-from",
+     "?loc-to",
+     "?city"
+    ],
+    "pre": [
+     [
+      "truck",
+      "?truck"
+     ],
+     [
+      "location",
+      "?loc-from"
+     ],
+     [
+      "location",
+      "?loc-to"
+     ],
+     [
+      "city",
+      "?city"
+     ],
+     [
+      "at",
+      "?truck",
+      "?loc-from"
+     ],
+     [
+      "in-city",
+      "?loc-from",
+      "?city"
+     ],
+     [
+      "in-city",
+      "?loc-to",
+      "?city"
+     ]
+    ],
+    "add": [
+     [
+      "at",
+      "?truck",
+      "?loc-to"
+     ]
+    ],
+    "del": [
+     [
+      "at",
+      "?truck",
+      "?loc-from"
+     ]
+    ]
+   },
+   "fly-airplane": {
+    "params": [
+     "?airplane",
+     "?loc-from",
+     "?loc-to"
+    ],
+    "pre": [
+     [
+      "airplane",
+      "?airplane"
+     ],
+     [
+      "airport",
+      "?loc-from"
+     ],
+     [
+      "airport",
+      "?loc-to"
+     ],
+     [
+      "at",
+      "?airplane",
+      "?loc-from"
+     ]
+    ],
+    "add": [
+     [
+      "at",
+      "?airplane",
+      "?loc-to"
+     ]
+    ],
+    "del": [
+     [
+      "at",
+      "?airplane",
+      "?loc-from"
+     ]
+    ]
+   }
+  },
+  "nl": {
+   "load-truck": "load {} into {} at {}",
+   "load-airplane": "load {} into {} at {}",
+   "unload-truck": "unload {} from {} at {}",
+   "unload-airplane": "unload {} from {} at {}",
+   "drive-truck": "drive {} from {} to {} in {}",
+   "fly-airplane": "fly {} from {} to {}"
+  }
+ }
+}

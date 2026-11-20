@@ -1,0 +1,187 @@
+{
+ "d_model": 1327,
+ "fields": [
+  "byte",
+  "position"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 28,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 41,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 21,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 20,
+     "mask": "none"
+    },
+    {
+     "dk": 2,
+     "dv": 30,
+     "mask": "none"
+    },
+    {
+     "dk": 21,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 21,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 20,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 20,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 10,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 20,
+     "mask": "none"
+    },
+    {
+     "dk": 11,
+     "dv": 20,
+     "mask": "none"
+    },
+    {
+     "dk": 13,
+     "dv": 21,
+     "mask": "causal"
+    }
+   ],
+   "d_ff": 3106
+  }
+ ],
+ "loops": {
+  "const": 20,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "drive truck_",
+  " from location_",
+  "_",
+  " to location_",
+  " in city_",
+  "\n",
+  "load package_",
+  " into truck_",
+  " at location_",
+  "unload package_",
+  " from truck_",
+  "fly airplane_",
+  " into airplane_",
+  " from airplane_",
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9"
+ ]
+}

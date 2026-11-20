@@ -1,0 +1,135 @@
+## Your task
+
+Write the weights of looped transformers that solve PlanBench's plan-generation task (task 1) in three domains:
+Blocksworld, Mystery Blocksworld and Logistics. Give one network per domain; they may share code. Nothing is trained:
+every weight is written by code you write.
+
+**The problem.** Each prompt describes a planning domain in words: its actions and the rules for when each can be
+taken and what it changes. Then it gives one solved example (an initial state, a goal and a plan) and a new
+problem: an initial state and a goal. The network must write a plan, a sequence of actions that turns the initial
+state into one where the goal holds. Any valid plan counts; it need not be the shortest.
+- **Blocksworld:** stacks of colored blocks and a hand that picks up, puts down, stacks and unstacks one block at a
+  time.
+- **Mystery Blocksworld:** the same problems, with every action and fact renamed to unrelated words (attack, feast,
+  succumb, overcome; province, planet, harmony, pain, craves).
+- **Logistics:** packages moved between locations by trucks within a city and by airplanes between cities.
+
+**Input.** Each problem is one text prompt, exactly as PlanBench gives it to a language model. It ends with `[PLAN]`.
+The DEV prompts show the exact text.
+
+**Output.** The plan, one action per line, worded as in the example plan of the prompt (for example `unstack the red
+block from on top of the blue block`). You may end it with `[PLAN END]`.
+
+**Scoring:** per problem, the plan is replayed (`tools/grader.py`).
+- The text up to `[PLAN END]` (all of it if absent) is read one line per action. Case, spaces around a line and a
+  final period are ignored, and blank lines are skipped.
+- Every line must be an action of the domain, in its wording. Starting from the initial state, each action's
+  conditions must hold when it is taken, and the goal must hold at the end. The rules are those of PlanBench's PDDL
+  domain files (`tools/domains.json`).
+- The TEST score is the fraction of valid plans per domain. Plan length against the shortest plan is reported too.
+
+**TEST** is 400 other Blocksworld problems, the same 400 in Mystery Blocksworld wording, and 200 other Logistics
+problems, all from PlanBench task 1. You never see TEST. When you say you are done, the orchestrator freezes your
+files and runs TEST on a GPU with the runner's `torch32` path.
+
+## Data in your folder
+
+- `dev/dev_planbench.jsonl`: 285 problems: 100 Blocksworld, the same 100 in Mystery Blocksworld wording, and 85
+  Logistics. Each line is `{"id", "domain", "instance_id", "prompt", "objects", "objects_nl", "init", "goal",
+  "gt_plan_len", "gt_plan"}`: the problem in PDDL form (objects, initial facts, goal facts), how each object is
+  named in the prompt, and PlanBench's reference plan with its length.
+- `tools/domains.json`: the three domains' actions (parameters, conditions, effects) and their wording.
+
+You may analyse the DEV problems with any code you like, as often as you like. You may also make your own problems
+(for example with a planner you write); runs on them do not count.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about planning, these domains or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch32` (float32, fused attention, TF32
+  off). The written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 60 runs, at most 20 per domain.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of PlanBench or its problems.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. One network folder per domain (`work/net_blocksworld/`, `work/net_mystery_blocksworld/`,
+   `work/net_logistics/`): `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - the plan lengths against the reference plans on DEV;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.

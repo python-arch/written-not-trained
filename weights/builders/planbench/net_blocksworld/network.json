@@ -1,0 +1,112 @@
+{
+ "d_model": 487,
+ "fields": [
+  "byte",
+  "position"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 45,
+     "mask": "none"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 3,
+     "dv": 1,
+     "mask": "causal"
+    },
+    {
+     "dk": 28,
+     "dv": 12,
+     "mask": "none"
+    },
+    {
+     "dk": 28,
+     "dv": 12,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 3,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 13,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 13,
+     "dv": 1,
+     "mask": "none"
+    },
+    {
+     "dk": 25,
+     "dv": 19,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 860
+  }
+ ],
+ "loops": {
+  "const": 16,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "unstack the ",
+  " from on top of the ",
+  "\nput down the ",
+  "\n",
+  "pick up the ",
+  "\nstack the ",
+  " on top of the ",
+  "red block",
+  "blue block",
+  "orange block",
+  "yellow block",
+  "white block",
+  "magenta block",
+  "black block",
+  "cyan block",
+  "green block",
+  "violet block",
+  "silver block",
+  "gold block"
+ ]
+}

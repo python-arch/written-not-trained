@@ -1,0 +1,44 @@
+{
+ "d_model": 12,
+ "fields": [
+  "char_mod7",
+  "position_class"
+ ],
+ "layers": [
+  {
+   "heads": [
+    {
+     "dk": 1,
+     "dv": 6,
+     "mask": "causal"
+    },
+    {
+     "dk": 2,
+     "dv": 4,
+     "mask": "causal"
+    },
+    {
+     "dk": 5,
+     "dv": 2,
+     "mask": "none"
+    }
+   ],
+   "d_ff": 9
+  }
+ ],
+ "loops": {
+  "const": 1415,
+  "lin": 0,
+  "div": 1,
+  "log2": 0
+ },
+ "alphabet": [
+  "",
+  "#",
+  "\n",
+  " ",
+  "o",
+  "S",
+  "G"
+ ]
+}

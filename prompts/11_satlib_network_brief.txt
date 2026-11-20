@@ -1,0 +1,127 @@
+## Your task
+
+Write the weights of a looped transformer that decides random 3-SAT formulas from SATLIB, the standard benchmark
+library for satisfiability: it must say whether a formula is satisfiable and, if it is, give an assignment that
+satisfies it. Nothing is trained: every weight is written by code you write.
+
+**The problem.** A 3-SAT formula over variables 1 … V is a list of clauses, each the OR of three literals (a variable
+or its negation). The formula is satisfiable if some true/false assignment to the variables makes every clause true.
+
+**Input.** Each problem is one text prompt: a fixed instruction line, then the formula in DIMACS CNF format, the line
+`p cnf V C` followed by C clause lines, each three nonzero integers and a final `0` (k means variable k is true, -k
+means it is false). The DEV prompts show the exact text. The formulas are SATLIB's uniform random 3-SAT sets:
+`uf20-91` (V = 20, C = 91, satisfiable), `uf50-218` (V = 50, C = 218, satisfiable) and `uuf50-218` (V = 50, C = 218,
+unsatisfiable). The prompt does not say which set a formula is from.
+
+**Output.** `SAT` followed by one signed literal per variable in order (for example `SAT 1 -2 3 …`), or `UNSAT`. If
+your network gives up (for example at its loop limit), it may answer `UNKNOWN`.
+
+**Scoring:** per problem, verified (`tools/grader.py`).
+- `UNSAT` is right only on an unsatisfiable formula.
+- `SAT` with an assignment is right only if the formula is satisfiable and the assignment satisfies every clause. The
+  grader checks every clause; any satisfying assignment counts.
+- Anything else, including `UNKNOWN` or nothing, scores 0 and is reported as no answer (a timeout).
+- The TEST score is the fraction solved, reported per set, with wrong answers and timeouts counted separately.
+
+**TEST** is 900 other formulas from each of the three sets (2,700 in all). You never see TEST. When you say you are
+done, the orchestrator freezes your files and runs TEST on a GPU with the runner's `torch32` path.
+
+## Data in your folder
+
+- `dev/dev_satlib.jsonl`: 300 formulas, 100 from each set. Each line is `{"id", "set", "file", "n_vars",
+  "n_clauses", "label", "clauses", "prompt"}`, where `label` is SAT or UNSAT and `clauses` is the formula as lists of
+  integers.
+
+You may analyse the DEV inputs and labels with any code you like, as often as you like. You may also make your own
+formulas (for example random 3-SAT with a solver you write to label them); runs on them do not count.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about formulas, clauses, satisfiability or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch32` (float32, fused attention, TF32
+  off). The written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of SATLIB or these formulas.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - how many loops your search needs on the DEV formulas (for example from a simulator), and what the network
+     answers when a formula needs more than it has;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.
