@@ -430,6 +430,9 @@
 </details>
 
 
+<p>The 19,936 weights are not a minimum. We gave five fresh Claude Code sessions only the task and a cap on the number of weights, of 1,000, 5,000, 10,000, 20,000 or 40,000. All five transformers solved all 1,000 test mazes, with 928, 4,359, 4,380, 7,682 and 8,876 weights. The smallest, 21 times smaller than the transformer in this post, works out each cell's position in its first 945 loops instead of reading it from a table.</p>
+
+
 <h2 id="maze-claude"><span class="qn">3.</span> Why Claude can write the transformer but can't solve the maze</h2>
 
 <p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we added a paragraph to the LDT paper's prompt that tells Claude how to search, by spreading out from the goal one step at a time and then walking back from the start. That lifted its score from 26% to 48%. We then varied one thing at a time, yet nothing pushed it past 50%.</p>
@@ -452,6 +455,8 @@
 <p class="note"><strong>Table 1. Claude with better prompts.</strong> The first row is the paper's result for Claude Opus 5.5. The next four are our runs with the same model, with reasoning effort set to high, up to 100,000 output tokens and no tools. Every row uses the same test mazes, with one try per maze. The 95% intervals of our four runs overlap. Paired tests on the same mazes find no significant difference for any single change of prompt (p from 0.21 to 1.0). The prompts are in <a href="#prompts">appendix E</a>.</p>
 
 <p>Describing the algorithm helps, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (44% against 48%). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
+
+<p>The setup does not explain it either. Run through Claude Code instead of the API, with no tools and the same "told how to search" prompt, Claude found the shortest path in 19 of the 50 mazes, against 24 through the API, a difference within noise (p = 0.42).</p>
 
 <p>Writing the transformer is a different task. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We suspect this helps because each design choice can be checked on its own. The design rests on a handful of ideas, such as counting distance in threes, each of which can be checked separately. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
@@ -492,6 +497,8 @@
 <p>All runs ended at 0%. As written, the transformer has no normalisation, which made all six of our first runs break down within 30 training steps. Once we added RMSNorm, training ran smoothly, but each transformer learned only to copy the maze back unchanged. Longer runs on six versions of the transformer, ranging from the original size up to 2.8 million weights with more loops, more blocks per loop or up to 16 times the width, also ended at 0%. So did runs with a curriculum that started on 10×10 mazes and worked upward. After 8 hours each, none of them had solved a single maze of any size.</p>
 
 <p>All runs converge to copying the input. Path cells make up only about one cell in eight, so a model that simply copies the maze back already gets 87.4% of cells right. Every run ended at or just below that level, with none getting past 87.5%. To do any better, a transformer has to mark path cells. In the written transformer, though, a path cell is marked only after the wave has crossed the maze, which takes a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way to follow.</p>
+
+<p>If copying is the cheapest way to lower the loss, two changes should help: a loss that counts path cells as much as all other cells, and supervision of the states the written transformer holds after each loop, its distance wave and its pointers. We trained the same architecture from random weights with the balanced loss alone and with both changes, on the same 1,000 mazes, for at least 30,000 updates and at three learning rates. None of the 185 checkpoints we scored solved a single test maze. The balanced loss did stop the copying, with cell accuracy falling from 87.5% to between 50% and 71%, but no run learned the path in its place. Training failed under every setting we tried.</p>
 
 <p>A standard transformer does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 blocks, 6.4 million weights, 320 times the transformer Claude wrote) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. TRM itself, a looped model built for this benchmark, reached 77.4% when we trained it with its authors' recipe on one GPU. Figure 3 shows every run against training time.</p>
 
@@ -535,7 +542,7 @@
   <figcaption><strong>Figure 9. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
 </figure>
 
-<p>In all three tasks, the trained models do well on training sizes but fail beyond them, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show that size-independent solutions exist in these architectures. Small looped transformers can hold a solution that works at any size, given enough loops and a large enough position table.</p>
+<p>In all three tasks, the trained models do well on training sizes but fail beyond them, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show that size-independent solutions exist in these architectures. Each one's size limit is set by its tables, its loop budget and its arithmetic precision, not by the loop itself, and inside those limits its answers are exact at every size we tested.</p>
 
 <details>
   <summary>The graph search table</summary>
@@ -554,10 +561,17 @@
   <p>The full parity and chains tables, along with how those two transformers work, are in <a href="#app-parity">appendix A</a>.</p>
 </details>
 
+<details>
+  <summary>The limits of each transformer, and why the answers stay exact</summary>
+  <p>A written transformer gives exact answers at a given size when three things hold. Its tables must be large enough: the maze reads grids up to 128 × 128, parity strings up to 4,095 bits, and graph search node numbers up to 63. Its loop rule must give enough loops: the maze runs twice as many loops as it has cells, more than any path needs. And its arithmetic must be precise enough: each attention head prefers its target by a wide margin, so almost no weight leaks to other inputs, and every value is snapped back to an exact 0 or 1 after each loop, so small errors never add up.</p>
+  <p>Inside these limits, exactness follows by induction over loops. If every value is exact before a loop, the loop computes the algorithm's next step exactly, so after enough loops the transformer holds the algorithm's final answer, and extra loops leave it unchanged. Larger inputs need larger tables, which the same formulas write, while the looped block stays the same.</p>
+  <p>The other transformers have limits of their own. The Sudoku transformer has room for 24 saved grids and runs 40,000 loops, while the test puzzles needed at most 16 and 14,904. The Tower of Hanoi transformer needs float64 arithmetic and fits up to 20 disks in its context. The GraphWalks and Extra Hard transformers read only the prompt format they were built for.</p>
+</details>
+
 
 <h2 id="results"><span class="qn">5.</span> The same recipe on other benchmarks</h2>
 
-<p>Beyond mazes, Claude wrote transformers for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. The rest of this section explains what each transformer has to do and where a comparison needs care.</p>
+<p>Beyond mazes, Claude wrote transformers for eight more tasks from well-known benchmarks, most of them tasks where LLMs or trained models are known to struggle. Three more benchmarks, CLRS-30, SATLIB and PlanBench, close the section. The rest of this section explains what each transformer has to do and where a comparison needs care.</p>
 
 <figure class="reveal narrow" style="--hide: 45%">
   <div class="layers">
@@ -596,6 +610,8 @@
   <p>Each column covers the same puzzles in the test set's fixed order, which the LDT code sets. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper scored its model on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
   <p>The limits would matter for a puzzle that reached them. When we stopped the transformer early on training puzzles, it wrote a full grid with wrong digits, so a puzzle that needed more than 40,000 loops would get a plausible-looking wrong answer. When we rebuilt it with room for only 4 or 8 saved grids, every puzzle that needed more wrote a 1 in every cell, an answer that is visibly wrong, while the puzzles that fit were still solved. Before the test, the transformer itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
 </details>
+
+<p>With fewer loops, Claude moved the work into the block. We gave a fresh Claude Code session the same task with at most 1,000 loops, 40 times fewer. It wrote the same kind of solver but stacked 12 copies of its search step into the looped block, so that 1,000 loops give 12,000 steps. That transformer has more weights, 33.4 million with 267,855 of them not zero, but needs a third of the arithmetic per puzzle, and it solved all of the first 10,000 test puzzles.</p>
 
 <h3 id="hanoi">Tower of Hanoi up to 20 disks</h3>
 
@@ -700,11 +716,59 @@
 </details>
 
 
+<p>Because the test questions are public, we also generated 40 new problems per task, from generators written from the task descriptions in the BBEH paper, with a fresh seed. Both transformers solved all 40. Rewriting these problems, keeping the same underlying problem and answer, shows what each transformer depends on (Table 8). Neither cares about new names. The Web of Lies transformer also handles reordered statements, but with one sentence per line or new wording it can no longer read the statements and answers "unknown". The Shuffled Objects transformer handles new layouts and new wording, but picks an option by its place in the starting list, so reordering that list breaks it. As with GraphWalks, the transformers read the format they were built for, whereas an LLM would handle it.</p>
+
+<details>
+  <summary>The format changes in full</summary>
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>Version of the 40 new problems</th><th class="num">Web of Lies</th><th class="num">Shuffled Objects</th></tr></thead>
+  <tbody>
+    <tr class="written"><td>As generated</td><td class="num">40</td><td class="num">40</td></tr>
+    <tr><td>New names for every person</td><td class="num">40</td><td class="num">40</td></tr>
+    <tr><td>The statements, or the starting list, in a new order</td><td class="num">40</td><td class="num">6</td></tr>
+    <tr><td>One sentence per line</td><td class="num">5</td><td class="num">40</td></tr>
+    <tr><td>The same statements in other words</td><td class="num">5</td><td class="num">40</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note"><strong>Table 8. Format changes, same problems.</strong> Problems solved out of 40 per task. Each rewrite keeps the problem and its answer. The 5 Web of Lies problems counted as solved under the last two changes are the ones whose answer is all "unknown".</p>
+</details>
+
+<h3 id="more-benchmarks">Graph algorithms, SAT and planning</h3>
+
+<p>We then took the recipe to three benchmarks of other kinds of algorithms. From <a href="https://github.com/google-deepmind/clrs">CLRS-30</a>, in its text version CLRS-Text, Claude wrote transformers for three algorithms beyond search: strongly connected components, minimum spanning trees with Prim's algorithm, and the longest common subsequence, a dynamic program. From <a href="https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html">SATLIB</a> came small random 3-SAT formulas, satisfiable and unsatisfiable, which the transformer must decide, giving a satisfying assignment when there is one. From <a href="https://arxiv.org/abs/2206.10498">PlanBench</a> came the Blocksworld, Mystery Blocksworld and Logistics planning tasks, where every plan is checked for validity. Each transformer was written by a fresh Claude Code session from a plain description of the task, checked on the training split and run once on the test split.</p>
+
+<div class="table-wrap">
+<table class="text-first">
+  <thead><tr><th>Task</th><th class="num">Test items</th><th class="num">Written transformer</th><th class="num">Claude Opus 5.5</th></tr></thead>
+  <tbody>
+    <tr><td>CLRS-Text: strongly connected components</td><td class="num">9,300</td><td class="num">100</td><td class="num">96</td></tr>
+    <tr><td>CLRS-Text: minimum spanning tree (Prim)</td><td class="num">16,400</td><td class="num">99.2</td><td class="num">96</td></tr>
+    <tr><td>CLRS-Text: longest common subsequence</td><td class="num">6,000</td><td class="num">100</td><td class="num">92</td></tr>
+    <tr><td>PlanBench: Blocksworld</td><td class="num">400</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>PlanBench: Mystery Blocksworld</td><td class="num">400</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>PlanBench: Logistics</td><td class="num">200</td><td class="num">100</td><td class="num">100</td></tr>
+    <tr><td>SATLIB: uf20-91, satisfiable</td><td class="num">900</td><td class="num">100</td><td class="num">96</td></tr>
+    <tr><td>SATLIB: uf50-218, satisfiable</td><td class="num">900</td><td class="num">100</td><td class="num">84</td></tr>
+    <tr><td>SATLIB: uuf50-218, unsatisfiable</td><td class="num">900</td><td class="num">100</td><td class="num">82</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="note"><strong>Table 9. Graph algorithms, SAT and planning.</strong> Accuracy in %. The written transformers ran once on every test item. Claude Opus 5.5 answered 50 test items per task, drawn at random, in Claude Code with no tools and reasoning effort set to high. Both are scored the same way: a CLRS-Text answer must equal the dataset's exactly, a plan must be valid, and a SAT answer must satisfy every clause, with "unsatisfiable" right only on an unsatisfiable formula. The spanning trees the transformer gets "wrong" are all ties: different minimum spanning trees of exactly the same total weight.</p>
+
+<p>The test splits hold larger inputs than the training splits. The components transformer is exact on graphs of up to 22 nodes, where the largest training graph had 15, and the subsequence transformer on strings of up to 15, beyond the training maximum of 10. The SAT transformer runs a complete search, one step per loop, and answers only when the search ends. Every assignment it gave satisfies its formula, every "unsatisfiable" is right, and the hardest formula used 808 of its 1,224 loops.</p>
+
+<p>Claude on its own did well on planning but slipped on SAT. It gave 10 assignments that do not satisfy their formula and missed 9 of the 50 unsatisfiable formulas, after a median of 88,309 output tokens on each of those.</p>
+
+
 <h2 id="interp"><span class="qn">6.</span> A transformer you can read</h2>
 
 <p>Interpretability research usually works backwards. It starts from a trained model and tries to work out what its numbers mean, by probing hidden states, switching parts off and tracing the circuits that connect them (<a href="https://distill.pub/2020/circuits/zoom-in/">Olah et al., Distill 2020</a>). A hand-written transformer works the other way round. Claude chose the meaning of every number first and then set the weights to match, so the explanation is fixed before any weight is set.</p>
 
 <p>For the maze transformer, this makes the usual interpretability questions easy to answer. We can read any cell's distance, pointer and path flag after any loop, which is how the thought bubble in Figure 2 and the <a href="demo/maze.html">maze demo</a> show the search as it runs. We can also predict what breaks before we break it. Each attention head carries the wave in one direction, so removing a head should stop the wave from crossing that way. The experiment in <a href="#inside">section 1</a> confirms it. The wave stalls near the goal, so 0% of the mazes get solved. Finally, we can check the inside of the transformer against the algorithm rather than only its output. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</p>
+
+<p>The meanings can also be read back from the weights alone. We gave three fresh Claude Code sessions only the maze transformer's weights and a bare description of its architecture, without the word maze, the task or any example, and asked what it computes and what each of a cell's 35 numbers stands for. Each recovered the whole design, 11 of 11 points on a rubric fixed in advance, in about two minutes, and confirmed it by running the weights against its own shortest-path search on random grids.</p>
 
 <p>This also makes the transformers useful to interpretability research. Tracr compiles programs into transformers as a laboratory for testing interpretability methods on models whose algorithm is known (<a href="https://arxiv.org/abs/2301.05062">Lindner et al., NeurIPS 2023</a>). InterpBench later trained such models to score methods that search for circuits (<a href="https://arxiv.org/abs/2407.14494">Gupta et al., NeurIPS 2024</a>). The transformers in this post add looped models that solve hard benchmarks, with a known meaning for every number at every loop. A method that claims to find the algorithm inside a looped model can be checked against them, since the right answer is already written down.</p>
 
@@ -716,17 +780,18 @@
 <h2 id="conclusion">Conclusion</h2>
 
 <ul class="findings">
-  <li><strong>The approach also works on other tasks.</strong> Claude used the same recipe on other hard tasks. One transformer solves Sudoku-Extreme by guessing and backtracking. Another plays out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake. A third answers graph questions buried in prompts of up to a million tokens (GraphWalks). Four more solve reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these transformers scored 100% on its test problems.</li>
+  <li><strong>The approach also works on other tasks.</strong> Claude used the same recipe on other hard tasks. One transformer solves Sudoku-Extreme by guessing and backtracking. Another plays out all 1,048,575 moves of a 20-disk Tower of Hanoi without a single mistake. A third answers graph questions buried in prompts of up to a million tokens (GraphWalks). Four more solve reasoning tasks from BIG-Bench Hard and BIG-Bench Extra Hard. Every one of these transformers scored 100% on its test problems. Seven more handle graph algorithms and a dynamic program from CLRS-30, SAT formulas and planning problems.</li>
   <li><strong>The loop keeps the transformers small and lets them handle larger inputs.</strong> Each weight is a possible error. With a loop, a bigger problem needs more passes rather than more weights, which keeps the maze transformer 163 times smaller than it would be without one. The same loop lets each transformer keep working far beyond the sizes Claude checked it on (<a href="#beyond">section 4</a>).</li>
   <li><strong>Gradient descent did not find these solutions in our runs.</strong> When we reset the maze transformer Claude wrote to random weights and trained it on the same 1,000 mazes, every run ended with 0% of mazes solved, on budgets far smaller than those of the models built for this benchmark (<a href="#training">section 4</a>).</li>
   <li><strong>Every number inside has a meaning.</strong> Claude decided what each number inside a transformer stands for, so we can read those numbers after any loop and watch the algorithm run, as the thought bubble in Figure 2 shows. The same property makes these transformers test cases for interpretability tools (<a href="#interp">section 6</a>).</li>
 </ul>
 
+<p>More broadly, our results suggest that for algorithmic tasks with a known procedure, what holds small models back is not their size but finding the right weights. An LLM that cannot solve a problem directly may still write a transformer that does.</p>
+
 <h2 id="next">What's next</h2>
 
 <p>We plan to study multitask composition and training initialized from constructed weights. The first is a single transformer for many tasks, in which the modules from this post live side by side while a hand-written router sends each input to the right one. The second is to use hand-written weights as a starting point for training. If training starts from a looped solution that already scores 100%, will it keep the ability to handle bigger inputs, or wash it out?</p>
 
-<p>More broadly, our results suggest that for algorithmic tasks with a known procedure, what holds small models back is not their size but finding the right weights. An LLM that cannot solve a problem directly may still write a transformer that does.</p>
 
 <h2 id="code">Weights and demo</h2>
 <p><a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Maze-Hard transformer in your browser</a> on real test mazes to watch every cell's numbers change loop by loop. The page checks every finished grid against the dataset's answer.</p>
@@ -734,6 +799,8 @@
 <p><a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run the Tower of Hanoi transformer in your browser.</a> The page loads the transformer's weights and runs them with one generic loop, while a separate checker replays every move.</p>
 
 <p>The prompts Claude received in every experiment are in the <a href="https://github.com/python-arch/written-not-trained/tree/main/prompts">prompts folder</a> of the code repository, and in full in <a href="#prompts">appendix E</a>.</p>
+
+<p>The transformers that Claude Code sessions wrote for Sudoku, GraphWalks, the three new benchmarks and the capped builds are in the <a href="https://github.com/python-arch/written-not-trained/tree/main/weights/builders">weights/builders folder</a>, each with the code that wrote it and a note on how it works.</p>
 
 
 
@@ -773,7 +840,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 8. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
+<p class="note"><strong>Table 10. Parity in full.</strong> Accuracy in %. Chance is 50%. Only two trained models still reach 99% at 21 bits. None does at longer lengths. The hand-written transformer's looped part has about 190 weights, plus a table of positions that grows with the input (24,766 entries at 4,096 positions).</p>
 <div class="table-wrap">
 <table class="text-first">
   <thead><tr><th>Model</th><th class="num">Weights</th><th class="num">Checking range (≤ 8 steps)</th><th class="num">Test (12–32 steps)</th></tr></thead>
@@ -787,7 +854,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 9. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
+<p class="note"><strong>Table 11. Reasoning chains in full.</strong> Accuracy in %. Each trained model got up to 60 minutes of GPU time. Several did not fully learn the checking range, so the cleanest comparison is the 8-block model, at 93.7% on the checking range and 3.5% beyond it.</p>
 
 
 </details>
@@ -843,7 +910,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 10. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
+<p class="note"><strong>Table 12. Ouro with and without the fix.</strong> Perplexity measures how well the model predicts real text, here on 200 test passages from wikitext-103, a standard collection of Wikipedia articles. ARC-Challenge is a set of science exam questions (test set, 1,172 questions, no worked examples). The chains are 100 3-step versions of the reasoning chains from section 4.</p>
 
 <div class="table-wrap">
 <table>
@@ -854,7 +921,7 @@
   </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 11. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
+<p class="note"><strong>Table 13. Ouro on GSM8K.</strong> GSM8K is a set of grade-school math word problems.</p>
 
 <details>
   <summary>Uncertainty, and how this compares with STARS</summary>
@@ -1373,6 +1440,928 @@ Run them as one GPU cluster job (one GPU, at most 40 GB of memory, at most 3 hou
 ## What to return
 A short report: the files you wrote; the DEV eval calls (hypothesis -&gt; result, one line each); whether the written model is final on DEV (accuracy by label at R_min x 1,2,4 and the fixed-point share); parameter count; the baseline job id and its status. Do not run TEST for the written model.</pre>
 </details>
+<details class="prompt">
+  <summary>Maze-Hard under a cap on the number of weights (five builds) <span class="fname">13_maze_size_limit_network_brief.txt</span></summary>
+<pre class="prompt">[The brief given to each of the five maze builds under a cap on the number of weights, word for word. The five copies differ only in &lt;LIMIT&gt;: 1,000, 5,000, 10,000, 20,000 or 40,000. The builder received it as its first message and as BRIEF.md in its folder.]
+
+## Your task
+
+Write the weights of a looped transformer that solves Maze-Hard, the 30 × 30 maze benchmark of the HRM release
+(`sapientinc/maze-30x30-hard-1k`). Nothing is trained: every weight is written by code you write.
+
+**Size limit: at most &lt;LIMIT&gt; weights.** The count is the size of the network: every entry of every array (embedding
+tables, attention, MLP, readout, biases), zeros included. An array stored in the runner's sparse form counts at its
+full shape, not by the values stored. `tools/params.py` prints the count. The orchestrator checks it when it freezes
+your files; a network over the limit is not run on TEST.
+
+**The problem.** The input is a maze: a 30 × 30 grid of walls `#` and open cells (a space), with one start `S` and one
+goal `G`. The output is the same grid with the cells of a path from `S` to `G` marked `o`, moving up, down, left or
+right through open cells, in the form and with the conventions the dataset uses (which cells are marked, and which
+path when several are possible).
+
+**Input.** Each problem is one text prompt: the maze as 30 lines of 30 characters, joined by newlines (no newline at
+the end). Each line is one row of the dataset's grid, in order.
+
+**Output.** The solved grid in the same form: 30 lines of 30 characters, joined by newlines.
+
+**Scoring:** per maze, solved or not (`tools/grader.py`).
+- The response, with newlines at both ends removed, must equal the dataset's solved grid exactly.
+- Anything else scores 0.
+- The TEST score is the fraction solved.
+
+**TEST** is the 1,000 mazes of Maze-Hard's official test split: new mazes of the same kind and size as DEV. You never
+see TEST. When you say you are done, the orchestrator freezes your files and runs TEST on a GPU with the runner's
+`torch64` path (float64).
+
+## Data in your folder
+
+- `dev/dev_maze.jsonl`: the 1,000 mazes of Maze-Hard's official train split. Each line is
+  `{"id", "prompt", "answer", "size"}`, where `answer` is the solved grid.
+
+You may analyse the DEV inputs and answers with any code you like, as often as you like. The dataset's conventions
+are for you to work out from DEV.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about mazes, grids, paths or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose, within the size limit.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Weights.** Every number the network uses is in `weights.npz`. `network.json` holds only the settings the runner
+  reads (`runner/README.md`).
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch64`. The
+  written answer must be the same on `numpy` and `torch64`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it, for any other copy of Maze-Hard or HRM's data or code, or for any
+   other maze dataset.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file, size limit), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+  - `params.py`: counts the weights of a network folder.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - weights, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>Sudoku-Extreme with at most 1,000 loops <span class="fname">04b_sudoku_extreme_loop_limit_network_brief.txt</span></summary>
+<pre class="prompt">[The brief given to the builder (a headless Claude Code session, Claude Opus 5.5) for the Sudoku build under a 1,000-loop limit, word for word. It is brief 04 with the loop limit added; the other changes say where DEV runs are evaluated (the orchestrator's server) and drop GPU-run output from the list of messages, since the tool now returns it.]
+
+## Your task
+
+Write the weights of a looped transformer that solves Sudoku puzzles from Sudoku-Extreme. Nothing is trained: every
+weight is written by code you write.
+
+**Loop limit: R is at most 1,000.** R is the number of times the block runs (the frame below), and it must be at most
+1,000 on every prompt. `tools/dev_run.py` refuses a network over the limit, and the orchestrator checks it when it
+freezes your files; a network over the limit is not run on TEST.
+
+**Sudoku.** A puzzle is a 9 × 9 grid divided into nine 3 × 3 boxes. Some cells are given a digit from 1 to 9; the rest
+are empty.
+- A solution fills every empty cell with a digit from 1 to 9, so that every row, every column and every box contains
+  each of the digits 1 to 9 exactly once.
+- The given digits stay as they are.
+- Every puzzle here has exactly one solution.
+
+**Input.** Each problem is one text prompt, exactly as a language model receives it:
+
+```
+Solve this Sudoku:
+&lt;row 1&gt;
+...
+&lt;row 9&gt;
+```
+
+Each row is 9 characters: a digit 1–9 for a given cell, `0` for an empty cell. The rows are joined by single newlines,
+and there is no newline after the last row. Every prompt is 108 characters.
+
+**Output.** The completed grid: 9 lines of 9 digits, one row per line, digits only, with no spaces or other characters.
+
+**Scoring:** per puzzle, solved or not (`tools/grader.py`).
+- Leading and trailing newlines are removed, and lines starting with three backticks are dropped.
+- Each remaining line is stripped of spaces, and the lines are joined.
+- The result must equal the solution's 81 digits in row order. Anything else scores 0.
+- The TEST score is the fraction of puzzles solved.
+
+**TEST** is puzzles from Sudoku-Extreme's test file, in a fixed order. They are of the same kind as DEV. You never see
+TEST. When you say you are done, the orchestrator freezes your files and runs TEST, on the GPU path (`torch32`).
+
+## Data in your folder
+
+- `dev/train_1000.jsonl`: 1,000 puzzles from Sudoku-Extreme's training file. Each line is `{"id", "prompt", "answer"}`,
+  where `answer` is the solution's 81 digits in row order.
+
+You may analyse the DEV inputs and answers with any code you like, as often as you like.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about Sudoku, grids, rows, columns, boxes or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+  It must be at most 1,000 on every prompt (the loop limit above).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`):
+  - on a CPU, `numpy` (float64) and `numpy32` (float32, following the GPU path as closely as numpy can);
+  - on the GPU, `torch32` (float32, fused attention, TF32 off).
+
+  DEV runs on a CPU use `numpy` or `numpy32`, as you choose. DEV runs on the GPU and TEST use `torch32`. The
+  written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit. Peak GPU memory must stay under 30 GB on one
+  32 GB GPU.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its grid or its answer)
+     also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no grid or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **Where runs happen.** This machine has no GPU. `tools/dev_run.py` sends every call to the orchestrator's server
+   and runs it there with this folder's `runner/`, unchanged: `numpy` and `numpy32` on its CPUs, `torch32` on its GPU
+   (`--backend torch32`). Only the network and the prompts are sent; scoring, the budget and the ledger stay here.
+   - A GPU run holds at most 2 × 10¹⁵ FLOPs counted over all its prompts (for example 20 puzzles at the cap).
+   - Each GPU run counts as one of the 20, on DEV or on your own inputs.
+
+   You have no cluster access yourself.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of Sudoku-Extreme.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, loop limit, DEV budget, DEV files, GPU-run limits), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `bridge/`: the calls `tools/dev_run.py` sends to the server, written by the tool.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>CLRS-Text strongly connected components <span class="fname">11_clrs_scc_network_brief.txt</span></summary>
+<pre class="prompt">## Your task
+
+Write the weights of a looped transformer that executes one algorithm of the CLRS-Text benchmark,
+`strongly_connected_components` (the strongly connected components algorithm of CLRS (Cormen et al.), section 22.5). Nothing is trained: every weight is written by code you write.
+
+**The problem.** The input is a directed graph on n nodes, numbered 0 to n − 1, given as its adjacency matrix `A` (`A[i][j]` is 1 when there is an edge from i to j). The output `scc_id` gives, for every node, the id of its strongly connected component (a largest set of nodes that can all reach each other), in the form and with the id convention the dataset uses.
+
+**Input.** Each problem is one text prompt, exactly as the CLRS-Text dataset gives it to a language model. It starts
+with `strongly_connected_components:`, then the inputs and the algorithm's `initial_trace`, and ends with the line `trace | scc_id:`.
+The DEV prompts show the exact format. In DEV the number of nodes is one of 4, 5, 10, 11, 12 and 15.
+
+**Output.** The final output `scc_id` in the dataset's format, for example `[0 1 2 0 1]`. You may first write the
+execution trace and `|`, as the dataset's answers do, or write only the final output.
+
+**Scoring:** per problem, solved or not (`tools/grader.py`).
+- The final output of a response is the text after its last `|` (the whole text if there is none), with lines starting
+  with three backticks dropped and whitespace stripped at both ends.
+- It must equal the problem's final output exactly. Anything else scores 0.
+- The TEST score is the fraction solved.
+
+**TEST** is this algorithm's problems in the five CLRS-Text test splits (test_1 to test_5), new random problems of the
+same kind, with 4 to 22 nodes: larger graphs than any in DEV. You never see TEST. When you say you are done, the orchestrator freezes your files and runs
+TEST on a GPU with the runner's `torch64` path (float64).
+
+## Data in your folder
+
+- `dev/dev_strongly_connected_components.jsonl`: 1,000 problems from the CLRS-Text train split, an equal number per size. Each line is
+  `{"id", "prompt", "answer", "size"}`, where `answer` is the final output.
+
+You may analyse the DEV inputs and answers with any code you like, as often as you like. The dataset's conventions
+(ids, ties, unreachable nodes, number formats) are for you to work out from DEV.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about graphs, matrices, sequences, this algorithm or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch64`. The
+  written answer must be the same on `numpy` and `torch64`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of CLRS-Text or CLRS.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt at each size;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>CLRS-Text minimum spanning tree (Prim) <span class="fname">11_clrs_prim_network_brief.txt</span></summary>
+<pre class="prompt">## Your task
+
+Write the weights of a looped transformer that executes one algorithm of the CLRS-Text benchmark,
+`mst_prim` (MST-PRIM of CLRS (Cormen et al.), section 23.2). Nothing is trained: every weight is written by code you write.
+
+**The problem.** The input is a weighted undirected graph on n nodes, numbered 0 to n − 1, given as a weighted adjacency matrix `A` (0 means no edge), and a start node `s`. The output `pi` gives, for every node, its parent in the minimum spanning tree that Prim's algorithm grows from `s`, in the form and with the conventions the dataset uses (for the start node, for nodes it cannot reach, and for ties).
+
+**Input.** Each problem is one text prompt, exactly as the CLRS-Text dataset gives it to a language model. It starts
+with `mst_prim:`, then the inputs and the algorithm's `initial_trace`, and ends with the line `trace | pi:`.
+The DEV prompts show the exact format. The number of nodes or the sequence length is one of 4, 5, 10, 11, 12, 15, 19, 23 and 28.
+
+**Output.** The final output `pi` in the dataset's format, for example `[0 1 2 0 1]`. You may first write the
+execution trace and `|`, as the dataset's answers do, or write only the final output.
+
+**Scoring:** per problem, solved or not (`tools/grader.py`).
+- The final output of a response is the text after its last `|` (the whole text if there is none), with lines starting
+  with three backticks dropped and whitespace stripped at both ends.
+- It must equal the problem's final output exactly. Anything else scores 0.
+- The TEST score is the fraction solved.
+
+**TEST** is this algorithm's problems in the five CLRS-Text test splits (test_1 to test_5), new random problems of the
+same kind and sizes as DEV. You never see TEST. When you say you are done, the orchestrator freezes your files and runs
+TEST on a GPU with the runner's `torch64` path (float64).
+
+## Data in your folder
+
+- `dev/dev_mst_prim.jsonl`: 1,000 problems from the CLRS-Text train split, an equal number per size. Each line is
+  `{"id", "prompt", "answer", "size"}`, where `answer` is the final output.
+
+You may analyse the DEV inputs and answers with any code you like, as often as you like. The dataset's conventions
+(ids, ties, unreachable nodes, number formats) are for you to work out from DEV.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about graphs, matrices, sequences, this algorithm or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch64`. The
+  written answer must be the same on `numpy` and `torch64`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of CLRS-Text or CLRS.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt at each size;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>CLRS-Text longest common subsequence <span class="fname">11_clrs_lcs_network_brief.txt</span></summary>
+<pre class="prompt">## Your task
+
+Write the weights of a looped transformer that executes one algorithm of the CLRS-Text benchmark,
+`lcs_length` (LCS-LENGTH of CLRS (Cormen et al.), section 15.4). Nothing is trained: every weight is written by code you write.
+
+**The problem.** The input is two sequences, `string` and `key`, over a small alphabet. The output `b` is the table of the longest-common-subsequence dynamic program: for every cell, the direction its value came from, in the form and with the conventions the dataset uses.
+
+**Input.** Each problem is one text prompt, exactly as the CLRS-Text dataset gives it to a language model. It starts
+with `lcs_length:`, then the inputs and the algorithm's `initial_trace`, and ends with the line `trace | b:`.
+The DEV prompts show the exact format. The number of nodes or the sequence length is one of 4, 5 and 10.
+
+**Output.** The final output `b` in the dataset's format, for example `[0 1 2 0 1]`. You may first write the
+execution trace and `|`, as the dataset's answers do, or write only the final output.
+
+**Scoring:** per problem, solved or not (`tools/grader.py`).
+- The final output of a response is the text after its last `|` (the whole text if there is none), with lines starting
+  with three backticks dropped and whitespace stripped at both ends.
+- It must equal the problem's final output exactly. Anything else scores 0.
+- The TEST score is the fraction solved.
+
+**TEST** is this algorithm's problems in the five CLRS-Text test splits (test_1 to test_5), new random problems of the
+same kind and sizes as DEV. You never see TEST. When you say you are done, the orchestrator freezes your files and runs
+TEST on a GPU with the runner's `torch64` path (float64).
+
+## Data in your folder
+
+- `dev/dev_lcs_length.jsonl`: 1,000 problems from the CLRS-Text train split, an equal number per size. Each line is
+  `{"id", "prompt", "answer", "size"}`, where `answer` is the final output.
+
+You may analyse the DEV inputs and answers with any code you like, as often as you like. The dataset's conventions
+(ids, ties, unreachable nodes, number formats) are for you to work out from DEV.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about graphs, matrices, sequences, this algorithm or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch64`. The
+  written answer must be the same on `numpy` and `torch64`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of CLRS-Text or CLRS.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt at each size;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>SATLIB random 3-SAT <span class="fname">11_satlib_network_brief.txt</span></summary>
+<pre class="prompt">## Your task
+
+Write the weights of a looped transformer that decides random 3-SAT formulas from SATLIB, the standard benchmark
+library for satisfiability: it must say whether a formula is satisfiable and, if it is, give an assignment that
+satisfies it. Nothing is trained: every weight is written by code you write.
+
+**The problem.** A 3-SAT formula over variables 1 … V is a list of clauses, each the OR of three literals (a variable
+or its negation). The formula is satisfiable if some true/false assignment to the variables makes every clause true.
+
+**Input.** Each problem is one text prompt: a fixed instruction line, then the formula in DIMACS CNF format, the line
+`p cnf V C` followed by C clause lines, each three nonzero integers and a final `0` (k means variable k is true, -k
+means it is false). The DEV prompts show the exact text. The formulas are SATLIB's uniform random 3-SAT sets:
+`uf20-91` (V = 20, C = 91, satisfiable), `uf50-218` (V = 50, C = 218, satisfiable) and `uuf50-218` (V = 50, C = 218,
+unsatisfiable). The prompt does not say which set a formula is from.
+
+**Output.** `SAT` followed by one signed literal per variable in order (for example `SAT 1 -2 3 …`), or `UNSAT`. If
+your network gives up (for example at its loop limit), it may answer `UNKNOWN`.
+
+**Scoring:** per problem, verified (`tools/grader.py`).
+- `UNSAT` is right only on an unsatisfiable formula.
+- `SAT` with an assignment is right only if the formula is satisfiable and the assignment satisfies every clause. The
+  grader checks every clause; any satisfying assignment counts.
+- Anything else, including `UNKNOWN` or nothing, scores 0 and is reported as no answer (a timeout).
+- The TEST score is the fraction solved, reported per set, with wrong answers and timeouts counted separately.
+
+**TEST** is 900 other formulas from each of the three sets (2,700 in all). You never see TEST. When you say you are
+done, the orchestrator freezes your files and runs TEST on a GPU with the runner's `torch32` path.
+
+## Data in your folder
+
+- `dev/dev_satlib.jsonl`: 300 formulas, 100 from each set. Each line is `{"id", "set", "file", "n_vars",
+  "n_clauses", "label", "clauses", "prompt"}`, where `label` is SAT or UNSAT and `clauses` is the formula as lists of
+  integers.
+
+You may analyse the DEV inputs and labels with any code you like, as often as you like. You may also make your own
+formulas (for example random 3-SAT with a solver you write to label them); runs on them do not count.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about formulas, clauses, satisfiability or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch32` (float32, fused attention, TF32
+  off). The written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 20 runs.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of SATLIB or these formulas.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. A network folder: `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - how many loops your search needs on the DEV formulas (for example from a simulator), and what the network
+     answers when a formula needs more than it has;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
+<details class="prompt">
+  <summary>PlanBench Blocksworld, Mystery Blocksworld and Logistics <span class="fname">11_planbench_network_brief.txt</span></summary>
+<pre class="prompt">## Your task
+
+Write the weights of looped transformers that solve PlanBench's plan-generation task (task 1) in three domains:
+Blocksworld, Mystery Blocksworld and Logistics. Give one network per domain; they may share code. Nothing is trained:
+every weight is written by code you write.
+
+**The problem.** Each prompt describes a planning domain in words: its actions and the rules for when each can be
+taken and what it changes. Then it gives one solved example (an initial state, a goal and a plan) and a new
+problem: an initial state and a goal. The network must write a plan, a sequence of actions that turns the initial
+state into one where the goal holds. Any valid plan counts; it need not be the shortest.
+- **Blocksworld:** stacks of colored blocks and a hand that picks up, puts down, stacks and unstacks one block at a
+  time.
+- **Mystery Blocksworld:** the same problems, with every action and fact renamed to unrelated words (attack, feast,
+  succumb, overcome; province, planet, harmony, pain, craves).
+- **Logistics:** packages moved between locations by trucks within a city and by airplanes between cities.
+
+**Input.** Each problem is one text prompt, exactly as PlanBench gives it to a language model. It ends with `[PLAN]`.
+The DEV prompts show the exact text.
+
+**Output.** The plan, one action per line, worded as in the example plan of the prompt (for example `unstack the red
+block from on top of the blue block`). You may end it with `[PLAN END]`.
+
+**Scoring:** per problem, the plan is replayed (`tools/grader.py`).
+- The text up to `[PLAN END]` (all of it if absent) is read one line per action. Case, spaces around a line and a
+  final period are ignored, and blank lines are skipped.
+- Every line must be an action of the domain, in its wording. Starting from the initial state, each action's
+  conditions must hold when it is taken, and the goal must hold at the end. The rules are those of PlanBench's PDDL
+  domain files (`tools/domains.json`).
+- The TEST score is the fraction of valid plans per domain. Plan length against the shortest plan is reported too.
+
+**TEST** is 400 other Blocksworld problems, the same 400 in Mystery Blocksworld wording, and 200 other Logistics
+problems, all from PlanBench task 1. You never see TEST. When you say you are done, the orchestrator freezes your
+files and runs TEST on a GPU with the runner's `torch32` path.
+
+## Data in your folder
+
+- `dev/dev_planbench.jsonl`: 285 problems: 100 Blocksworld, the same 100 in Mystery Blocksworld wording, and 85
+  Logistics. Each line is `{"id", "domain", "instance_id", "prompt", "objects", "objects_nl", "init", "goal",
+  "gt_plan_len", "gt_plan"}`: the problem in PDDL form (objects, initial facts, goal facts), how each object is
+  named in the prompt, and PlanBench's reference plan with its length.
+- `tools/domains.json`: the three domains' actions (parameters, conditions, effects) and their wording.
+
+You may analyse the DEV problems with any code you like, as often as you like. You may also make your own problems
+(for example with a planner you write); runs on them do not count.
+
+## The frame (fixed; implemented in `runner/`, described in `runner/README.md`)
+
+Inference is the generic loop: embed → the same block R times → readout.
+
+- **Input.** The network reads exactly the prompt text, character for character. Nothing is removed, added or
+  reformatted.
+- **Tokenizer.** You write it in `tokenizer.py` and declare it. It maps a text string to a sequence of tokens, each a
+  tuple of non-negative integer fields, each below the size of its embedding table.
+  - It must work unchanged on any text.
+  - It must know nothing about planning, these domains or the question format.
+  - The auditor checks both.
+- **Embedding.** The sum of one table per token field.
+- **Block.** A fixed list of layers, the same in every loop. Each layer does
+  `h ← h + Σ_heads softmax(Q Kᵀ/√d_k + mask) V W_O`, then `h ← h + W2 ReLU(W1 h + b1) + b2`.
+  - The mask is none or causal, per head.
+  - There is no normalisation.
+  - The widths and the numbers of layers and heads are yours to choose.
+- **Loops.** R comes from a rule you declare that depends only on the number of tokens n (see `runner/README.md`).
+- **Readout.** A linear map at every position, then argmax over an output alphabet you declare: a list of strings,
+  one of which is the empty string.
+  - Each position writes one alphabet string, or nothing (the empty string).
+  - The answer is the written strings in position order.
+  - The harness passes that string to the grader unchanged, with nothing added. Your network must write everything
+    the grader needs.
+- **Arithmetic.** The runner has these paths (`runner/README.md`): `numpy` (float64) and `numpy32` (float32) on this
+  machine; `torch32` and `torch64` on a GPU. DEV runs use `numpy` or `numpy32`, as you choose. TEST uses `torch32` (float32, fused attention, TF32
+  off). The written answer must be the same on `numpy` and `torch32`.
+- **Compute limit.** At most 1 × 10¹⁴ FLOPs per prompt, counted by the runner from your shapes before it runs
+  (`runner/flops.py`). The runner refuses any prompt over the limit.
+
+## Rules
+
+1. No training, gradients or fitting weights to data. Every weight is written by your code.
+2. Inference is the generic loop above, with no task logic in Python, the tokenizer or the readout. Python only
+   tokenizes, runs embed → block R times → readout, and joins the written strings. The tokenizer is generic and
+   declared.
+3. **DEV budget: 60 runs, at most 20 per domain.** A run is any evaluation of your network on official DEV problems, on any number of them.
+   - Running your network on anything built from a DEV problem (a part of one, an edited copy, its inputs or its
+     answer) also counts as a DEV run.
+   - Runs on inputs you make yourself do not count. Such inputs may reuse the prompt format, but no inputs or answer
+     from the DEV file.
+   - Run your network on DEV, or on inputs built from DEV, only through `tools/dev_run.py` (`--from-dev` for inputs
+     built from DEV), which counts each run in `ledger/`. Do not edit the ledger; the auditor checks it against your
+     transcript.
+4. **No GPU runs.** This machine has no GPU, and this build has no GPU runs: every DEV run is on this machine.
+5. **Time limit:** 12 hours of working time. Time paused by a usage limit doesn't count, and the orchestrator logs each
+   pause.
+6. TEST is never shown to you. Do not look for it or for any other copy of PlanBench or its problems.
+7. **Isolation.**
+   - Work only inside this folder: do not read, list or look through anything outside it.
+   - No web or network access of any kind: no web queries, no page fetches, no `curl`, `wget`, `pip`, `ssh`, `git`
+     remotes, Hugging Face or GitHub.
+   - Some of this is blocked by your permissions. The rest is a rule, and your transcript is checked afterwards.
+8. During the build you will receive only: "continue", how much DEV budget is left, and answers to questions about
+   these rules. Design questions get "that's your call."
+9. If you find a problem with the rules, the data or the frame, stop and say so rather than working around it.
+
+## Your folder
+
+- `BRIEF.md`: this brief.
+- `build.json`: this build's settings (compute cap, DEV budget, DEV file), read by the tools.
+- `runner/`: the generic loop.
+  - `looped.py`: numpy float64 / float32; torch float32 / float64.
+  - `flops.py`: the compute counter.
+  - `README.md`: the network format and exactly what the runner computes.
+- `dev/`: the DEV file.
+- `tools/`:
+  - `grader.py`: the scoring above.
+  - `dev_run.py`: runs your network on chosen DEV problems or on your own inputs, scores them, and counts the run.
+- `ledger/`: the record of counted runs, written by `tools/dev_run.py`.
+- `work/`: yours.
+
+Python 3.13 with numpy is installed.
+
+## What to hand back (in `work/`)
+
+1. One network folder per domain (`work/net_blocksworld/`, `work/net_mystery_blocksworld/`,
+   `work/net_logistics/`): `network.json`, `weights.npz` and `tokenizer.py`, in the format of `runner/README.md`.
+2. `write_weights.py`: the code that writes every weight, run as `python3 -I work/write_weights.py`.
+3. `BUILD_NOTE.md`, short:
+   - what the network computes;
+   - parameters, total and nonzero;
+   - the R rule;
+   - the FLOPs per prompt;
+   - the plan lengths against the reference plans on DEV;
+   - DEV results and the runs used;
+   - anything that worried you.
+
+Say "done" when you are done. If you run out of time or DEV budget without a working network, say so and hand back
+what you have. That is a valid result.</pre>
+</details>
 
 <p><strong>Claude solving mazes directly (Table 1).</strong></p>
 
@@ -1552,6 +2541,52 @@ Start S: (&lt;row&gt;, &lt;column&gt;)
 Goal G: (&lt;row&gt;, &lt;column&gt;)
 Free cells:
 &lt;the free cells (S and G included) as (row, column), row-major, ", " between cells, one line per maze row that has free cells&gt;
+
+Method: use breadth-first search. Start at G and spread out one step at a time. The free cells next to G are 1 step away. The free cells next to those that you have not reached yet are 2 steps away. Keep going, one step at a time, until you reach S. Then walk the path from S to G: from S, step to a neighbouring cell that is one step closer to G, and repeat until you reach G. The cells you pass through form a shortest path.
+[END USER MESSAGE TEMPLATE]</pre>
+</details>
+<details class="prompt">
+  <summary>Told how to search, inside Claude Code with no tools <span class="fname">10_maze_claude_code_check.txt</span></summary>
+<pre class="prompt">Claude on its own, answering inside Claude Code
+===============================================
+
+[PURPOSE]
+The same task and prompt as run 2 (told how to search), on the same 50 mazes, one try each. Only the harness changes:
+Claude answers inside Claude Code instead of the raw API, as a plain message, with every tool switched off.
+
+[SETTINGS]
+harness: Claude Code CLI 2.1.327, headless (claude -p), one fresh process per maze, started in an empty folder
+model: claude-opus-5-5
+effort: high (--effort high)
+tools: none at all, so no code can run (no Bash, no Python, no file writes):
+  --tools ""                    no built-in tools
+  --strict-mcp-config           no MCP servers (with no --mcp-config given)
+  --disable-slash-commands      no skills or commands
+  checked per maze from the stream-json init event: the tools list and MCP servers must be empty, and the answer
+  must contain no tool use; a maze that fails this check is not scored
+system prompt: Claude Code's own, with the run-2 system prompt below appended (--append-system-prompt); replacing it
+  would remove the harness this check is about
+sessions: not saved (--no-session-persistence); output as stream-json with --verbose (init event, tokens and cost)
+each maze sampled once; scored by the same scorer as runs 1-5 (shortest path, and any valid path)
+
+[APPENDED SYSTEM PROMPT, same as run 2]
+You are a maze solver. You will be given a 30 x 30 maze. Every cell of the maze is exactly one of the following four characters:
+'#' - wall (impassable)
+' ' - free cell
+'S' - the start cell (exactly one)
+'G' - the goal cell (exactly one)
+Find a path of orthogonally adjacent (up/down/left/right) free cells that connects S to G without passing through any wall. Diagonal moves are not allowed. Mark every free cell that lies on the path with the character o. The cells #, S, and G are unchanged, and free cells that are not on the path remain ' '. Respond with ONLY the completed 30 x 30 grid: exactly 30 lines, each containing exactly 30 characters drawn from the set {#, ' ', S, G, o}. Do not include row numbers, column markers, blank lines, code fences, prose, or any other text. Whitespace inside each row is significant: a leading or trailing space is itself a free cell, not formatting. Example response format (shown for a 6 x 6 maze for brevity; your output must be 30 rows of 30 characters):
+######
+#Sooo#
+#  #o#
+#  #o#
+## ooG
+######
+[END APPENDED SYSTEM PROMPT]
+
+[USER MESSAGE TEMPLATE, same as run 2]
+Solve this maze:
+&lt;the 30 x 30 maze: 30 lines of 30 characters from '#', ' ', 'S', 'G', joined by newlines&gt;
 
 Method: use breadth-first search. Start at G and spread out one step at a time. The free cells next to G are 1 step away. The free cells next to those that you have not reached yet are 2 steps away. Keep going, one step at a time, until you reach S. Then walk the path from S to G: from S, step to a neighbouring cell that is one step closer to G, and repeat until you reach G. The cells you pass through form a shortest path.
 [END USER MESSAGE TEMPLATE]</pre>
@@ -1899,6 +2934,127 @@ The harness runs on a laptop CPU in float64 and stops an attempt after 2 hours f
 Respond with the complete module in a single ```python code block.</pre>
 </details>
 
+
+<p><strong>Claude on its own on the three new benchmarks (Table 9).</strong></p>
+
+<details class="prompt">
+  <summary>Settings and answer instructions <span class="fname">12_new_benchmarks_claude_alone.txt</span></summary>
+<pre class="prompt">New benchmarks: Claude on its own (CLRS-Text, PlanBench, SATLIB)
+================================================================
+
+[PURPOSE]
+The comparison for the written transformers on the new benchmarks: Claude answers the same TEST prompts itself, as a
+plain message, with no tools. 50 TEST items per group, drawn at random (fixed seed) from the items the networks ran:
+CLRS-Text strongly_connected_components, mst_prim and lcs_length (all five test splits together); PlanBench task 1
+Blocksworld, Mystery Blocksworld and Logistics; SATLIB uf20-91, uf50-218 and uuf50-218. 450 items, one try each.
+
+[SETTINGS] (the same harness as 10_maze_claude_code_check.txt)
+harness: Claude Code CLI, headless (claude -p), one fresh process per item, started in an empty folder
+model: claude-opus-5-5
+effort: high (--effort high)
+tools: none at all (--tools "", --strict-mcp-config with no MCP config, --disable-slash-commands); checked per item
+  from the stream-json init event (tools and MCP servers empty) and the stream (no tool use); an item that fails this
+  check is not scored
+system prompt: Claude Code's own, with the text below appended (--append-system-prompt)
+sessions: not saved (--no-session-persistence); output as stream-json with --verbose
+time cap: one hour per item; a capped item counts as no answer
+retries: only for infrastructure failures (no reply produced), each in a new empty folder, and logged
+
+[APPENDED SYSTEM PROMPT]
+You are answering one problem on your own. You have no tools: work it out yourself, then give your answer in the format the message asks for.
+[END APPENDED SYSTEM PROMPT]
+
+[USER MESSAGE TEMPLATE]
+&lt;the item's prompt, exactly as the network received it&gt;
+
+&lt;the answer instruction for its benchmark, below&gt;
+[END USER MESSAGE TEMPLATE]
+
+[ANSWER INSTRUCTION, CLRS-Text; &lt;name&gt; is scc_id, pi or b]
+Give the final output `&lt;name&gt;` in the dataset's format, for example `[0 1 2 0 1]`. End your reply with `ANSWER:` followed by the final output alone, in plain text.
+[END]
+
+[ANSWER INSTRUCTION, PlanBench]
+Write the plan, one action per line, worded as in the example plan, and end it with `[PLAN END]`. End your reply with `ANSWER:` followed by the plan alone, in plain text.
+[END]
+
+[ANSWER INSTRUCTION, SATLIB]
+End your reply with `ANSWER:` followed by your answer alone, in plain text: `SAT` and one signed literal per variable in order, or `UNSAT`.
+[END]
+
+[SCORING]
+The answer is the text of Claude's final reply after its last `ANSWER:` (the whole reply if there is none), with one
+surrounding pair of backticks removed. It is graded by the same grader as the network's TEST answer on that item:
+- CLRS-Text: the final output must equal the dataset's exactly;
+- PlanBench: the plan is replayed under PlanBench's PDDL rules and must reach the goal; plan length is reported;
+- SATLIB: a satisfying assignment is checked against every clause; UNSAT is right only on an unsatisfiable formula
+  (Claude is not asked for a proof, so on uuf50-218 a bare UNSAT counts as right, as it does for the network).
+Reported per group: solved, wrong, no answer, Wilson 95% intervals, the network on the same 50 items, and the paired
+exact McNemar test; also output tokens and Claude Code's cost estimate.</pre>
+</details>
+
+<p><strong>Reading the maze transformer from its weights (section 6).</strong></p>
+
+<details class="prompt">
+  <summary>The readers&#x27; message, their architecture description and the scorer&#x27;s prompt <span class="fname">14_blind_reading_prompts.txt</span></summary>
+<pre class="prompt">[The blind reading of the maze transformer. The three reader sessions each got the first message below, word for word, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
+
+=== FIRST MESSAGE TO EACH READER ===
+Your folder holds the weights of a small neural network (`weights.npz`, and the same numbers as text in
+`weights.txt`) and a description of its architecture (`ARCH.md`). There is nothing else.
+
+What does this network compute? What does each of the 35 numbers per token stand for, and what does each head do?
+
+- Work it out from the weights. You may write and run any code you like in this folder (Python 3 with numpy is
+  installed), including running the network on inputs you make.
+- Work only inside this folder: do not read, list or look through anything outside it. No web or network access of
+  any kind.
+- Time limit: 3 hours of working time.
+- During the session you will receive only "continue".
+- Write your answer in `ANSWER.md`, then say "done".
+
+=== ARCH.md (in the reader's folder) ===
+# A looped network
+
+- **Input:** a sequence of n tokens. Each token is three integers (a, b, c), with 0 ≤ a &lt; 128, 0 ≤ b &lt; 128 and
+  0 ≤ c &lt; 5.
+- **State:** h, an n × 35 array (35 numbers per token). At the start, row i is E0[a_i] + E1[b_i] + E2[c_i].
+- **One block**, applied R = 2n times with the same weights:
+  - Attention, 4 heads of width 8. Head k uses columns 8k to 8k + 7 of Wq, Wk and Wv, and rows 8k to 8k + 7 of Wo.
+    - Q = h Wq, K = h Wk, V = h Wv.
+    - A_k = softmax over j of Q_k K_kᵀ / √8. There is no mask: every token can attend to every token. Subtract each
+      row's maximum before taking exp, because scores can be very large.
+    - h ← h + Σ_k A_k V_k Wo_k.
+  - MLP: h ← h + relu(h W1 + b1) W2 + b2, with 86 hidden units.
+  - No normalisation.
+- **Output:** at every token, logits = h Wout + bout (5 numbers). The output at that token is the argmax, a symbol
+  from 0 to 4.
+
+## Files
+- `weights.npz`: the arrays above (numpy), under the names used here.
+- `weights.txt`: the same numbers as text, one array after another.
+
+=== SCORER PROMPT ===
+You are scoring an answer against a rubric. Below are three parts: the ground truth (the design note of a small
+neural network), the rubric, and the answer written by someone who saw only the network's weights and its bare
+architecture.
+
+For each of the 11 rubric items, give 1 if the answer states it, in any words, and 0 if it does not. Follow the
+rubric's rules: names may differ, and an item stated and then contradicted elsewhere in the answer scores 0. Judge
+only what the answer says. Do not credit what it could have meant.
+
+Reply with JSON only, a list of 11 objects: {"item": &lt;1-11&gt;, "score": &lt;0 or 1&gt;, "evidence": "&lt;the sentence of the
+answer that supports the score, copied exactly, or empty&gt;"}.
+
+=== GROUND TRUTH ===
+{GROUND_TRUTH}
+
+=== RUBRIC ===
+{RUBRIC}
+
+=== ANSWER ===
+{ANSWER}</pre>
+</details>
 </details>
 
 </main>
