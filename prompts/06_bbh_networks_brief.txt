@@ -1,4 +1,4 @@
-[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building hand-written (no training) looped transformers for two BIG-Bench Hard tasks: boolean_expressions and dyck_languages (multistep_arithmetic_two is a stretch, only after both are done). Work carefully: correctness and rule compliance matter more than speed.
 

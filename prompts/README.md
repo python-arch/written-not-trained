@@ -1,6 +1,6 @@
 # Prompts
 
-These are the first messages Claude Opus 5.5 received in each experiment in the [blog post](https://python-arch.github.io/written-not-trained/). The task, rules and limits are word for word. Details of our compute setup, such as machine names, accounts, paths and job ids, are removed or made generic, and so are the score targets we set in the early briefs. The messages Claude received later in each session are not included. They were fixed messages, such as "continue", the outputs of GPU runs it asked for and rule updates.
+These are the first messages Claude Opus 5.5 received in each experiment in the [blog post](https://python-arch.github.io/written-not-trained/). Details of our compute setup, such as machine names, accounts, paths and job ids, are removed or made generic. The messages Claude received later in each session are not included. They were fixed messages, such as "continue", the outputs of GPU runs it asked for and rule updates.
 
 ## Writing the transformers
 

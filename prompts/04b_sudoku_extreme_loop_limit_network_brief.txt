@@ -1,4 +1,4 @@
-[The brief given to the builder (a headless Claude Code session, Claude Opus 5.5) for the Sudoku build under a 1,000-loop limit, word for word. It is brief 04 with the loop limit added; the other changes say where DEV runs are evaluated (the orchestrator's server) and drop GPU-run output from the list of messages, since the tool now returns it.]
+[The brief given to the builder (a headless Claude Code session, Claude Opus 5.5) for the Sudoku build under a 1,000-loop limit. It is brief 04 with the loop limit added; the other changes say where DEV runs are evaluated (the orchestrator's server) and drop GPU-run output from the list of messages, since the tool now returns it.]
 
 ## Your task
 

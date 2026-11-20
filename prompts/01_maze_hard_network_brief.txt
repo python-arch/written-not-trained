@@ -1,4 +1,4 @@
-[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building a hand-written (no training) looped transformer that solves the Maze-Hard benchmark from the HRM release (30×30 mazes). Work carefully: correctness and rule compliance matter more than speed.
 

@@ -1,4 +1,4 @@
-[The blind reading of the maze transformer. The three reader sessions each got the first message below, word for word, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
+[The blind reading of the maze transformer. The three reader sessions each got the first message below, in a folder holding only weights.npz, weights.txt and ARCH.md (below). The scorer got the scorer prompt with the ground truth, the rubric and one answer filled in.]
 
 === FIRST MESSAGE TO EACH READER ===
 Your folder holds the weights of a small neural network (`weights.npz`, and the same numbers as text in

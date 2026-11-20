@@ -1,4 +1,4 @@
-[The brief given to each of the five maze builds under a cap on the number of weights, word for word. The five copies differ only in <LIMIT>: 1,000, 5,000, 10,000, 20,000 or 40,000. The builder received it as its first message and as BRIEF.md in its folder.]
+[The brief given to each of the five maze builds under a cap on the number of weights. The five copies differ only in <LIMIT>: 1,000, 5,000, 10,000, 20,000 or 40,000. The builder received it as its first message and as BRIEF.md in its folder.]
 
 ## Your task
 

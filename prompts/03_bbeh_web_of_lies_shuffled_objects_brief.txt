@@ -1,4 +1,4 @@
-[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) and the score target we set were removed or made generic; the task, rules and limits are as given.]
+[Shareable version of the brief given to the builder (Claude Opus 5.5). Only details of our compute setup (machine names, accounts, paths, job ids) were removed or made generic; the task, rules and limits are as given.]
 
 You are building hand-written (no training) looped transformers for BIG-Bench Extra Hard (BBEH; Kazemi et al. 2025, arXiv:2502.19187; github.com/google-deepmind/bbeh): web_of_lies and shuffled_objects first; dyck_languages and word_sorting (modified-alphabet subtask) are stretch goals, only after the first two are done. Correctness, rule compliance and honest evaluation matter more than speed.
 
