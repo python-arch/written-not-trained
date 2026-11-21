@@ -492,6 +492,10 @@
 \[ \ell_{\#} = \mathrm{wall}, \quad \ell_{\text{space}} = 1 - \mathrm{wall} - \mathrm{start} - \mathrm{goal}, \quad \ell_{S} = 3\,\mathrm{start}, \quad \ell_{G} = 3\,\mathrm{goal}, \quad \ell_{o} = 2\,\mathrm{on}, \]
 <p>and writes the highest. A path cell becomes o, while the start and the goal keep their letters, because \(3 > 2\).</p>
 </div></details>
+<details class="math"><summary>The math: why every number stays 0 or 1</summary><div class="mbody">
+<p>Every binary number is written through \(\tau(z) = \mathrm{ReLU}(z) - \mathrm{ReLU}(z - 1)\), which is flat at 0 for \(z \le 0\) and flat at 1 for \(z \ge 1\). The arguments above land at \(1.5\) or below \(-0.5\), so an error below \(0.5\) in an argument leaves the output unchanged. The softmax leak of about \(e^{-100}\) per cell sits far inside that margin. Forty clean-up neurons, two per scratch number, then erase what the heads copied,</p>
+\[ s \;\leftarrow\; s - \mathrm{ReLU}(s) + \mathrm{ReLU}(-s) \;=\; 0. \]
+</div></details>
 
 <p>On the first test maze, the wave visits the start cell at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave visits the start cell, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
