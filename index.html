@@ -216,6 +216,33 @@
   @media (min-width: 1000px) { .xp-fig { --bw: min(1180px, calc(100vw - 32px)); width: var(--bw); margin-left: calc((100% - var(--bw)) / 2); } }
   .xp { font-family: var(--sans); border: 1px solid var(--line); background: #fbfbf9; padding: 14px; border-radius: 6px; outline: none; }
   .xp:focus-visible { box-shadow: 0 0 0 3px rgba(235,104,52,.25); }
+
+  .xp-arch { overflow-x: auto; margin: 0 0 2px; }
+  .xp-svg { display: block; width: 100%; min-width: 780px; height: auto; font-family: var(--sans); }
+  .xp-svg .bx { fill: #fff; stroke: #cfd2d8; stroke-width: 1.2; transition: fill .25s, stroke .25s; }
+  .xp-svg .blk.on > .bx { stroke: #14213d; stroke-width: 2; fill: #f3f5fa; }
+  .xp-svg .t1 { font-size: 13px; font-weight: 700; fill: #14213d; }
+  .xp-svg .t2 { font-size: 10.5px; fill: #5b6475; }
+  .xp-svg .t3 { font-size: 9.5px; fill: #5b6475; }
+  .xp-svg .strong { font-weight: 600; fill: #14213d; }
+  .xp-svg .num { font-weight: 700; fill: #14213d; }
+  .xp-svg .frame { fill: #fbfbf9; stroke: #9aa0aa; stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .xp-svg .stream { stroke: #dfe1e6; stroke-width: 7; stroke-linecap: round; }
+  .xp-svg .wire { stroke: #9aa0aa; stroke-width: 1.6; fill: none; transition: stroke .25s; }
+  .xp-svg .ah { fill: #9aa0aa; transition: fill .25s; }
+  .xp-svg .wireg.on .wire { stroke: #eb6834; stroke-width: 2.4; }
+  .xp-svg .wireg.on .ah { fill: #eb6834; }
+  .xp-svg .wireg.on .loopwire { stroke-dasharray: 7 5; animation: xpdash .9s linear infinite; }
+  @keyframes xpdash { to { stroke-dashoffset: -24; } }
+  .xp-svg .plus circle { fill: #fff; stroke: #9aa0aa; stroke-width: 1.6; transition: all .25s; }
+  .xp-svg .plus.on circle { stroke: #eb6834; fill: #fff1ea; stroke-width: 2.2; }
+  .xp-svg .chip rect:first-child { fill: #fff; stroke: #dde0e5; transition: fill .25s; }
+  .xp-svg .chip.on rect:first-child { fill: #fff8f3; stroke: #eb6834; }
+  .xp-svg .dot { fill: #e4e4df; transition: fill .2s; }
+  .xp-svg .dot.on { fill: var(--nc); }
+  .xp-svg .ngrp { cursor: help; }
+  .xp-archnote { font-size: .72rem; color: var(--muted); min-height: 1.2em; margin: 2px 0 10px 2px; }
+  @media (prefers-reduced-motion: reduce) { .xp-svg .wireg.on .loopwire { animation: none; } }
   .xp-pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .78rem; margin-bottom: 12px; }
   .xp-pipe span { padding: 4px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); transition: background .2s, color .2s, border-color .2s; }
   .xp-pipe span.on { background: #14213d; color: #fff; border-color: #14213d; }
@@ -481,10 +508,8 @@
 
 <figure class="xp-fig" id="explorer">
 <div class="xp" id="xp" tabindex="0" aria-label="Interactive explorer of the maze transformer. Use the play and step buttons, or the arrow keys, to run it loop by loop. Click a cell to see its 35 numbers.">
-  <div class="xp-pipe" aria-hidden="true">
-    <span id="xp-p0">Embed</span><em>→</em><span id="xp-p1">1 · Read</span><em>→</em><span id="xp-p2">2 · Update</span><em>→</em><span id="xp-p3">3 · Clean up</span>
-    <em class="xp-loopback">↻ loop <b id="xp-t">0</b> of <b id="xp-R">242</b></em>
-  </div>
+  <div class="xp-arch" id="xp-arch"></div>
+  <div class="xp-archnote" id="xp-nhint"></div>
   <div class="xp-body">
     <div class="xp-left">
       <canvas id="xp-grid" role="img" aria-label="The maze. Cells show their count, pointer and path state. Click a cell to look inside it."></canvas>
@@ -511,10 +536,6 @@
         <div class="xp-bt">Inside the selected cell <span id="xp-cellname"></span></div>
         <div id="xp-strip"></div>
       </div>
-      <div class="xp-box">
-        <div class="xp-bt">The 86 neurons <span id="xp-nhint"></span></div>
-        <div id="xp-neurons" class="xp-neurons"></div>
-      </div>
       <div class="xp-box xp-outbox">
         <div class="xp-bt">What it would write if it stopped now <span id="xp-outnote"></span></div>
         <pre id="xp-out" class="xp-out"></pre>
@@ -536,14 +557,14 @@
   <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
-  <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
+  <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> For our model, a Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking (Bansal et al., 2022) loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6.</figcaption>
 </figure>
 <figure class="reveal" style="--hide: 88%; flex-grow: 1.785">
   <div class="layers">
   <img class="data" src="figures/hanoi_data.svg" width="605" height="339" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/hanoi_base.svg" width="605" height="339" loading="lazy" alt="Accuracy against disks, from 1 to 20. The transformer Claude wrote scores 100% at every size. Claude 3.7 Sonnet with thinking falls from 93.8% at 5 disks to 10.4% at 8 and 0% at 11. DeepSeek-R1 falls from 84.9% at 5 disks to 0% at 9. The paper tests up to 12 disks.">
   </div>
-  <figcaption><strong>Figure 7. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks. The reasoning models collapse past 5 to 7 disks. Their curves are read from the vector data of Figure 8 in Shojaee et al. (2025), with the paper's default prompts.</figcaption>
+  <figcaption><strong>Figure 7. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks while writing the weights. The reasoning models (Shojaee et al., 2025) collapse past 5 to 7 disks.</figcaption>
 </figure>
 </div>
 

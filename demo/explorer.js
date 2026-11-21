@@ -257,14 +257,111 @@
       }
       strip.appendChild(g);
     }
-    const nb = el("xp-neurons"); nb.innerHTML = "";
-    for (const G of GROUPS) {
-      const g = document.createElement("div"); g.className = "xp-ng"; g.title = G.rule;
-      g.innerHTML = `<div class="xp-ngt"><span style="background:${G.col}"></span>${G.name} <em>${G.to - G.from}</em></div><div class="xp-dots"></div>`;
-      const dots = g.querySelector(".xp-dots");
-      for (let u = G.from; u < G.to; u++) { const d = document.createElement("i"); d.id = "xp-u" + u; d.style.setProperty("--nc", G.col); dots.appendChild(d); }
-      nb.appendChild(g);
+    buildArch();
+  }
+
+  // ------------------------------------------------------------------ the transformer diagram (an SVG that follows the loop)
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, parent, text) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function head(parent, x, y, dir, cls) {            // a small arrowhead pointing in dir (radians)
+    const s = 7, a = dir;
+    return sv("path", { d: `M${x},${y} L${x - s * Math.cos(a - 0.45)},${y - s * Math.sin(a - 0.45)} L${x - s * Math.cos(a + 0.45)},${y - s * Math.sin(a + 0.45)} Z`, class: "ah " + (cls || "") }, parent);
+  }
+  function box(parent, id, x, y, w, h, title, lines) {
+    const g = sv("g", { id, class: "blk" }, parent);
+    sv("rect", { x, y, width: w, height: h, rx: 7, class: "bx" }, g);
+    sv("text", { x: x + w / 2, y: y + 20, class: "t1", "text-anchor": "middle" }, g, title);
+    (lines || []).forEach((ln, k) => sv("text", { x: x + w / 2, y: y + 38 + 14 * k, class: "t2", "text-anchor": "middle" }, g, ln));
+    return g;
+  }
+  function buildArch() {
+    const host = el("xp-arch"); host.innerHTML = "";
+    const svg = sv("svg", { viewBox: "0 0 1200 200", class: "xp-svg", role: "img",
+      "aria-label": "The maze transformer. The cells are embedded as 35 numbers each, then one block runs again and again: an attention layer with four heads, each adding what it reads to the residual stream, then a layer of 86 ReLU neurons that also add to it. After the last loop, a linear readout writes one character per cell." }, host);
+    const Y = 106;                                                         // the residual stream
+    // input and embedding
+    box(svg, "xp-a-in", 6, 70, 104, 72, "Input", ["121 cells", "(row, col, char)"]);
+    svg.querySelector("#xp-a-in text.t2").id = "xp-a-n";
+    sv("line", { x1: 110, y1: Y, x2: 124, y2: Y, class: "wire" }, svg); head(svg, 128, Y, 0);
+    box(svg, "xp-a-emb", 128, 70, 132, 72, "Embedding", ["row + column + char", "→ 35 numbers"]);
+    sv("line", { x1: 260, y1: Y, x2: 278, y2: Y, class: "wire" }, svg);
+    // the block
+    const F = sv("g", { id: "xp-a-block" }, svg);
+    sv("rect", { x: 280, y: 8, width: 724, height: 186, rx: 12, class: "frame" }, F);
+    sv("text", { x: 296, y: 26, class: "t3 strong" }, F, "One block, looped · the same weights every loop · a residual stream of 35 numbers per cell · no normalisation");
+    const lt = sv("text", { x: 990, y: 26, class: "t3 strong", "text-anchor": "end" }, F);
+    sv("tspan", {}, lt, "↻ loop "); sv("tspan", { id: "xp-t", class: "num" }, lt, "0"); sv("tspan", {}, lt, " of "); sv("tspan", { id: "xp-R", class: "num" }, lt, "242");
+    sv("line", { x1: 280, y1: Y, x2: 1004, y2: Y, class: "stream" }, F);
+    // skip connections and the two additions
+    const sk1 = sv("g", { id: "xp-a-skip1", class: "wireg" }, F);
+    sv("path", { d: `M300,${Y} V42 H566 V${Y - 11}`, class: "wire" }, sk1); head(sk1, 566, Y - 11, Math.PI / 2);
+    const sk2 = sv("g", { id: "xp-a-skip2", class: "wireg" }, F);
+    sv("path", { d: `M584,${Y} V42 H982 V${Y - 11}`, class: "wire" }, sk2); head(sk2, 982, Y - 11, Math.PI / 2);
+    for (const [id, cx] of [["xp-a-plus1", 566], ["xp-a-plus2", 982]]) {
+      const g = sv("g", { id, class: "plus" }, F);
+      sv("circle", { cx, cy: Y, r: 11 }, g); sv("text", { x: cx, y: Y + 5, "text-anchor": "middle", class: "t1" }, g, "+");
     }
+    // attention, four heads
+    const A = box(F, "xp-a-attn", 318, 52, 228, 112, "Attention · 4 heads", []);
+    ["below", "left", "right", "above"].forEach((nm, h) => {
+      const x = 326 + h * 54, g = sv("g", { class: "chip", id: "xp-a-h" + h }, A);
+      sv("rect", { x, y: 78, width: 50, height: 62, rx: 4 }, g);
+      sv("rect", { x, y: 78, width: 50, height: 4, rx: 2, fill: HEAD_COL[h] }, g);
+      sv("text", { x: x + 25, y: 98, "text-anchor": "middle", class: "t2 strong" }, g, ARROW[h] + " " + nm);
+      sv("text", { x: x + 25, y: 116, "text-anchor": "middle", class: "t3", id: "xp-a-c" + h }, g, "");
+      sv("text", { x: x + 25, y: 130, "text-anchor": "middle", class: "t3", id: "xp-a-d" + h }, g, "");
+    });
+    sv("text", { x: 432, y: 156, "text-anchor": "middle", class: "t3" }, A, "each head reads one neighbour");
+    // the 86 neurons
+    const Mx = 600, Mlp = box(F, "xp-a-mlp", Mx, 52, 360, 112, "MLP · 86 ReLU neurons", []);
+    const layout = [[0, 0, 6, 1], [1, 62, 12, 2], [2, 174, 8, 1], [3, 254, 8, 1]];   // group, x offset, columns, rows
+    for (const [gi, dx, cols] of layout) {
+      const G = GROUPS[gi], gx = Mx + 14 + dx;
+      const g = sv("g", { class: "ngrp" }, Mlp); sv("title", {}, g, G.name + ". " + G.rule);
+      sv("text", { x: gx, y: 84, class: "t3" }, g, `${G.name} ${G.to - G.from}`);
+      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 4 + 8 * (k % cols), cy: 94 + 8 * Math.floor(k / cols), r: 3.1, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); }
+    }
+    { const G = GROUPS[4], gx = Mx + 14, g = sv("g", { class: "ngrp" }, Mlp); sv("title", {}, g, G.name + ". " + G.rule);
+      sv("text", { x: gx, y: 128, class: "t3" }, g, `${G.name} ${G.to - G.from}`);
+      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 70 + 8 * (k % 20), cy: 125 + 8 * Math.floor(k / 20), r: 3.1, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); } }
+    sv("text", { x: Mx + 14, y: 156, class: "t3" }, Mlp, "update: count, pointer, path · clean-up: wipe the scratch");
+    // the loop back into the same block
+    const lp = sv("g", { id: "xp-a-loop", class: "wireg" }, F);
+    sv("path", { d: `M994,${Y} V182 H290 V${Y + 12}`, class: "wire loopwire" }, lp); head(lp, 290, Y + 12, -Math.PI / 2);
+    sv("text", { x: 642, y: 178, "text-anchor": "middle", class: "t3" }, lp, "back into the same block, R = 2 × cells times");
+    // readout
+    sv("line", { x1: 1004, y1: Y, x2: 1020, y2: Y, class: "wire" }, svg); head(svg, 1024, Y, 0);
+    box(svg, "xp-a-out", 1024, 70, 170, 72, "Readout", ["linear, 35 → 5, argmax", "# · S G o per cell"]);
+  }
+  function archState() {
+    const set = (id, on) => { const e = el(id); if (e) e.classList.toggle("on", !!on); };
+    const emb = T === 0 && PH === 0, read = PH === 1, upd = PH === 2, clean = PH === 0 && T > 0;
+    set("xp-a-in", emb); set("xp-a-emb", emb); set("xp-a-attn", read); set("xp-a-skip1", read); set("xp-a-plus1", read);
+    set("xp-a-mlp", upd || clean); set("xp-a-skip2", upd || clean); set("xp-a-plus2", upd || clean); set("xp-a-loop", clean);
+    set("xp-a-out", Dsg > 0 && T >= 2 * Dsg && PH === 0);
+    el("xp-a-n").textContent = `${n} cells`;
+    // what each head copies for the selected cell
+    const v = view(), i = sel, r = Math.floor(i / side), c = i % side, isWall = rows[r][c] === "#";
+    DIRS.forEach(([dr, dc], h) => {
+      let a = "", b = "";
+      if (read && !isWall) {
+        const nr = r + dr, nc = c + dc, j = nr * side + nc;
+        if (rows[nr][nc] === "#") a = "wall";
+        else {
+          const k = countOf(v.prev, j); a = k >= 0 ? "count " + k : "no count";
+          const bits = []; if (onPath(v.prev, j)) bits.push("path"); if (pointerOf(v.prev, j) === [3, 2, 1, 0][h]) bits.push("→ here");
+          b = bits.join(", ");
+        }
+      }
+      el("xp-a-c" + h).textContent = a; el("xp-a-d" + h).textContent = b;
+      el("xp-a-h" + h).classList.toggle("on", read && !isWall);
+    });
   }
   const fmtNum = (x) => { const r = Math.round(x * 100) / 100; return Math.abs(r) < 1e-9 ? "0" : (Number.isInteger(r) ? String(r) : r.toFixed(2)); };
   function panel() {
@@ -348,7 +445,7 @@
     else if (T < 2 * Dsg) status = `The wave reached S at loop ${Dsg}. The path grows one cell per loop and is complete at loop ${2 * Dsg}.`;
     else status = `Solved at loop ${2 * Dsg}. Every later loop leaves all the numbers as they are.`;
     el("xp-status").textContent = status;
-    ["xp-p0", "xp-p1", "xp-p2", "xp-p3"].forEach((id, k) => el(id).classList.toggle("on", (PH === 0 && T === 0 && k === 0) || (PH === 1 && k === 1) || (PH === 2 && k === 2) || (PH === 0 && T > 0 && k === 3)));
+    archState();
     el("xp-t").textContent = T.toLocaleString("en-US");
     el("xp-scrub").value = T;
   }
