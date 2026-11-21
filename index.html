@@ -436,14 +436,14 @@
 <!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
-  <img class="data" src="figures/maze_training_data.svg?v=20261121" width="518" height="399" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg?v=20261121" width="518" height="399" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. A legend below names the four series.">
+  <img class="data" src="figures/maze_training_data.svg?v=20261121d" width="518" height="399" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_base.svg?v=20261121d" width="518" height="399" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $70 of GPU time for TRM. A legend below names the four series.">
   </div>
   <div class="layers tall">
-  <img class="data" src="figures/maze_training_tall_data.svg?v=20261121" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg?v=20261121" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. A legend below names the four series.">
+  <img class="data" src="figures/maze_training_tall_data.svg?v=20261121d" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_tall_base.svg?v=20261121d" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $70 of GPU time for TRM. A legend below names the four series.">
   </div>
-  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star is the transformer Claude wrote, ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no gradient training. Every line is a model trained by gradient descent for up to 8 hours on one GPU. TRM, a looped reasoning model built for Maze-Hard, rises to 85.3%, the score of its released version. A standard transformer the size of TRM levels off at 42%. The same architecture as Claude's transformer, trained from random weights on the 1,000 training mazes, stays at 0%.</figcaption>
+  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star is the transformer Claude wrote, ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no gradient training. Every line is a model trained by gradient descent for up to 8 hours on one GPU. TRM, a looped reasoning model built for Maze-Hard, rises to 85.3%, the score of its released version. A standard transformer the size of TRM levels off at 42%. The same architecture as Claude's transformer, trained from random weights on the 1,000 training mazes, stays at 0%. Writing the weights cost about $19 in Claude API usage, while training TRM for 8 hours on 8 RTX 6000 GPUs would cost about $70, at a median cloud price of $1.09 per GPU-hour.</figcaption>
 </figure>
 </div>
 
@@ -624,17 +624,11 @@
 
 <p>Writing the transformer is a different task. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We suspect this helps because each design choice can be checked on its own. The design rests on a handful of ideas, such as storing the distance modulo 3, each of which can be checked separately. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
-<p>Getting the design right did take testing. When we asked Claude for the whole transformer in a single answer, with no data, no tools and no way to test it, 9 of 10 tries ran out of output length before finishing. Even so, the try that got furthest had already settled on much the same design, the distance modulo 3 included. The one try that finished found a shortest path in 100% of the test mazes, missing the dataset's reference paths only because it guessed a different tie-break. Claude wrote the transformer in this post while checking it against the training mazes. Those checks reshaped the design along the way, as the box below describes.</p>
-
-<details>
-  <summary>How the design changed</summary>
-  <p>Claude had also written the task description it worked from. That description suggested a first design with two waves, one from each end. The waves used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal with distances modulo 3, pointers with a tie-break, and a chain from the start cell.</p>
-  <p>In the single-answer tries, the instructions did say how many loops our transformer runs.</p>
-</details>
+<p>Getting the design right did take testing. When we asked Claude for the whole transformer in a single answer, with no data, no tools and no way to test it, 9 of 10 tries ran out of output length before finishing. Even so, the try that got furthest had already settled on much the same design, the distance modulo 3 included. The one try that finished found a shortest path in 100% of the test mazes, missing the dataset's reference paths only because it guessed a different tie-break. Claude wrote the transformer in this post while checking it against the training mazes. Those checks reshaped the design along the way, as <a href="#design-change">appendix F</a> describes.</p>
 
 <p>Writing the transformer was also cheap. The maze transformer took 196,771 output tokens, about $19 at Claude Opus 5.5's API list prices. Claude had the final weights 39 minutes after it received the task. Its checks of those weights brought the whole build to 2 hours 41 minutes. The only human input was the task description, which <a href="#prompts">appendix E</a> gives in full. Solving mazes directly, by contrast, cost $0.14 to $0.34 for every maze in our runs, yet found the shortest path in at most half of them. The written transformer pays for itself after about 55 to 134 mazes and needs no API calls after that.</p>
 
-<p>The other builds tell the same story. The 18 builds whose cost we logged ranged from $1.19 to $37.06 each, with a median of about $4. Every build that kept a count needed at most 4 revision rounds, meaning full runs of its transformer on the training data before the test. In every build, the only human input was the task description. Table 1 lists the output tokens, cost, build time and revision rounds of each one.</p>
+<p>Claude wrote all the transformers in this post in 18 sessions. Each session cost between $1.19 and $37.06, with a median of about $4. Each took at most four revision rounds, except the Tower of Hanoi session, which did not count them. In the four sessions whose logs record each round's score, every round already scored 100%.</p>
 
 <details>
   <summary>Tokens, cost, build time and revision rounds for every transformer</summary>
@@ -3246,6 +3240,13 @@ answer that supports the score, copied exactly, or empty&gt;"}.
 {ANSWER}</pre>
 </details>
 </details>
+
+
+<h3 id="design-change">F. How the maze design changed</h3>
+
+<p>Claude had also written the task description it worked from. That description suggested a first design with two waves, one from each end. The waves used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal with distances modulo 3, pointers with a tie-break, and a chain from the start cell.</p>
+
+<p>In the single-answer tries, the instructions did say how many loops our transformer runs.</p>
 
 </main>
 <script>

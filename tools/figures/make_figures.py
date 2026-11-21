@@ -1300,6 +1300,14 @@ def _maze_training(plt, d, tall: bool) -> None:
     ax.annotate("100%", xy=(W_AT, 100), xytext=(14, -1), textcoords="offset points", fontsize=big * (0.85 if tall else 1),
                 fontweight="bold", color=WRITTEN_TEXT, ha="left", va="center", gid="data")
 
+    # What each costs: Claude's tokens for the written weights, and TRM's GPU time (8 RTX 6000 GPUs for 8 hours,
+    # 64 GPU-hours at a median on-demand price of $1.09 per GPU-hour, November 2026).
+    cs = small * (0.92 if tall else 1.0)
+    ax.text(XMAX + 0.45, 17, "Claude ≈ $19 in tokens" if tall else "Claude: 196,771 output tokens ≈ $19", fontsize=cs, color=WRITTEN_TEXT, fontweight="semibold",
+            ha="right", va="center", gid="data")
+    ax.text(XMAX + 0.45, 8, "TRM ≈ $70 in GPU time" if tall else "TRM: 8 RTX 6000 GPUs × 8 h ≈ $70", fontsize=cs, color=TRAINED_TEXT, fontweight="semibold",
+            ha="right", va="center", gid="data")
+
     # Legend below the chart.
     handles = [Line2D([0], [0], marker="*", ls="none", ms=15, color=WRITTEN, mec="white", mew=0.8),
                Line2D([0], [0], color=TRAINED, lw=2.0, marker="o", ms=6, mfc=TRAINED, mec="white", mew=1.2),
