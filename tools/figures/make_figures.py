@@ -1380,18 +1380,20 @@ def social(plt, d) -> None:
     ax.add_patch(Rectangle((0, 0), 1200, 10, fc=ORANGE, ec="none"))
 
     pt = 72 / dpi  # font size in points for a size given in px
-    ax.text(72, 548, d["title"], fontsize=66 * pt, fontweight="bold", color="white", va="top")
-    ax.text(72, 452, d["subtitle"], fontsize=27 * pt, color=sky, va="top", linespacing=1.35)
+    for k, line in enumerate(d["title"].split("\n")):          # one text per line, for even spacing
+        ax.text(72, 574 - 54 * k, line, fontsize=44 * pt, fontweight="bold", color="white", va="top")
+    for k, line in enumerate(d["subtitle"].split("\n")):
+        ax.text(72, 392 - 34 * k, line, fontsize=23 * pt, color=sky, va="top")
 
-    ax.add_patch(FancyBboxPatch((72, 108), 560, 196, boxstyle="round,pad=0,rounding_size=14",
+    ax.add_patch(FancyBboxPatch((72, 96), 560, 186, boxstyle="round,pad=0,rounding_size=14",
                                 fc="white", ec="none"))
-    ax.text(100, 278, d["result_task"].upper(), fontsize=19 * pt, fontweight="semibold",
+    ax.text(100, 258, d["result_task"].upper(), fontsize=19 * pt, fontweight="semibold",
             color=MUTED, va="top")
-    ax.text(100, 236, d["result"], fontsize=44 * pt, fontweight="bold", color=WRITTEN_TEXT,
+    ax.text(100, 218, d["result"], fontsize=42 * pt, fontweight="bold", color=WRITTEN_TEXT,
             va="top", linespacing=1.12)
 
     # A small Tower of Hanoi: all disks moved to the third peg.
-    base_y, peg_h = 118, 190
+    base_y, peg_h = 104, 176
     pegs = [760, 905, 1050]
     ax.add_patch(Rectangle((700, base_y - 8), 410, 8, fc=RAMP[5], ec="none"))
     for x in pegs:
@@ -1402,8 +1404,8 @@ def social(plt, d) -> None:
                                     boxstyle="round,pad=0,rounding_size=6",
                                     fc=RAMP[1] if i % 2 == 0 else RAMP[0], ec="none"))
 
-    ax.text(72, 56, d["byline"], fontsize=21 * pt, color="white", va="center")
-    ax.text(1128, 56, d["url"], fontsize=19 * pt, color=sky, va="center", ha="right")
+    ax.text(72, 50, d["byline"], fontsize=18 * pt, color="white", va="center")
+    ax.text(1128, 50, d["url"], fontsize=17 * pt, color=sky, va="center", ha="right")
 
     out = HERE / "social.png"
     fig.savefig(out, dpi=dpi, metadata={"Software": None})
