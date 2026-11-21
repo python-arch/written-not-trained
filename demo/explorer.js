@@ -410,7 +410,7 @@
     const v = view(), H = v.H, i = sel, r = Math.floor(i / side), c = i % side, ch = rows[r][c];
     const loopNo = PH === 0 ? T : T + 1, reachedNow = [...Array(n).keys()].filter((j) => countOf(H, j) >= 0).length;
     let step, say;
-    if (PH === 0 && T === 0) { step = "Embedding"; say = "Each cell's 35 numbers start with its position and type. The goal starts with count 0, and the start starts on the path. Press play, or step through one loop at a time."; }
+    if (PH === 0 && T === 0) { step = "Embedding"; say = "Each cell's 35 numbers start with its position and type. The goal gets count 0, and the start cell gets a path flag of 1. Press play, or step through one loop at a time."; }
     else if (PH === 1) step = `Loop ${loopNo}, step 1 of 3, read`;
     else if (PH === 2) step = `Loop ${loopNo}, step 2 of 3, update`;
     else step = `Loop ${loopNo}, step 3 of 3, clean up`;
