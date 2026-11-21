@@ -620,7 +620,7 @@
 </figure>
 </div>
 
-<p>Even when we ran Claude through Claude Code instead of the API, with no tools and the same "told how to search" prompt, it found the shortest path in 38% of the mazes, against 48% through the API, a difference within noise (p = 0.42).</p>
+<p>Even when we ran Claude through Claude Code instead of the API, with no tools and the same "told how to search" prompt, it found the shortest path in 38% of the mazes, against 48% through the API, a difference within noise.</p>
 
 <p>Writing the transformer is a different task. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We suspect this helps because each design choice can be checked on its own. The design rests on a handful of ideas, such as storing the distance modulo 3, each of which can be checked separately. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
