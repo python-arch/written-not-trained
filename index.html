@@ -331,7 +331,7 @@
   <img class="data" src="figures/maze_training_tall_data.svg" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_training_tall_base.svg" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. A legend below names the four series.">
   </div>
-  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star marks the transformer Claude wrote, whose final weights were ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no training. The same architecture, reset to random weights and trained by gradient descent in six versions, stays at 0%.</figcaption>
+  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star is the transformer Claude wrote, ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no gradient training. Every line is a model trained by gradient descent for up to 8 hours on one GPU. TRM, a looped reasoning model built for Maze-Hard, rises to 85.3%, the score of its released version. A standard transformer the size of TRM levels off at 42%. The same architecture as Claude's transformer, trained from random weights on the 1,000 training mazes, stays at 0%.</figcaption>
 </figure>
 </div>
 
