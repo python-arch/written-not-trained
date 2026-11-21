@@ -678,12 +678,22 @@
 
 <p>All runs solved 0% of the test mazes 😬. Without normalisation, the first six runs broke down within 30 steps. With RMSNorm added, training ran smoothly, yet every transformer learned only to copy the maze back, which already gets 87.4% of cells right because only about one cell in eight is on the path. Versions up to 2.8 million weights, and a curriculum that started from 10×10 mazes, also stayed at 0% after 8 hours each 🫠. To do better, a transformer has to mark path cells, which in the written transformer happens only after a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way.</p>
 
-<p>If copying is the cheapest way to lower the loss, two changes should help: a loss that counts path cells as much as all other cells, and supervision of the states the written transformer holds after each loop, its distance wave and its pointers. We trained the same architecture from random weights with the balanced loss alone and with both changes, on the same 1,000 mazes, for at least 30,000 updates and at three learning rates. None of the 185 checkpoints we scored solved a single test maze. The balanced loss did stop the copying. Cell accuracy, the share of the 900 cells in the output grid that a model gets right, fell from 87.5%, the score of copying the maze back, to between 50% and 71%, but no run learned the path in its place. Training failed under every setting we tried.</p>
+<p>Two fixes aimed at the copying did not help either. One weighted the loss so that path cells count as much as all other cells. The other also supervised the distance wave and the pointers after every loop. Both stopped the copying, yet none of the 185 checkpoints trained this way solved a single test maze.</p>
 
+<div class="text-fig">
+<div class="text-col">
 <p>A standard transformer (<a href="https://arxiv.org/abs/1706.03762">Vaswani et al., NeurIPS 2017</a>) does better, though not nearly well enough. We trained a plain transformer encoder the size of TRM (8 blocks, 6.4 million weights, 320× the transformer Claude wrote) on 3,000 mazes for 8 hours on one GPU. It got 94–99% of its training mazes right yet solved only 42% of the test mazes at best, levelling off for its final two hours. <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Jolicoeur-Martineau, 2025), a looped model built for this benchmark, reaches 85.3%.</p>
 
-
-<p>There is one caveat ⚖️. Each of the first training runs on Claude's architecture used about 5 PFLOPs of compute, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs, roughly 200 to 9,400 times more. So these runs show that gradient descent did not find the weights under the settings tested, not that the weights cannot be learned. Claude, meanwhile, simply wrote them, for about $19 🚀. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
+<p>There is one caveat. Each of the first training runs on Claude's architecture used about 5 PFLOPs of compute, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs, roughly 200 to 9,400 times more. So these runs show that gradient descent did not find the weights under the settings tested, not that the weights cannot be learned. Claude, meanwhile, simply wrote them, for about $19 🚀. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
+</div>
+<figure class="reveal" style="--hide: 60%">
+  <div class="layers">
+  <img class="data" src="figures/compute_acc_data.svg?v=2" width="538" height="417" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/compute_acc_base.svg?v=2" width="538" height="417" loading="lazy" alt="Maze-Hard test mazes solved against training compute in PFLOPs, on a log scale. The transformer Claude wrote sits at zero training compute and 100%. Gradient descent on the same architecture used about 5 PFLOPs and solved 0%. LDT used 1,303 PFLOPs for 99.8%, TRM 5,971 for 91.9% and HRM 46,944 for 84.6%. An arrow marks that the trained models used 200 to 9,400 times more compute than those gradient descent runs.">
+  </div>
+  <figcaption><strong>Figure 11. Accuracy against training compute.</strong> The transformer Claude wrote needs no gradient training, only about $19 of tokens, and solves 100% of the test mazes. Gradient descent on the same architecture used about 5 PFLOPs and solved 0%, while the trained models used between 1,024 and 46,944 PFLOPs. Trained scores and compute are from Davis et al. (NeurIPS 2026), Table 3.</figcaption>
+</figure>
+</div>
 
 <details id="maze-gd-details">
   <summary>Every run in Figure 3, and why we didn't train them longer</summary>
@@ -713,7 +723,7 @@
   <img class="data" src="figures/written_vs_trained_tall_data.svg" width="451" height="1046" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/written_vs_trained_tall_base.svg" width="451" height="1046" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written transformer scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written transformer scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written transformer scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
   </div>
-  <figcaption><strong>Figure 11. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
+  <figcaption><strong>Figure 12. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
 </figure>
 
 <p>In all three tasks, the trained models do well on training sizes but fail beyond them, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show that size-independent solutions exist in these architectures. Each one's size limit is set by its tables, its loop budget and its arithmetic precision, not by the loop itself, and inside those limits its answers are exact at every size we tested.</p>
@@ -752,7 +762,7 @@
   <img class="data" src="figures/glance_data.svg?v=20261121" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg?v=20261121" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption><strong>Figure 12. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+  <figcaption><strong>Figure 13. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
 </figure>
 
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
@@ -800,7 +810,7 @@
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 13. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
+  <figcaption><strong>Figure 14. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
 </figure>
 
 <p>Tower of Hanoi needs no search, since each move is a simple decision, so it tests long, error-free execution rather than search. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The constructed transformer generates the moves without repeated LLM calls or voting. A single small block makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
@@ -1045,7 +1055,7 @@
   <img class="data" src="figures/maze_compute_data.svg" width="518" height="277" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_compute_base.svg" width="518" height="277" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written transformer rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
-  <figcaption><strong>Figure 14. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
+  <figcaption><strong>Figure 15. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
 </figure>
 
 <p class="note">In this figure, every model's arithmetic is counted the way Davis et al. (NeurIPS 2026) count it, with any shortest path counting as solved. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots show the least a solve can cost, with the line running to its limit of 1,000 rounds. Trained scores are from Davis et al., Table 3, each the best version saved during training, picked by its test score.</p>
@@ -1070,7 +1080,7 @@
 
 <figure>
   <img src="figures/ouro_clock.svg" width="518" height="328" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states outside its training range. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's exit signal.">
-  <figcaption><strong>Figure 15. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
+  <figcaption><strong>Figure 16. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
 </figure>
 
 <div class="table-wrap">
