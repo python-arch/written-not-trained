@@ -402,7 +402,7 @@
     }
     pre.innerHTML = html;
     const pathCells = [...out].filter((k) => CS[k] === "o").length;
-    el("xp-outnote").textContent = pathCells ? `${pathCells} path cells so far.` : (Dsg > 0 && T < Dsg ? "Nothing yet. The path only starts once the wave reaches S." : "No path cells.");
+    el("xp-outnote").textContent = pathCells ? `${pathCells} path cells so far.` : (Dsg > 0 && T < Dsg ? "Nothing yet. The path only starts once the wave visits S." : "No path cells.");
   }
 
   // ------------------------------------------------------------------ the narration
@@ -441,7 +441,7 @@
           const from = DIRS.map((d, h) => h).find((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; const j = nr * side + nc; return onPath(before, j) && pointerOf(before, j) === [3, 2, 1, 0][h]; });
           bits.push(`The neighbour ${from !== undefined ? DIRS[from][3] : ""} is on the path and points here, so this cell joins the path.`);
         }
-        if (!bits.length) bits.push(ka >= 0 ? "Nothing new for this cell. Its count and pointer stay as they are." : "The wave has not reached this cell yet, so nothing changes.");
+        if (!bits.length) bits.push(ka >= 0 ? "Nothing new for this cell. Its count and pointer stay as they are." : "The wave has not visited this cell yet, so nothing changes.");
         say = bits.join(" ");
       } else {
         say = "The 40 clean-up neurons subtract every copied number, so the scratch space is empty again for the next loop. The search numbers stay at 0 or 1.";
@@ -450,9 +450,9 @@
     el("xp-step").textContent = step;
     el("xp-say").textContent = say;
     let status;
-    if (Dsg < 0) status = "S cannot reach G here, so the wave does not reach S and the transformer leaves the maze unchanged.";
-    else if (T < Dsg) status = `${reachedNow} cells reached. The wave reaches S at loop ${Dsg}.`;
-    else if (T < 2 * Dsg) status = `The wave reached S at loop ${Dsg}. The path grows one cell per loop and is complete at loop ${2 * Dsg}.`;
+    if (Dsg < 0) status = "S cannot reach G here, so the wave does not visit S and the transformer leaves the maze unchanged.";
+    else if (T < Dsg) status = `${reachedNow} cells visited. The wave visits S at loop ${Dsg}.`;
+    else if (T < 2 * Dsg) status = `The wave visited S at loop ${Dsg}. The path grows one cell per loop and is complete at loop ${2 * Dsg}.`;
     else status = `Solved at loop ${2 * Dsg}. Every later loop leaves all the numbers as they are.`;
     el("xp-status").textContent = status;
     archState();
@@ -461,7 +461,7 @@
   }
   function marks() {
     const m = el("xp-marks"); m.innerHTML = "";
-    if (Dsg > 0) for (const [t, lab] of [[Dsg, `loop ${Dsg}, the wave reaches S`], [2 * Dsg, `loop ${2 * Dsg}, the path is complete`]]) {
+    if (Dsg > 0) for (const [t, lab] of [[Dsg, `loop ${Dsg}, the wave visits S`], [2 * Dsg, `loop ${2 * Dsg}, the path is complete`]]) {
       const s = document.createElement("span"); s.style.left = (100 * t / R) + "%"; s.textContent = lab; s.title = lab;
       s.addEventListener("click", () => { pause(); go(t, 0); }); m.appendChild(s);
     }
