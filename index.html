@@ -485,8 +485,7 @@
 </div></details>
 
 
-<p><strong>The path.</strong> As soon as the wave visits the start cell, a path grows out of it one cell per loop, following the pointers all the way to the goal. These cells form the answer.</p>
-
+<p><strong>The path.</strong> As soon as the wave visits the start cell, a path grows out of it one cell per loop, following the pointers all the way to the goal. These cells form the answer. On the first test maze, the wave visits the start cell at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze.</p>
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>The start's path flag is 1 from the embedding. A cell joins the path when a neighbour on the path points at it,</p>
 \[ \mathrm{on}(c) \;\mathrel{+}=\; \sum_{\delta} \tau\big(2\,\mathrm{on}(n_\delta) + 2\,p_{-\delta}(n_\delta) - 2\,\mathrm{on}(c) - 2.5\big), \]
@@ -498,9 +497,6 @@
 <p>Every binary number is written through \(\tau(z) = \mathrm{ReLU}(z) - \mathrm{ReLU}(z - 1)\), which is flat at 0 for \(z \le 0\) and flat at 1 for \(z \ge 1\). The arguments above land at \(1.5\) or below \(-0.5\), so an error below \(0.5\) in an argument leaves the output unchanged. The softmax leak of about \(e^{-100}\) per cell sits far inside that margin. Forty clean-up neurons, two per scratch number, then erase what the heads copied,</p>
 \[ s \;\leftarrow\; s - \mathrm{ReLU}(s) + \mathrm{ReLU}(-s) \;=\; 0. \]
 </div></details>
-
-<p>On the first test maze, the wave visits the start cell at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze.</p>
-
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start cell a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D &lt; n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
 </div></details>
