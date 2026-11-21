@@ -570,14 +570,14 @@
 <p>Maze-Hard comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model). It has become a standard test for small models trained to reason by repeating a step many times, such as HRM, <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT). Most of its mazes have several equally short paths, of which the dataset marks one as the answer. Figure 8 uses the LDT paper's scoring, where any shortest path counts.</p>
 
 <div class="fig-pair">
-<figure class="reveal pair-wide" style="--hide: 62%">
+<figure class="reveal" style="--hide: 62%; flex-grow: 1.786">
   <div class="layers">
   <img class="data" src="figures/maze_results_data.svg?v=20261121" width="643" height="360" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_results_base.svg?v=20261121" width="643" height="360" loading="lazy" alt="Horizontal bars of Maze-Hard test mazes solved, with the scale cut between 30% and 80%. The transformer Claude wrote, with 19,936 weights, solves 100%. Models trained on Maze-Hard solve 99.8% (LDT, 1.8M weights), 93.1% (Attractor Models, 27M), 91.9% (TRM, 7M) and 84.6% (HRM, 27M). Frontier LLMs with no maze training solve 26% (Claude Opus 5.5), 26% (GPT-6 Astra) and 12% (GPT-6.1 Sol).">
   </div>
   <figcaption><strong>Figure 8. Maze-Hard results.</strong> A maze counts as solved when the answer is any shortest path from start to goal. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score.</figcaption>
 </figure>
-<figure class="reveal" style="--hide: 85%">
+<figure class="reveal" style="--hide: 85%; flex-grow: 1.555">
   <div class="layers">
   <img class="data" src="figures/maze_size_data.svg?v=20261121c" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_size_base.svg?v=20261121c" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%, and five more that Claude wrote under a weight cap solve 100% with 928 to 8,876 weights. LDT has 1.8M weights and solves 99.8%. Attractor Models has 27M and solves 93.1%, TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the smallest written transformer, with 928 weights, has about 1,900× fewer weights than LDT.">
