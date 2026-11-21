@@ -756,12 +756,16 @@ def glance(plt, d) -> None:
         for r in t["bars"]:
             role = bar_role(r)
             c, ct = KIND[role], KIND_TEXT[role]
+            hatched = role == "llm"                      # LLMs and LDT: hatched grey, so nothing but Claude is orange
+            if hatched:
+                c, ct = "#ecebe7", "#5f5e59"
             yc = yy - bar_h / 2
             lh = F * 7.6 * 1.05 / 72
             tx = logos_at(ax, MODEL_LOGOS.get(r["label"], []), x_lab + 0.1, yc, lh)
             ax.text(tx, yc, r["label"], fontsize=F * 7.6, color=ct, va="center")
             ax.add_patch(Rectangle((x0, yc - 0.07), x100 - x0, 0.14, fc="#f3f2ec", ec="none", zorder=0))
-            ax.add_patch(Rectangle((x0, yc - 0.07), max(r["value"], 0) * scale, 0.14, fc=c, ec="none",
+            ax.add_patch(Rectangle((x0, yc - 0.07), max(r["value"], 0) * scale, 0.14, fc=c,
+                                   ec="#a9a8a1" if hatched else "none", lw=0.7, hatch="/////" if hatched else None,
                                    zorder=2, gid="data"))
             end = x0 + r["value"] * scale
             if r["value"] < 99 and end + 0.5 > x100:      # would cross the 100% line: write it inside the bar

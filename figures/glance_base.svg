@@ -1018,7 +1018,7 @@ z
    </g>
    <g id="text_3">
     <!-- LDT, 1.8M weights -->
-    <g style="fill: #a87200" transform="translate(23.04 50.481913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(23.04 50.481913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-119" d="M 563 0 
 L 563 4656 
@@ -1388,7 +1388,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAtklEQVR4nGNgwAEEBQX/R0ZG/sYlj6IQ
    </g>
    <g id="text_4">
     <!-- Claude Opus 5.5, GPT-6 Astra -->
-    <g style="fill: #a87200" transform="translate(46.9128 65.961913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(46.9128 65.961913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-49" d="M 2447 -63 
 Q 1850 -63 1383 226 
@@ -2264,7 +2264,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAA7ElEQVR4nH1SSwqDMBBNtNuCIT2ARxDB
    </g>
    <g id="text_10">
     <!-- GPT-6 Astra -->
-    <g style="fill: #a87200" transform="translate(34.9764 117.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(34.9764 117.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-8d"/>
      <use xlink:href="#Inter-Regular-177" transform="translate(74.609375 0)"/>
      <use xlink:href="#Inter-Regular-19b" transform="translate(138.484375 0)"/>
@@ -2409,7 +2409,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABmUlEQVR4nHWSsWsUURDGfzPv7e4lpwhB
    </g>
    <g id="text_12">
     <!-- Gemini 4 Carbon -->
-    <g style="fill: #a87200" transform="translate(34.9764 153.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(34.9764 153.441913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-2fe" d="M 494 0 
 L 494 3494 
@@ -3085,7 +3085,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAYAAACZ3F9/AAACCUlEQVR4nG1RS2gTURQ9b2Y6/WQxEzBa
    </g>
    <g id="text_26">
     <!-- SmolLM2-360M -->
-    <g style="fill: #a87200" transform="translate(35.665405 297.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(35.665405 297.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-18d"/>
      <use xlink:href="#Inter-Regular-2fe" transform="translate(64.15625 0)"/>
      <use xlink:href="#Inter-Regular-316" transform="translate(151.75 0)"/>
@@ -3223,7 +3223,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAxUlEQVR4nGNkYGD4z0AiYCJVA1xTdXU1
    </g>
    <g id="text_29">
     <!-- Pythia-410M -->
-    <g style="fill: #a87200" transform="translate(34.9764 333.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(34.9764 333.441913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-3e6" d="M 438 -1266 
 L 581 -778 
@@ -3316,7 +3316,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABC0lEQVR4nGNgwAFym/67cuj+/w/C6HKM
    </g>
    <g id="text_31">
     <!-- Qwen3-235B-A22B -->
-    <g style="fill: #a87200" transform="translate(34.9764 369.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(34.9764 369.441913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-17e" d="M 2450 -63 
 Q 1853 -63 1386 226 
@@ -3486,7 +3486,7 @@ iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABC0lEQVR4nGNgwAFym/67cuj+/w/C6HKM
    </g>
    <g id="text_33">
     <!-- Qwen3-235B-A22B, program synthesis -->
-    <g style="fill: #a87200" transform="translate(34.9764 405.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(34.9764 405.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-17e"/>
      <use xlink:href="#Inter-Regular-3d8" transform="translate(76.46875 0)"/>
      <use xlink:href="#Inter-Regular-266" transform="translate(156.5 0)"/>

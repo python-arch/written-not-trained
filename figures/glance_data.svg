@@ -32,7 +32,7 @@ L 343.9008 52.259628
 L 343.9008 42.179628 
 L 214.56 42.179628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 67.739628 
@@ -40,7 +40,7 @@ L 248.256 67.739628
 L 248.256 57.659628 
 L 214.56 57.659628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 103.739628 
@@ -56,7 +56,7 @@ L 302.688 119.219628
 L 302.688 109.139628 
 L 214.56 109.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 155.219628 
@@ -64,7 +64,7 @@ L 339.2352 155.219628
 L 339.2352 145.139628 
 L 214.56 145.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 191.219628 
@@ -96,7 +96,7 @@ L 304.7616 299.219628
 L 304.7616 289.139628 
 L 214.56 289.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 335.219628 
@@ -104,7 +104,7 @@ L 257.5872 335.219628
 L 257.5872 325.139628 
 L 214.56 325.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 371.219628 
@@ -112,7 +112,7 @@ L 319.7952 371.219628
 L 319.7952 361.139628 
 L 214.56 361.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <path d="M 214.56 407.219628 
@@ -120,11 +120,11 @@ L 288.3024 407.219628
 L 288.3024 397.139628 
 L 214.56 397.139628 
 z
-" clip-path="url(#p12d91beeb5)" style="fill: #eda100"/>
+" clip-path="url(#p12d91beeb5)" style="fill: url(#hea36c8401d); stroke: #a9a8a1; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="data">
     <!-- 99.8% -->
-    <g style="fill: #a87200" transform="translate(348.48 50.481913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(348.48 50.481913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-548" d="M 1884 -63 
 Q 1488 -63 1178 93 
@@ -298,7 +298,7 @@ z
    </g>
    <g id="data">
     <!-- 26% -->
-    <g style="fill: #a87200" transform="translate(252.576 65.961913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(252.576 65.961913) scale(0.08968 -0.08968)">
      <defs>
       <path id="Inter-Regular-53f" d="M 481 0 
 L 481 428 
@@ -375,7 +375,7 @@ z
    </g>
    <g id="data">
     <!-- 68% -->
-    <g style="fill: #a87200" transform="translate(307.008 117.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(307.008 117.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-545"/>
      <use xlink:href="#Inter-Regular-547" transform="translate(62.015625 0)"/>
      <use xlink:href="#Inter-Regular-6d0" transform="translate(123.875 0)"/>
@@ -504,7 +504,7 @@ z
    </g>
    <g id="data">
     <!-- 69.6% -->
-    <g style="fill: #a87200" transform="translate(309.0816 297.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(309.0816 297.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-545"/>
      <use xlink:href="#Inter-Regular-548" transform="translate(62.015625 0)"/>
      <use xlink:href="#Inter-Regular-5de" transform="translate(121.5 0)"/>
@@ -514,7 +514,7 @@ z
    </g>
    <g id="data">
     <!-- 33.2% -->
-    <g style="fill: #a87200" transform="translate(261.9072 333.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(261.9072 333.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-541"/>
      <use xlink:href="#Inter-Regular-541" transform="translate(61.765625 0)"/>
      <use xlink:href="#Inter-Regular-5de" transform="translate(121.28125 0)"/>
@@ -524,7 +524,7 @@ z
    </g>
    <g id="data">
     <!-- 56.9% -->
-    <g style="fill: #a87200" transform="translate(292.6224 405.441913) scale(0.08968 -0.08968)">
+    <g style="fill: #5f5e59" transform="translate(292.6224 405.441913) scale(0.08968 -0.08968)">
      <use xlink:href="#Inter-Regular-543"/>
      <use xlink:href="#Inter-Regular-545" transform="translate(59.328125 0)"/>
      <use xlink:href="#Inter-Regular-5de" transform="translate(117.96875 0)"/>
@@ -820,5 +820,73 @@ z
   <clipPath id="p12d91beeb5">
    <rect x="0" y="-68.880372" width="388.8" height="529.56"/>
   </clipPath>
+ </defs>
+ <defs>
+  <pattern id="hea36c8401d" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+   <rect x="0" y="0" width="73" height="73" fill="#ecebe7"/>
+   <path d="M -36 36 
+L 36 -36 
+M -33.6 38.4 
+L 38.4 -33.6 
+M -31.2 40.8 
+L 40.8 -31.2 
+M -28.8 43.2 
+L 43.2 -28.8 
+M -26.4 45.6 
+L 45.6 -26.4 
+M -24 48 
+L 48 -24 
+M -21.6 50.4 
+L 50.4 -21.6 
+M -19.2 52.8 
+L 52.8 -19.2 
+M -16.8 55.2 
+L 55.2 -16.8 
+M -14.4 57.6 
+L 57.6 -14.4 
+M -12 60 
+L 60 -12 
+M -9.6 62.4 
+L 62.4 -9.6 
+M -7.2 64.8 
+L 64.8 -7.2 
+M -4.8 67.2 
+L 67.2 -4.8 
+M -2.4 69.6 
+L 69.6 -2.4 
+M 0 72 
+L 72 0 
+M 2.4 74.4 
+L 74.4 2.4 
+M 4.8 76.8 
+L 76.8 4.8 
+M 7.2 79.2 
+L 79.2 7.2 
+M 9.6 81.6 
+L 81.6 9.6 
+M 12 84 
+L 84 12 
+M 14.4 86.4 
+L 86.4 14.4 
+M 16.8 88.8 
+L 88.8 16.8 
+M 19.2 91.2 
+L 91.2 19.2 
+M 21.6 93.6 
+L 93.6 21.6 
+M 24 96 
+L 96 24 
+M 26.4 98.4 
+L 98.4 26.4 
+M 28.8 100.8 
+L 100.8 28.8 
+M 31.2 103.2 
+L 103.2 31.2 
+M 33.6 105.6 
+L 105.6 33.6 
+M 36 108 
+L 108 36 
+" style="fill: #a9a8a1; stroke: #a9a8a1; stroke-width: 1.0; stroke-linecap: butt; stroke-linejoin: miter"/>
+  </pattern>
  </defs>
 </svg>
