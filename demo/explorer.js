@@ -300,7 +300,7 @@
     thick(290, 316);
     // the looped block: a dark container with white inner boxes
     sv("text", { x: 318, y: 24, class: "t0" }, svg, "Looped block");
-    sv("text", { x: 432, y: 24, class: "t2 ital" }, svg, "the same weights every loop, no normalisation");
+    sv("text", { x: 432, y: 24, class: "t2 ital" }, svg, "the same weights every loop, no normalization");
     const lt = sv("text", { x: 990, y: 24, class: "t2", "text-anchor": "end" }, svg);
     sv("tspan", {}, lt, "loop "); sv("tspan", { id: "xp-t", class: "num" }, lt, "0"); sv("tspan", {}, lt, " of "); sv("tspan", { id: "xp-R", class: "num" }, lt, "242");
     const F = sv("g", { id: "xp-a-block" }, svg);

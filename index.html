@@ -669,14 +669,14 @@
 
 <p>We trained these models on the same 1,000 training mazes:</p>
 <ul>
-  <li><strong>The transformer Claude wrote, reset to random weights.</strong> As written, without normalisation, in 6 runs (3 learning rates × 2 seeds). Then with RMSNorm added, in six versions of 8 hours each: the original size at three learning rates, twice the loops, 2 or 4 blocks per loop, and 4 or 16 times the width, up to 2.8 million weights.</li>
+  <li><strong>The transformer Claude wrote, reset to random weights.</strong> As written, without normalization, in 6 runs (3 learning rates × 2 seeds). Then with RMSNorm added, in six versions of 8 hours each: the original size at three learning rates, twice the loops, 2 or 4 blocks per loop, and 4 or 16 times the width, up to 2.8 million weights.</li>
   <li><strong>The same six versions with a curriculum</strong>, from 10×10 mazes up to 30×30, with 2,000 more mazes we generated.</li>
   <li><strong>A class-balanced loss</strong>, alone and together with supervision of the distance and pointer states after each loop, at three learning rates.</li>
   <li><strong>A plain transformer encoder the size of TRM</strong> (8 blocks, width 256, 8 heads, 6.4 million weights, no loop), with a standard recipe on 3,000 mazes.</li>
   <li><strong>TRM itself</strong> (6.8 million weights), with its authors' recipe on one GPU.</li>
 </ul>
 
-<p>All runs solved 0% of the test mazes 😬. Without normalisation, the first six runs broke down within 30 steps. With RMSNorm added, training ran smoothly, yet every transformer learned only to copy the maze back, which already gets 87.4% of cells right because only about one cell in eight is on the path. Versions up to 2.8 million weights, and a curriculum that started from 10×10 mazes, also stayed at 0% after 8 hours each 🫠. To do better, a transformer has to mark path cells, which in the written transformer happens only after a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way.</p>
+<p>All runs solved 0% of the test mazes 😬. Without normalization, the first six runs broke down within 30 steps. With RMSNorm added, training ran smoothly, yet every transformer learned only to copy the maze back, which already gets 87.4% of cells right because only about one cell in eight is on the path. Versions up to 2.8 million weights, and a curriculum that started from 10×10 mazes, also stayed at 0% after 8 hours each 🫠. To do better, a transformer has to mark path cells, which in the written transformer happens only after a chain of a hundred or more steps that each have to be right. Our guess is that gradient descent finds no partial credit along the way.</p>
 
 <p>Two fixes aimed at the copying did not help either. One weighted the loss so that path cells count as much as all other cells. The other also supervised the distance wave and the pointers after every loop. Both stopped the copying, yet none of the 185 checkpoints trained this way solved a single test maze.</p>
 
@@ -697,7 +697,7 @@
 
 <details id="maze-gd-details">
   <summary>Every run in Figure 3, and why we didn't train them longer</summary>
-  <p>The six versions in Figure 3 are the transformer Claude wrote at its original size (with 3 learning rates), with twice the loops, with 2 or 4 blocks per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, Figure 3 places each one at its number of updates times its time per update with the GPU to itself.</p>
+  <p>The six versions in Figure 3 are the transformer Claude wrote at its original size (with 3 learning rates), with twice the loops, with 2 or 4 blocks per loop, and at 4 or 16 times the width, each with normalization added. Since the runs shared one GPU, Figure 3 places each one at its number of updates times its time per update with the GPU to itself.</p>
   <p><strong>Small mazes first.</strong> We also trained the 6 versions on mazes we generated in the Maze-Hard style, starting at 10×10 and working up to 30×30, then on the 1,000 training mazes plus 2,000 more of 30×30. A run moved up a size once it solved 90% of new mazes of that size, or after 45 minutes. All 111 checkpoints we scored on the test mazes sit at 0%.</p>
   <p><strong>The standard transformer</strong> has width 256 and 8 heads. It has no loop, so one pass fills in all 900 cells. It trained with a standard recipe (AdamW, learning rate 3e-4, batch 64), with nothing tuned, on the 1,000 training mazes plus 2,000 we generated in the same style. It solved 12.6% of the test mazes after 1 hour, 33.4% after 4, 42% at its best after 7, and 41.5% at the end. On 200 new mazes of the same style, it levelled off at 45%.</p>
   <p><strong>Why not train them longer?</strong> Five of the six versions got more updates than the 13,020 TRM needed to reach 77.4%, between 15,210 and 50,370. The sixth got 9,750, more than the 7,812 TRM needed to reach 53.9%. Nor was any of them slowly getting better. The standard transformer got 640,513 updates and was flat for its last two hours.</p>
