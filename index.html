@@ -470,11 +470,13 @@
 
 <p>Writing the transformer was also cheap. The maze transformer took 196,771 output tokens, about $19 at Claude Opus 5.5's API list prices. Claude had the final weights 39 minutes after it received the task. Its checks of those weights brought the whole build to 2 hours 41 minutes. The only human input was the task description, which <a href="#prompts">appendix E</a> gives in full. Solving mazes directly, by contrast, cost $0.14 to $0.34 for every maze in our runs, yet found the shortest path in at most half of them. The written transformer pays for itself after about 55 to 134 mazes and needs no API calls after that.</p>
 
+<p>The other builds tell the same story. The 18 builds whose cost we logged ranged from $1.19 to $37.06 each, with a median of about $4. Every build that kept a count needed at most 4 revision rounds, meaning full runs of its transformer on the training data before the test. In every build, the only human input was the task description. Table 2 lists the output tokens, cost, build time and revision rounds of each one.</p>
+
 <details>
-  <summary>What it cost Claude to write each transformer</summary>
+  <summary>Tokens, cost, build time and revision rounds for every transformer</summary>
 <div class="table-wrap">
 <table class="text-first">
-  <thead><tr><th>Transformer</th><th class="num">Output tokens</th><th class="num">Cost (USD)</th><th class="num">Build time</th><th class="num">Training-set runs</th></tr></thead>
+  <thead><tr><th>Transformer</th><th class="num">Output tokens</th><th class="num">Cost (USD)</th><th class="num">Build time</th><th class="num">Revision rounds</th></tr></thead>
   <tbody>
     <tr class="written"><td>Maze-Hard</td><td class="num">196,771</td><td class="num">18.71</td><td class="num">2 h 41 min</td><td class="num">3</td></tr>
     <tr class="written"><td>Sudoku-Extreme</td><td class="num">70,647</td><td class="num">3.16</td><td class="num">2 h 22 min</td><td class="num">1</td></tr>
@@ -484,9 +486,24 @@
     <tr class="written"><td>Boolean Expressions and Dyck Languages (BIG-Bench Hard)</td><td class="num">155,871</td><td class="num">6.38</td><td class="num">50 min</td><td class="num">3</td></tr>
     <tr class="written"><td>Graph search</td><td class="num">71,081</td><td class="num">2.55</td><td class="num">16 min</td><td class="num">3</td></tr>
   </tbody>
+  <tbody class="group">
+    <tr class="written"><td>Strongly connected components (CLRS-30)</td><td class="num">57,423</td><td class="num">1.97</td><td class="num">1 h 43 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Minimum spanning tree with Prim's algorithm (CLRS-30)</td><td class="num">66,901</td><td class="num">2.69</td><td class="num">2 h 1 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Longest common subsequence (CLRS-30)</td><td class="num">39,637</td><td class="num">1.19</td><td class="num">12 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Blocksworld, Mystery Blocksworld and Logistics (PlanBench)</td><td class="num">167,477</td><td class="num">7.94</td><td class="num">4 h 47 min</td><td class="num">4</td></tr>
+    <tr class="written"><td>Random 3-SAT, three sets (SATLIB)</td><td class="num">221,477</td><td class="num">11.08</td><td class="num">4 h 12 min</td><td class="num">4</td></tr>
+  </tbody>
+  <tbody class="group">
+    <tr class="written"><td>Sudoku-Extreme, at most 1,000 loops</td><td class="num">69,179</td><td class="num">2.69</td><td class="num">1 h 47 min</td><td class="num">3</td></tr>
+    <tr class="written"><td>Maze-Hard, at most 1,000 weights</td><td class="num">432,979</td><td class="num">17.56</td><td class="num">7 h 32 min</td><td class="num">3</td></tr>
+    <tr class="written"><td>Maze-Hard, at most 5,000 weights</td><td class="num">133,120</td><td class="num">4.95</td><td class="num">2 h 38 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Maze-Hard, at most 10,000 weights</td><td class="num">37,143</td><td class="num">1.61</td><td class="num">1 h 45 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Maze-Hard, at most 20,000 weights</td><td class="num">45,197</td><td class="num">1.65</td><td class="num">1 h 39 min</td><td class="num">1</td></tr>
+    <tr class="written"><td>Maze-Hard, at most 40,000 weights</td><td class="num">70,061</td><td class="num">3.72</td><td class="num">5 h 26 min</td><td class="num">4</td></tr>
+  </tbody>
 </table>
 </div>
-<p class="note"><strong>Table 2. The cost of writing each transformer.</strong> Each row counts every API response in the session that wrote the transformer, up to the moment it was ready for the test set, so testing is left out. Costs use Claude Opus 5.5's API list prices of $4 per million input tokens, $20 per million output tokens, $0.20 per million cache reads and $5 per million cache writes. The builds ran on a Claude subscription, so these are list-price equivalents rather than money spent. Most of each cost is cache reads. Build time runs from the task description to the transformer being ready for the test set, with delays on our side removed. Training-set runs are full runs of the transformer on the training data, capped at 20 per build, while tests of single parts are not counted. The Tower of Hanoi session kept no count of its runs. After the task description, Claude received only fixed messages, such as "continue", the outputs of GPU runs it asked for and rule updates, none of which gave hints.</p>
+<p class="note"><strong>Table 2. The cost of writing each transformer.</strong> The first group holds the transformers of sections 1 to 5, the second the CLRS-30, PlanBench and SATLIB transformers, and the third the transformers written under a limit on loops or weights. Each row counts every API response in the session that wrote the transformer, up to the moment it was ready for the test set, so testing is left out. Costs use Claude Opus 5.5's API list prices of $4 per million input tokens, $20 per million output tokens, $0.20 per million cache reads and $5 per million cache writes. The builds ran on a Claude subscription, so these are list-price equivalents rather than money spent. Most of each cost is cache reads. Build time runs from the task description to the transformer being ready for the test set, with delays on our side removed. It includes the time each builder waited for its runs, which accounts for most of the longer times in the third group. Revision rounds are full runs of the transformer on the training data before the test, capped at 20 per build, or 60 for PlanBench's three domains, while tests of single parts are not counted. The Tower of Hanoi session kept no count of its runs. Its row stops where Checker Jumping, written later in the same session, begins. After the task description, Claude received only fixed messages, such as "continue", the outputs of GPU runs it asked for and rule updates, none of which gave hints.</p>
 </details>
 
 
