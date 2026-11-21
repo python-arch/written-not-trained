@@ -465,7 +465,7 @@
 </div></details>
 
 
-<p><strong>Counting in threes.</strong> Apart from the position, every number in a cell's memory is binary, either 0 or 1. A cell therefore cannot store its distance to the goal as an ordinary number. Instead, it stores the remainder of that distance divided by 3, using three binary numbers, one for each remainder 0, 1 and 2. This is sufficient for the search. Two reachable cells next to each other differ in distance from the goal by one, so the remainder is enough to tell which neighbour is one step closer to the goal. As a result, the transformer's size does not depend on maze size.</p>
+<p><strong>Counting in threes.</strong> Apart from the position, every number in a cell's memory is binary, either 0 or 1. A cell therefore cannot store its distance to the goal as an ordinary number. Instead, it stores the remainder of that distance divided by 3, using three binary numbers, one for each remainder 0, 1 and 2. For example, a distance of 7 leaves a remainder of 1, so it is stored as 0, 1, 0. This is sufficient for the search. Two reachable cells next to each other differ in distance from the goal by one, so the remainder is enough to tell which neighbour is one step closer to the goal. As a result, the transformer's size does not depend on maze size.</p>
 
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>Let \(d(c)\) be the length of the shortest path from cell \(c\) to the goal. Every step in the grid changes \(r + c\) by one, so \(d\) has opposite parity on neighbouring cells. Two open neighbours \(c\) and \(n\) therefore satisfy \(|d(n) - d(c)| = 1\), and</p>
