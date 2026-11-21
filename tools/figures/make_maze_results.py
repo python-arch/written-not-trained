@@ -119,10 +119,6 @@ def size(plt) -> None:
     ax.scatter(capped, [100.0] * len(capped), s=58, color=mf.WRITTEN, edgecolor="white", linewidth=1.3, zorder=5, gid="data")
     ax.annotate("written under a weight cap", (700, 100.0), xytext=(0, -9), textcoords="offset points",
                 ha="left", va="top", fontsize=fs * 0.84, color=mf.WRITTEN_TEXT, gid="data")
-    # LDT trained on one path per maze.
-    ax.scatter([1.8e6], [99.0], s=54, facecolor="white", edgecolor=mf.YELLOW, linewidth=1.6, zorder=5, gid="data")
-    ax.annotate("one path, 99.0%", (1.8e6, 99.0), xytext=(9, -2), textcoords="offset points", ha="left",
-                va="top", fontsize=fs * 0.86, color=mf.YELLOW_TEXT, gid="data")
     # How much smaller the smallest written transformer (928 weights, under a weight cap) is than LDT.
     ax.annotate("", xy=(1.8e6, 95.4), xytext=(928, 95.4),
                 arrowprops=dict(arrowstyle="<->", color=mf.INK, lw=1.4, shrinkA=0, shrinkB=0), gid="data")

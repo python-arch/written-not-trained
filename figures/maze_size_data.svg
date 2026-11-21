@@ -1415,49 +1415,6 @@ z
      <use xlink:href="#Inter-Regular-34b" transform="translate(1200.546875 0)"/>
     </g>
    </g>
-   <g id="data">
-    <!-- one path, 99.0% -->
-    <g style="fill: #a87200" transform="translate(283.989411 56.041259) scale(0.084228 -0.084228)">
-     <defs>
-      <path id="Inter-Regular-53d" d="M 2019 -63 
-Q 1241 -63 811 562 
-Q 381 1188 381 2325 
-Q 381 3456 814 4087 
-Q 1247 4719 2019 4719 
-Q 2794 4719 3225 4087 
-Q 3656 3456 3656 2325 
-Q 3656 1188 3228 562 
-Q 2800 -63 2019 -63 
-z
-M 2019 456 
-Q 2531 456 2807 948 
-Q 3084 1441 3084 2325 
-Q 3084 3216 2807 3709 
-Q 2531 4203 2019 4203 
-Q 1509 4203 1231 3708 
-Q 953 3213 953 2325 
-Q 953 1441 1231 948 
-Q 1509 456 2019 456 
-z
-" transform="scale(0.015625)"/>
-     </defs>
-     <use xlink:href="#Inter-Regular-316"/>
-     <use xlink:href="#Inter-Regular-305" transform="translate(59.96875 0)"/>
-     <use xlink:href="#Inter-Regular-266" transform="translate(119.046875 0)"/>
-     <use xlink:href="#Inter-Regular-6f1" transform="translate(177.34375 0)"/>
-     <use xlink:href="#Inter-Regular-34b" transform="translate(205.46875 0)"/>
-     <use xlink:href="#Inter-Regular-1fb" transform="translate(267.6875 0)"/>
-     <use xlink:href="#Inter-Regular-379" transform="translate(323.84375 0)"/>
-     <use xlink:href="#Inter-Regular-29e" transform="translate(356.5625 0)"/>
-     <use xlink:href="#Inter-Regular-5dd" transform="translate(415.6875 0)"/>
-     <use xlink:href="#Inter-Regular-6f1" transform="translate(444.5 0)"/>
-     <use xlink:href="#Inter-Regular-548" transform="translate(472.625 0)"/>
-     <use xlink:href="#Inter-Regular-548" transform="translate(534.640625 0)"/>
-     <use xlink:href="#Inter-Regular-5de" transform="translate(594.125 0)"/>
-     <use xlink:href="#Inter-Regular-53d" transform="translate(620.40625 0)"/>
-     <use xlink:href="#Inter-Regular-6d0" transform="translate(683.5 0)"/>
-    </g>
-   </g>
    <g id="patch_2">
     <path d="M 74.517864 76.826939 
 Q 173.971014 76.826939 273.424164 76.826939 
@@ -1852,24 +1809,6 @@ z
      <use xlink:href="#mfd9be5bc9a" x="114.366632" y="37.285714" style="fill: #eb6834; stroke: #ffffff; stroke-width: 1.3"/>
      <use xlink:href="#mfd9be5bc9a" x="129.360899" y="37.285714" style="fill: #eb6834; stroke: #ffffff; stroke-width: 1.3"/>
      <use xlink:href="#mfd9be5bc9a" x="133.216572" y="37.285714" style="fill: #eb6834; stroke: #ffffff; stroke-width: 1.3"/>
-    </g>
-   </g>
-   <g id="data">
-    <defs>
-     <path id="m3fd29b0f33" d="M 0 3.674235 
-C 0.974418 3.674235 1.909058 3.287094 2.598076 2.598076 
-C 3.287094 1.909058 3.674235 0.974418 3.674235 0 
-C 3.674235 -0.974418 3.287094 -1.909058 2.598076 -2.598076 
-C 1.909058 -3.287094 0.974418 -3.674235 0 -3.674235 
-C -0.974418 -3.674235 -1.909058 -3.287094 -2.598076 -2.598076 
-C -3.287094 -1.909058 -3.674235 -0.974418 -3.674235 0 
-C -3.674235 0.974418 -3.287094 1.909058 -2.598076 2.598076 
-C -1.909058 3.287094 -0.974418 3.674235 0 3.674235 
-z
-" style="stroke: #eda100; stroke-width: 1.6"/>
-    </defs>
-    <g clip-path="url(#p9590f1f63e)">
-     <use xlink:href="#m3fd29b0f33" x="274.989411" y="45.881633" style="fill: #ffffff; stroke: #eda100; stroke-width: 1.6"/>
     </g>
    </g>
   </g>
