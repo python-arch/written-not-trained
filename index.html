@@ -358,18 +358,7 @@
 
 <p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave reaches the start, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
-<details>
-  <summary>The block piece by piece, and what breaks when you switch parts off</summary>
-  <p>Nothing in the transformer runs as a sequence of instructions. All cells update at the same moment on every loop, each knowing only its 35 numbers and what it reads from its four neighbours. The path is not computed somewhere else and then written out. Instead, it lights up across the grid one cell per loop, from the start to the goal.</p>
-  <div class="ablate">
-    <p class="label">Switch one part off, on the 1,000 training mazes</p>
-    <ul>
-      <li>Without <b>any one head</b>, the wave cannot cross that direction. It stalls near the goal after reaching only 8.2–8.6% of the cells it should, so 0% of the mazes get solved.</li>
-      <li>Without <b>the pointer neurons</b>, every distance is still right, yet no cell points anywhere. The path does not leave the start.</li>
-      <li>Without <b>the tie order inside them</b>, cells with several closer neighbours point to all of them. The path then branches, producing 623.5 path cells per maze against 113.1 with nothing switched off.</li>
-    </ul>
-  </div>
-</details>
+<!--EXPLORER-->
 
 <h3 id="overthink">Extra loops don't undo the answer</h3>
 
@@ -790,7 +779,7 @@
 
 <p>Interpretability research usually works backwards. It starts from a trained model and tries to work out what its numbers mean, by probing hidden states, switching parts off and tracing the circuits that connect them (<a href="https://distill.pub/2020/circuits/zoom-in/">Olah et al., Distill 2020</a>). A hand-written transformer works the other way round. Claude chose the meaning of every number first and then set the weights to match, so the explanation is fixed before any weight is set.</p>
 
-<p>For the maze transformer, this makes the usual interpretability questions easy to answer. We can read any cell's distance, pointer and path flag after any loop, which is how the thought bubble in Figure 2 and the <a href="demo/maze.html">maze demo</a> show the search as it runs. We can also predict what breaks before we break it. Each attention head carries the wave in one direction, so removing a head should stop the wave from crossing that way. The experiment in <a href="#inside">section 1</a> confirms it. The wave stalls near the goal, so 0% of the mazes get solved. Finally, we can check the inside of the transformer against the algorithm rather than only its output. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</p>
+<p>For the maze transformer, this makes the usual interpretability questions easy to answer. We can read any cell's distance, pointer and path flag after any loop, which is how the thought bubble in Figure 2 and the <a href="demo/maze.html">maze demo</a> show the search as it runs. We can also predict what breaks before we break it. Each attention head carries the wave in one direction, so removing a head should stop the wave from crossing that way. On the 1,000 training mazes, it does. Without any one head, the wave stalls after reaching only 8.2–8.6% of the cells it should, so 0% of the mazes get solved. Finally, we can check the inside of the transformer against the algorithm rather than only its output. After the last loop, every cell's distance, pointer and path flag match those of a standard shortest-path search on all 1,000 training mazes.</p>
 
 <p>The meanings can also be read back from the weights alone. We gave three fresh Claude Code sessions only the maze transformer's weights and a bare description of its architecture, without the word maze, the task or any example, and asked what it computes and what each of a cell's 35 numbers stands for. Each recovered the whole design, 11 of 11 points on a rubric fixed in advance, in about two minutes, and confirmed it by running the weights against its own shortest-path search on random grids.</p>
 
