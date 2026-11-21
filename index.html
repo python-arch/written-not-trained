@@ -436,14 +436,14 @@
 <!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
   <div class="layers wide">
-  <img class="data" src="figures/maze_training_data.svg?v=20261121d" width="518" height="399" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_base.svg?v=20261121d" width="518" height="399" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $70 of GPU time for TRM. A legend below names the four series.">
+  <img class="data" src="figures/maze_training_data.svg?v=20261121e" width="518" height="399" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_base.svg?v=20261121e" width="518" height="399" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $38 of GPU time for TRM. A legend below names the four series.">
   </div>
   <div class="layers tall">
-  <img class="data" src="figures/maze_training_tall_data.svg?v=20261121d" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_training_tall_base.svg?v=20261121d" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $70 of GPU time for TRM. A legend below names the four series.">
+  <img class="data" src="figures/maze_training_tall_data.svg?v=20261121e" width="355" height="483" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_training_tall_base.svg?v=20261121e" width="355" height="483" loading="lazy" alt="Test mazes solved against hours. The left of the chart, shaded light orange and labelled Written weights, holds one big star at 39 minutes and 100% for the transformer Claude wrote, with no gradient training. The right, shaded light grey and labelled Gradient-based methods, holds the training runs. TRM rises to 85.3% by 8 hours, a standard transformer reaches 42%, and the same architecture trained by gradient descent stays at 0%, drawn as a dashed line. Two notes compare the cost, about $19 of Claude API usage against about $38 of GPU time for TRM. A legend below names the four series.">
   </div>
-  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star is the transformer Claude wrote, ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no gradient training. Every line is a model trained by gradient descent for up to 8 hours on one GPU. TRM, a looped reasoning model built for Maze-Hard, rises to 85.3%, the score of its released version. A standard transformer the size of TRM levels off at 42%. The same architecture as Claude's transformer, trained from random weights on the 1,000 training mazes, stays at 0%. Writing the weights cost about $19 in Claude API usage, while training TRM for 8 hours on 8 RTX 6000 GPUs would cost about $70, at a median cloud price of $1.09 per GPU-hour.</figcaption>
+  <figcaption><strong>Figure 3. Written weights versus gradient descent.</strong> The star is the transformer Claude wrote, ready 39 minutes after Claude received the task. It solves 100% of the test mazes with no gradient training. Every line is a model trained by gradient descent for up to 8 hours on one GPU. TRM, a looped reasoning model built for Maze-Hard, rises to 85.3%, the score of its released version. A standard transformer the size of TRM levels off at 42%. The same architecture as Claude's transformer, trained from random weights on the 1,000 training mazes, stays at 0%. Writing the weights cost about $19 in Claude API usage, while training TRM for 8 hours on one H200 GPU costs about $38, at a median cloud price of $4.75 per GPU-hour.</figcaption>
 </figure>
 </div>
 
@@ -600,16 +600,16 @@
 
 <h2 id="maze-claude"><span class="qn">3.</span> Why Claude can write the transformer but can't solve the maze</h2>
 
+<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt, in which Claude sees the maze as 30 lines of 30 characters and answers by writing out the same grid with the cells of its path marked. We then changed one thing at a time.</p>
+
 <div class="text-fig">
 <div class="text-col">
-<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt, in which Claude sees the maze as 30 lines of 30 characters and answers by writing out the same grid with the cells of its path marked. We then changed one thing at a time.</p>
 <ul class="defs">
   <li><b>Told how to search.</b> A paragraph added to the paper's prompt tells Claude to spread out from the goal one step at a time, then walk back from the start cell.</li>
   <li><b>+ one cell per token.</b> Claude reads text in tokens, chunks of a few characters, so in a plain grid one token can cover several cells, such as a run of walls. Here, the cells are separated by spaces, with a dot for each free cell, so that Claude reads each cell as a separate token.</li>
   <li><b>+ answer with the path only.</b> Instead of writing out the whole grid, Claude answers with the list of cells on its path, as (row, column) coordinates from the start cell to the goal.</li>
   <li><b>+ path only, no grid.</b> Claude answers with the path as above. The maze also comes as a list of the (row, column) coordinates of its free cells instead of a grid.</li>
 </ul>
-<p>Describing the algorithm lifts Claude from 26% to 48%, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (44% against 48%). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 </div>
 <figure class="reveal" style="--hide: 55%">
   <div class="layers">
@@ -619,6 +619,8 @@
   <figcaption><strong>Figure 10. Claude with better prompts.</strong> Better prompts lift Claude from 26% to at most 50%, far below the 100% of the transformer it wrote. The evaluations use Claude Opus 5.5 with reasoning effort set to high. The prompts are in <a href="#prompts">appendix E</a>.</figcaption>
 </figure>
 </div>
+
+<p>Describing the algorithm lifts Claude from 26% to 48%, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (44% against 48%). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 
 <p>Even when we ran Claude through Claude Code instead of the API, with no tools and the same "told how to search" prompt, it found the shortest path in 38% of the mazes, against 48% through the API, a difference within noise.</p>
 
@@ -787,7 +789,7 @@
 </div>
 <p class="note"><strong>Table 3. Sudoku-Extreme results.</strong> Accuracy in %. A puzzle counts as solved when the answer matches its one solution. A dash means not run. Trained scores are from Davis et al. (NeurIPS 2026), Table 1, which scores the released HRM, TRM and Sotaku v2 models on the first 10,000 puzzles. Sotaku v2 (Lou, 2026) is a small recurrent transformer built for Sudoku. LLM scores are from their Table 25, run in October 2026 with no worked examples, reasoning effort set to high and up to 100,000 output tokens.</p>
   <p>The transformer reads the puzzle as text, one character per token, and writes back the solved grid. Per puzzle, it does 21.7 trillion operations, against 0.22 trillion for HRM, 0.41 trillion for TRM and 4.6 trillion for LDT's 15 models, counted the same way as in Davis et al. </p>
-  <p>Each column covers the same puzzles in the test set's fixed order, which the LDT code sets. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper scored its model on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved none of 200.</p>
+  <p>Each column covers the same puzzles in the test set's fixed order, which the LDT code sets. The first 31,104 puzzles we ran form an unbroken run from the start of the test set. We stopped the run after 141,040 puzzles to free the GPUs, by which point not one had failed. Because the LDT paper scored its model on the full test set, which we didn't run in full, we compare only on puzzles both sides were run on. In the LDT paper's April 2026 tests, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved 0% of the test puzzles.</p>
   <p>The limits would matter for a puzzle that reached them. When we stopped the transformer early on training puzzles, it wrote a full grid with wrong digits, so a puzzle that needed more than 40,000 loops would get a plausible-looking wrong answer. When we rebuilt it with room for only 4 or 8 saved grids, every puzzle that needed more wrote a 1 in every cell, an answer that is visibly wrong, while the puzzles that fit were still solved. Before the test, the transformer itself was run once on 92 of the training puzzles, solving all 92. It writes the solution as one line of 81 digits instead of nine rows. Since the scoring ignores line breaks, this counts the same.</p>
 </details>
 
