@@ -448,7 +448,7 @@
 
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>Each cell has four pointer switches \(p_\delta(c)\), one per direction, taken in the order \(\delta_1, \dots, \delta_4\) = down, left, right, up. They are rewritten in every loop. Eight reset neurons, two per direction, cancel the old value, since \(p - \mathrm{ReLU}(p) + \mathrm{ReLU}(-p) = 0\). At the same time, 24 pointer neurons compute</p>
-\[ p_{\delta_j}(c) \;=\; \sum_{k=0}^{2} \tau\Big(2\,m_k(c) + 2\,m_{k-1}(n_{\delta_j}) - 2\sum_{i<j} m_{k-1}(n_{\delta_i}) - 2.5\Big), \]
+\[ p_{\delta_j}(c) \;=\; \sum_{k=0}^{2} \tau\Big(2\,m_k(c) + 2\,m_{k-1}(n_{\delta_j}) - 2\sum_{i&lt;j} m_{k-1}(n_{\delta_i}) - 2.5\Big), \]
 <p>where \(n_\delta\) is the neighbour in direction \(\delta\). The argument reaches \(1.5\) only when \(n_{\delta_j}\) is one step closer to the goal and no earlier direction is. That is the tie-break.</p>
 </div></details>
 
@@ -475,7 +475,7 @@
 <p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave reaches the start, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
 <details class="math"><summary>The math</summary><div class="mbody">
-<p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D < n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
+<p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D &lt; n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
 </div></details>
 
 
@@ -547,7 +547,7 @@
 </figure>
 </div>
 
-<p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 6 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%. Our trained looped graph search and parity models also hold steady with extra loops.</p>
+<p>We see the same contrast on reasoning chains, puzzles that follow a chain of statements such as x0 = 7 and x1 = x0 + 3 for 1 to 8 steps to find one variable. A looped transformer trained on them by gradient descent solves 69.1% with its usual number of loops, but only 49.2% when it runs four times as many. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 6 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%.</p>
 
 
 <h2 id="maze"><span class="qn">2.</span> How it compares on Maze-Hard</h2>
