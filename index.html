@@ -36,6 +36,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -209,6 +210,77 @@
   details.appendix p { margin: 0 0 16px; }
   details.appendix p.note { margin: 0 0 22px; }
   details.appendix > :last-child { margin-bottom: 18px; }
+
+  /* Figure 6, the interactive explorer */
+  .xp-fig { margin: 26px 0 30px; }
+  @media (min-width: 1000px) { .xp-fig { --bw: min(1180px, calc(100vw - 32px)); width: var(--bw); margin-left: calc((100% - var(--bw)) / 2); } }
+  .xp { font-family: var(--sans); border: 1px solid var(--line); background: #fbfbf9; padding: 14px; border-radius: 6px; outline: none; }
+  .xp:focus-visible { box-shadow: 0 0 0 3px rgba(235,104,52,.25); }
+  .xp-pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .78rem; margin-bottom: 12px; }
+  .xp-pipe span { padding: 4px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); transition: background .2s, color .2s, border-color .2s; }
+  .xp-pipe span.on { background: #14213d; color: #fff; border-color: #14213d; }
+  .xp-pipe em { font-style: normal; color: #9aa0aa; }
+  .xp-pipe .xp-loopback { margin-left: auto; color: var(--muted); }
+  .xp-pipe .xp-loopback b { color: var(--fg); font-variant-numeric: tabular-nums; }
+  .xp-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  @media (min-width: 900px) { .xp-body { grid-template-columns: minmax(0, 520px) minmax(0, 1fr); } }
+  .xp-left canvas { display: block; touch-action: none; cursor: pointer; border-radius: 3px; max-width: 100%; }
+  .xp-editing .xp-left canvas { cursor: crosshair; box-shadow: 0 0 0 2px #eb6834; }
+  .xp-ctrl, .xp-editbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; font-size: .78rem; }
+  .xp button { font: inherit; font-size: .78rem; padding: 5px 10px; border: 1px solid var(--line); background: #fff; border-radius: 4px; cursor: pointer; color: var(--fg); line-height: 1.2; }
+  .xp button:hover { border-color: #14213d; }
+  .xp button.on, .xp button.xp-go { background: #14213d; color: #fff; border-color: #14213d; }
+  .xp button.xp-go { min-width: 64px; }
+  .xp-brushes { display: none; gap: 4px; }
+  .xp-editing .xp-brushes { display: inline-flex; }
+  .xp-speed, .xp-chk { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  .xp-speed input { width: 80px; }
+  .xp-time { position: relative; margin-top: 8px; padding-bottom: 38px; }
+  .xp-time input { width: 100%; margin: 0; }
+  .xp-marks span { position: absolute; top: 22px; margin-left: -1px; padding-left: 6px; border-left: 1px solid #9aa0aa; font-size: .66rem; line-height: 1.2; color: var(--muted); white-space: nowrap; cursor: pointer; }
+  .xp-marks span:nth-child(2) { top: 36px; }
+  .xp-key { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; font-size: .7rem; color: var(--muted); }
+  .xp-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .xp-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .xp-now { background: #fff; border: 1px solid var(--line); border-left: 3px solid #eb6834; padding: 10px 12px; border-radius: 4px; min-height: 118px; }
+  .xp-step { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #c4471a; }
+  .xp-now p { margin: 4px 0 0; font-size: .86rem; line-height: 1.45; color: var(--fg); }
+  .xp-now p.xp-status { color: var(--muted); font-size: .76rem; }
+  .xp-box { background: #fff; border: 1px solid var(--line); padding: 8px 10px; border-radius: 4px; }
+  .xp-bt { font-size: .72rem; font-weight: 600; color: var(--fg); margin-bottom: 6px; }
+  .xp-bt span { font-weight: 400; color: var(--muted); margin-left: 6px; }
+  .xp-g { margin-bottom: 6px; }
+  .xp-gt { font-size: .64rem; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .04em; }
+  .xp-gt span { opacity: .7; text-transform: none; letter-spacing: 0; }
+  .xp-cells { display: flex; flex-wrap: wrap; gap: 3px; }
+  .xp-scratch .xp-cells { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .xp-n { min-width: 34px; height: 34px; border: 1px solid #e3e3dd; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafaf8; transition: background .25s, border-color .25s; }
+  .xp-scratch .xp-n { min-width: 0; border-top: 3px solid var(--hc); }
+  .xp-n b { font-size: .72rem; font-variant-numeric: tabular-nums; min-height: 1.05em; line-height: 1.05; }
+  .xp-n i { font-style: normal; font-size: .56rem; color: var(--muted); white-space: nowrap; }
+  .xp-fixed .xp-n.lit { background: #ecece6; }
+  .xp-search .xp-n.lit { background: #14213d; border-color: #14213d; }
+  .xp-search .xp-n.lit b, .xp-search .xp-n.lit i { color: #fff; }
+  .xp-scratch .xp-n.lit { background: color-mix(in srgb, var(--hc) 20%, white); border-color: color-mix(in srgb, var(--hc) 45%, white); }
+  .xp-neurons { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .xp-ng { cursor: help; }
+  .xp-ngt { font-size: .66rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .xp-ngt span { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .xp-ngt em { font-style: normal; opacity: .7; }
+  .xp-dots { display: flex; flex-wrap: wrap; gap: 3px; max-width: 168px; margin-top: 4px; }
+  .xp-dots i { width: 9px; height: 9px; border-radius: 50%; background: #e4e4df; transition: background .2s, opacity .2s, transform .2s; }
+  .xp-dots i.on { background: var(--nc); transform: scale(1.15); }
+  .xp pre.xp-out { margin: 0; font: 600 13px/1.08 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .3em; background: #fafaf8; border: none; padding: 6px 8px; white-space: pre; overflow: auto; }
+  .xp-out b { color: #eb6834; }
+  .xp-out i { color: #c9c9c2; font-style: normal; }
+  .xp-out u { text-decoration: none; color: #2b2f36; }
+  .xp-out s { text-decoration: none; color: #14213d; font-weight: 800; }
+  /* the math boxes */
+  details.math { border: none; margin: -8px 0 16px; color: var(--fg); }
+  details.math > summary { font-size: .8rem; color: #c4471a; padding: 2px 0; }
+  details.math .mbody { font-family: var(--serif); font-size: .98rem; line-height: 1.6; border-left: 2px solid #f3c2ab; padding: 2px 0 2px 14px; margin: 4px 0 8px; }
+  details.math .mbody p { margin: 0 0 8px; }
+  details.math .katex-display { margin: .5em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
   details.prompt { margin: 0 0 10px; }
   details.prompt > summary { font-family: var(--sans); font-size: 0.86rem; cursor: pointer; }
   details.prompt .fname { color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
@@ -339,6 +411,14 @@
 
 <p>Claude made each cell of the maze one token, so a 30×30 maze becomes 900 tokens. It gave each cell a memory of 35 numbers, which the transformer carries from one loop to the next. Claude decided what each of these numbers stands for. A few of them record what the cell is (a wall, the start or the goal) and where it sits in the grid. Other numbers track the search. They hold the cell's distance from the goal, which neighbour is its next step and whether it lies on the path. The remaining 20 numbers serve as scratch space for whatever the cell reads from its neighbours. The transformer's single block has four attention heads, each with a single job. One lets every cell read the cell below it, while the other three read the cell to its left, to its right and above it. Claude then set every weight so that each loop updates these numbers the way it intended.</p>
 
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Cell \(c\), at row \(r_c\) and column \(c_c\), starts as the sum of three table rows. They put \(1\), \(r_c\), \(c_c\) and \(r_c^2 + c_c^2\) into its first four numbers and its type into the next three.</p>
+<p>The head that looks in direction \(\delta = (\delta_r, \delta_c)\), one of \((1,0)\), \((0,-1)\), \((0,1)\) and \((-1,0)\), scores every cell \(n\) by</p>
+\[ \frac{q_c \cdot k_n}{\sqrt{8}} \;=\; -100\,\big[(r_n - r_c - \delta_r)^2 + (c_n - c_c - \delta_c)^2\big] \;+\; \mathrm{const}(c). \]
+<p>The neighbour at \(c + \delta\) scores 100 more than any other cell, so the softmax puts a weight of \(1 - O(e^{-100})\) on it. The head copies five of that neighbour's numbers into five scratch numbers of \(c\). These are its three count switches \(m_0, m_1, m_2\), its path flag and a switch that says whether it points back at \(c\).</p>
+</div></details>
+
+
 <p>With this layout, each pass through the block performs one step of a standard shortest-path search.</p>
 
 <figure class="block-fig">
@@ -348,17 +428,103 @@
 
 <p><strong>A wave from the goal.</strong> The goal starts at distance 0. On every loop, each open cell that has not been reached yet but borders a reached cell takes that neighbour's distance plus one. The reached area therefore spreads outward from the goal one step per loop.</p>
 
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Write \(m_k(c) \in \{0, 1\}\) for the switch that says the count of cell \(c\) is \(k\), and \(\mathcal{N}(c)\) for its four neighbours. Two wave neurons for each \(k\) compute</p>
+\[ m_{k+1}(c) \;\mathrel{+}=\; \tau\Big(2\!\!\sum_{n \in \mathcal{N}(c)}\!\! m_k(n) \;-\; 8\,\big[\mathrm{wall}(c) + m_0(c) + m_1(c) + m_2(c)\big] \;-\; \tfrac12\Big), \qquad \tau(z) = \mathrm{ReLU}(z) - \mathrm{ReLU}(z - 1), \]
+<p>with the index \(k+1\) taken mod 3. The argument of \(\tau\) is at least \(1.5\) when the cell is open, has no count yet and has a neighbour with count \(k\). Otherwise it is at most \(-0.5\), so \(\tau\) gives 1 or 0. After loop \(t\), the cells with a count are the ones at most \(t\) steps from the goal.</p>
+</div></details>
+
+
 <p><strong>Counting in threes.</strong> Claude kept every number in a cell's memory, apart from its position, as a switch that is either on or off, for a reason explained below. A switch cannot hold a distance like 117, so each cell stores its distance modulo 3 instead, counting 0, 1, 2, 0, 1, 2 and so on. This is sufficient for the search. Two reachable cells next to each other differ in distance from the goal by one, so the count modulo 3 is enough to tell which neighbours lie one step closer to the goal. As a result, the transformer's size does not depend on maze size.</p>
+
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Let \(d(c)\) be the length of the shortest path from cell \(c\) to the goal. Every step in the grid changes \(r + c\) by one, so \(d\) has opposite parity on neighbouring cells. Two open neighbours \(c\) and \(n\) therefore satisfy \(|d(n) - d(c)| = 1\), and</p>
+\[ d(n) = d(c) - 1 \quad\Longleftrightarrow\quad d(n) \equiv d(c) - 1 \pmod 3, \]
+<p>since the two cases \(d(c) \pm 1\) differ by 2, which is not a multiple of 3. Counting mod 2 would fail, because \(d(c) + 1 \equiv d(c) - 1 \pmod 2\). Three switches per cell are enough however large the maze is.</p>
+</div></details>
+
 
 <p><strong>Pointers.</strong> Once a cell is reached, it points to a neighbour one step closer to the goal, namely the one just behind it in the count. When several neighbours qualify, it picks the first in the fixed order down, left, right, up. This tie-break is how the transformer returns the dataset's reference path. Claude chose it from 96 candidate rules because it was the only one that reproduced 100% of the answers on the training mazes, whereas the next best matched 95.6%.</p>
 
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Each cell has four pointer switches \(p_\delta(c)\), one per direction, taken in the order \(\delta_1, \dots, \delta_4\) = down, left, right, up. They are rewritten in every loop. Eight reset neurons, two per direction, cancel the old value, since \(p - \mathrm{ReLU}(p) + \mathrm{ReLU}(-p) = 0\). At the same time, 24 pointer neurons compute</p>
+\[ p_{\delta_j}(c) \;=\; \sum_{k=0}^{2} \tau\Big(2\,m_k(c) + 2\,m_{k-1}(n_{\delta_j}) - 2\sum_{i<j} m_{k-1}(n_{\delta_i}) - 2.5\Big), \]
+<p>where \(n_\delta\) is the neighbour in direction \(\delta\). The argument reaches \(1.5\) only when \(n_{\delta_j}\) is one step closer to the goal and no earlier direction is. That is the tie-break.</p>
+</div></details>
+
+
 <p><strong>The path.</strong> As soon as the wave reaches the start, a path grows out of it one cell per loop, following the pointers all the way to the goal. These cells form the answer.</p>
+
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>The start's path flag is 1 from the embedding. A cell joins the path when a neighbour on the path points at it,</p>
+\[ \mathrm{on}(c) \;\mathrel{+}=\; \sum_{\delta} \tau\big(2\,\mathrm{on}(n_\delta) + 2\,p_{-\delta}(n_\delta) - 2\,\mathrm{on}(c) - 2.5\big), \]
+<p>where \(p_{-\delta}(n_\delta)\) is the neighbour's pointer back towards \(c\). The readout scores the five characters at every cell,</p>
+\[ \ell_{\#} = \mathrm{wall}, \quad \ell_{\text{space}} = 1 - \mathrm{wall} - \mathrm{start} - \mathrm{goal}, \quad \ell_{S} = 3\,\mathrm{start}, \quad \ell_{G} = 3\,\mathrm{goal}, \quad \ell_{o} = 2\,\mathrm{on}, \]
+<p>and writes the highest. A path cell becomes o, while the start and the goal keep their letters, because \(3 > 2\).</p>
+</div></details>
+
 
 <p><strong>Snapping back.</strong> At the end of every loop, each switch is pushed back to 0 or 1. Any small numerical error is wiped out before the next loop can build on it, which is why the transformer stays accurate through thousands of loops.</p>
 
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Every switch is written through \(\tau(z) = \mathrm{ReLU}(z) - \mathrm{ReLU}(z - 1)\), which is flat at 0 for \(z \le 0\) and flat at 1 for \(z \ge 1\). The arguments above land at \(1.5\) or below \(-0.5\), so an error below \(0.5\) in an argument leaves the output unchanged. The softmax leak of about \(e^{-100}\) per cell sits far inside that margin. Forty clean-up neurons, two per scratch number, then erase what the heads copied,</p>
+\[ s \;\leftarrow\; s - \mathrm{ReLU}(s) + \mathrm{ReLU}(-s) \;=\; 0. \]
+</div></details>
+
+
 <p>On the first test maze, the wave reaches the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave reaches the start, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
-<!--EXPLORER-->
+<details class="math"><summary>The math</summary><div class="mbody">
+<p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D < n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
+</div></details>
+
+
+<figure class="xp-fig" id="explorer">
+<div class="xp" id="xp" tabindex="0" aria-label="Interactive explorer of the maze transformer. Use the play and step buttons, or the arrow keys, to run it loop by loop. Click a cell to see its 35 numbers.">
+  <div class="xp-pipe" aria-hidden="true">
+    <span id="xp-p0">Embed</span><em>→</em><span id="xp-p1">1 · Read</span><em>→</em><span id="xp-p2">2 · Update</span><em>→</em><span id="xp-p3">3 · Clean up</span>
+    <em class="xp-loopback">↻ loop <b id="xp-t">0</b> of <b id="xp-R">242</b></em>
+  </div>
+  <div class="xp-body">
+    <div class="xp-left">
+      <canvas id="xp-grid" role="img" aria-label="The maze. Cells show their count, pointer and path state. Click a cell to look inside it."></canvas>
+      <div class="xp-ctrl">
+        <button id="xp-reset" title="Back to the embedding">⏮</button>
+        <button id="xp-prev" title="One step back (←)">◀</button>
+        <button id="xp-play" class="xp-go">Play</button>
+        <button id="xp-next" title="One step forward (→)">▶</button>
+        <label class="xp-speed">Speed <input type="range" id="xp-speed" min="0" max="4" value="2"></label>
+        <label class="xp-chk"><input type="checkbox" id="xp-detailed" checked> Show the three steps of each loop</label>
+      </div>
+      <div class="xp-time"><input type="range" id="xp-scrub" min="0" max="242" value="0" aria-label="Loop"><div id="xp-marks" class="xp-marks"></div></div>
+      <div class="xp-editbar">
+        <button id="xp-edit">Edit the maze</button>
+        <span class="xp-brushes"><button data-brush="wall" class="on">Walls</button><button data-brush="start">Move S</button><button data-brush="goal">Move G</button></span>
+        <button id="xp-new">Random maze</button>
+        <button id="xp-example">Example</button>
+      </div>
+      <div class="xp-key"><span><i style="background:#dbe9fb"></i>count 0</span><span><i style="background:#d3f1e3"></i>count 1</span><span><i style="background:#fbecc4"></i>count 2</span><span><i style="background:#eb6834"></i>path</span><span>→ pointer</span></div>
+    </div>
+    <div class="xp-right">
+      <div class="xp-now"><div id="xp-step" class="xp-step"></div><p id="xp-say"></p><p id="xp-status" class="xp-status"></p></div>
+      <div class="xp-box">
+        <div class="xp-bt">Inside the selected cell <span id="xp-cellname"></span></div>
+        <div id="xp-strip"></div>
+      </div>
+      <div class="xp-box">
+        <div class="xp-bt">The 86 neurons <span id="xp-nhint"></span></div>
+        <div id="xp-neurons" class="xp-neurons"></div>
+      </div>
+      <div class="xp-box xp-outbox">
+        <div class="xp-bt">What it would write if it stopped now <span id="xp-outnote"></span></div>
+        <pre id="xp-out" class="xp-out"></pre>
+      </div>
+    </div>
+  </div>
+  <noscript><p>This figure runs the transformer in your browser and needs JavaScript.</p></noscript>
+</div>
+<figcaption><strong>Figure 5. Inside the loop.</strong> The maze transformer from this post, running its real weights in your browser on a small maze. Every loop has three steps. The four heads copy five numbers from each neighbour, the update neurons change each cell's count, pointer and path flag, and the clean-up neurons wipe the copied numbers. Click any cell to see its 35 numbers and which neurons fire, or edit the maze and run it again.</figcaption>
+</figure>
 
 <h3 id="overthink">Extra loops don't undo the answer</h3>
 
@@ -370,23 +536,23 @@
   <img class="data" src="figures/maze_loops_data.svg" width="605" height="341" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_loops_base.svg" width="605" height="341" loading="lazy" alt="Mazes solved against loops on a log scale for four looped models. DeepThinking, trained on 9×9 mazes and tested on 13×13 mazes, rises to 86.6% at loop 41 and falls below 1% by loop 82. HRM rises to about 82% and TRM to about 92% on Maze-Hard, where both stay up to 384 and 960 loops. The transformer Claude wrote is at 0% until a little past 200 loops, rises steeply to 100% as each maze's path completes, and stays at 100% at 1,800, 3,600 and 7,200 loops.">
   </div>
-  <figcaption><strong>Figure 5. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
+  <figcaption><strong>Figure 6. Extra loops keep the answer.</strong> A Maze-Hard maze is solved once the loops reach twice its path length. From then on it stays solved, while DeepThinking loses the mazes it had solved and HRM and TRM level off below 100%. A loop is one pass through a model's repeated block, so each reasoning step of TRM holds 15 loops and each step of HRM holds 6. HRM and TRM are public checkpoints that we ran on the Maze-Hard test set for up to 64 steps, four times what they were trained with. The DeepThinking curve is read from the vector data of Figure 6 in Bansal et al. (2022), which tests on 13×13 mazes. Any shortest path counts.</figcaption>
 </figure>
 <figure class="reveal" style="--hide: 88%; flex-grow: 1.785">
   <div class="layers">
   <img class="data" src="figures/hanoi_data.svg" width="605" height="339" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/hanoi_base.svg" width="605" height="339" loading="lazy" alt="Accuracy against disks, from 1 to 20. The transformer Claude wrote scores 100% at every size. Claude 3.7 Sonnet with thinking falls from 93.8% at 5 disks to 10.4% at 8 and 0% at 11. DeepSeek-R1 falls from 84.9% at 5 disks to 0% at 9. The paper tests up to 12 disks.">
   </div>
-  <figcaption><strong>Figure 6. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks. The reasoning models collapse past 5 to 7 disks. Their curves are read from the vector data of Figure 8 in Shojaee et al. (2025), with the paper's default prompts.</figcaption>
+  <figcaption><strong>Figure 7. Tower of Hanoi, accuracy against disks.</strong> The transformer Claude wrote solves every size from 1 to 20 disks without a mistake, although Claude checked it only up to 6 disks. The reasoning models collapse past 5 to 7 disks. Their curves are read from the vector data of Figure 8 in Shojaee et al. (2025), with the paper's default prompts.</figcaption>
 </figure>
 </div>
 
-<p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 5 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%. Our trained looped graph search and parity models also hold steady with extra loops.</p>
+<p>We see the same contrast on reasoning chains of 1 to 8 steps. When the trained looped model from <a href="#beyond">section 4</a> runs four times its usual number of loops, its accuracy falls from 69.1% to 49.2%. The chains transformer Claude wrote stays at 100% up to 128 times its usual loops, which is about 1,500 loops on average. Not every trained looped model overthinks, though. Figure 6 shows that HRM and TRM hold their Maze-Hard accuracy at four times the steps they were trained with, although they level off near 82% and 92%. Our trained looped graph search and parity models also hold steady with extra loops.</p>
 
 
 <h2 id="maze"><span class="qn">2.</span> How it compares on Maze-Hard</h2>
 
-<p>Maze-Hard comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model). It has become a standard test for small models trained to reason by repeating a step many times, such as HRM, <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT). Most of its mazes have several equally short paths, of which the dataset marks one as the answer. Figure 7 uses the LDT paper's scoring, where any shortest path counts.</p>
+<p>Maze-Hard comes from the <a href="https://arxiv.org/abs/2506.21734">HRM</a> paper (Hierarchical Reasoning Model). It has become a standard test for small models trained to reason by repeating a step many times, such as HRM, <a href="https://arxiv.org/abs/2510.04871">TRM</a> (Tiny Recursive Model) and the <a href="https://arxiv.org/abs/2605.08605">Lattice Deduction Transformer</a> (LDT). Most of its mazes have several equally short paths, of which the dataset marks one as the answer. Figure 8 uses the LDT paper's scoring, where any shortest path counts.</p>
 
 <div class="fig-pair">
 <figure class="reveal pair-wide" style="--hide: 62%">
@@ -394,14 +560,14 @@
   <img class="data" src="figures/maze_results_data.svg" width="643" height="360" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_results_base.svg" width="643" height="360" loading="lazy" alt="Horizontal bars of Maze-Hard test mazes solved, with the scale cut between 30% and 80%. The transformer Claude wrote, with 19,936 weights, solves 100%. Models trained on Maze-Hard solve 99.8% (LDT, 1.8M weights), 91.9% (TRM, 7M) and 84.6% (HRM, 27M). Frontier LLMs with no maze training solve 26% (Claude Opus 5.5), 26% (GPT-6 Astra) and 12% (GPT-6.1 Sol).">
   </div>
-  <figcaption><strong>Figure 7. Maze-Hard results.</strong> A maze counts as solved when the answer is any shortest path from start to goal. The scale jumps from 30% to 80%. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</figcaption>
+  <figcaption><strong>Figure 8. Maze-Hard results.</strong> A maze counts as solved when the answer is any shortest path from start to goal. The scale jumps from 30% to 80%. Trained scores are from Davis et al. (NeurIPS 2026), Table 3, each the best version saved during training, picked by its test score. LLM scores are from their Table 25, run in October 2026 with no worked examples and reasoning effort set to high.</figcaption>
 </figure>
 <figure class="reveal" style="--hide: 85%">
   <div class="layers">
   <img class="data" src="figures/maze_size_data.svg" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_size_base.svg" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the written transformer has 90× fewer weights than LDT.">
   </div>
-  <figcaption><strong>Figure 8. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
+  <figcaption><strong>Figure 9. Accuracy against size.</strong> The y-axis starts at 80%. LDT appears twice, trained on 512 shortest paths per maze and trained on one. LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
 </div>
 
@@ -552,7 +718,7 @@
   <img class="data" src="figures/written_vs_trained_tall_data.svg" width="451" height="1046" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/written_vs_trained_tall_base.svg" width="451" height="1046" loading="lazy" alt="Three slope charts comparing the checking range with longer test inputs. In graph search, the hand-written transformer scores 100% on both, and three trained models score 0% on paths 8–16. In parity, the hand-written transformer scores 100% on both, and five trained models fall from 100% to 45.5–53.8%, near chance. In reasoning chains, the hand-written transformer scores 100% on both, and five trained models score 2.2–9.2% on 12–32 steps.">
   </div>
-  <figcaption><strong>Figure 9. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
+  <figcaption><strong>Figure 10. Beyond the checking range.</strong> The shaded area in each panel marks the input sizes each transformer was checked on.</figcaption>
 </figure>
 
 <p>In all three tasks, the trained models do well on training sizes but fail beyond them, whereas the written transformers only need more loops. Trained transformers are well known to struggle with this kind of extrapolation, although special training recipes push parity much further (<a href="#related">related work</a>). The written transformers show that size-independent solutions exist in these architectures. Each one's size limit is set by its tables, its loop budget and its arithmetic precision, not by the loop itself, and inside those limits its answers are exact at every size we tested.</p>
@@ -591,7 +757,7 @@
   <img class="data" src="figures/glance_data.svg" width="518" height="606" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/glance_base.svg" width="518" height="606" loading="lazy" alt="Bar chart, one row per task, with a line at 100% for the written transformer, which scores 100% on every task. The bars show the strongest other result for each task. On Maze-Hard, LDT scores 99.8%, and Claude Opus 5.5 and GPT-6 Astra 26%. On Sudoku-Extreme, Sotaku v2 98.96%, and GPT-6 Astra 68%. On GraphWalks, Gemini 4 Carbon 96.2% F1. On graph search, a trained model 0%. On parity, a trained model 53.8%, where chance is 50%. On reasoning chains, a trained model 3.5%. On Boolean Expressions, SmolLM2-360M 69.6%, and on Dyck Languages, Pythia-410M 33.2%. On Web of Lies, Qwen3-235B-A22B 81.2%, and on Shuffled Objects, 56.9% with program synthesis.">
   </div>
-  <figcaption><strong>Figure 10. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
+  <figcaption><strong>Figure 11. Results on ten tasks, against the best trained models and LLMs.</strong> The written transformers, drawn as the orange line, score 100% on all ten. Each bar is the strongest trained model or LLM we found for that task. Tower of Hanoi and Checker Jumping are scored in moves rather than accuracy, so they are covered separately below.</figcaption>
 </figure>
 
 <h3 id="sudoku">Sudoku-Extreme, solved by guessing and backtracking</h3>
@@ -639,7 +805,7 @@
       <source src="figures/hanoi_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 11. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
+  <figcaption><strong>Figure 12. Tower of Hanoi, 20 disks.</strong> The transformer Claude wrote, solving 20 disks with zero mistakes. <a class="demo-link" href="demo/index.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it yourself.</a></figcaption>
 </figure>
 
 <p>Tower of Hanoi needs no search, since each move is a simple decision, so it tests long, error-free execution rather than search. Part of the debate around the Apple paper was whether the collapse came from output limits, to which the authors replied that the first errors appear early, around move 40 at 8 disks. LLMs can finish the puzzle when given help. With code execution, reasoning models solved every size they were tested on, up to 13 disks (<a href="https://arxiv.org/abs/2507.17699">Song et al., 2025</a>). <a href="https://arxiv.org/abs/2511.09030">MAKER</a> (Meyerson et al., 2025) solved 20 disks by asking an LLM for every move at least three times and voting on the answer, which took over 3 million LLM calls. The constructed transformer generates the moves without repeated LLM calls or voting. A single small block makes every one of those moves itself, without a single mistake and without tools, votes or second attempts.</p>
@@ -884,7 +1050,7 @@
   <img class="data" src="figures/maze_compute_data.svg" width="518" height="277" loading="lazy" alt="" aria-hidden="true">
   <img src="figures/maze_compute_base.svg" width="518" height="277" loading="lazy" alt="Accuracy on the 1,000 test mazes against the arithmetic it takes to solve one maze, on a log scale. The hand-written transformer rises from 0 to 100% as each maze's path completes and stays at 100% through the 1,800 loops it runs, far to the left of every trained model. HRM at 16 steps scores 84.6% and TRM 91.9%, both with far more compute. LDT scores 99.0 and 99.8% and uses more still, from one search round up to 1,000.">
   </div>
-  <figcaption><strong>Figure 12. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
+  <figcaption><strong>Figure 13. Accuracy against compute.</strong> The blue curve is the written transformer after each number of loops, with a dot at the 1,800 loops we run.</figcaption>
 </figure>
 
 <p class="note">In this figure, every model's arithmetic is counted the way Davis et al. (NeurIPS 2026) count it, with any shortest path counting as solved. HRM and TRM use their usual 16 steps. LDT's rounds per maze aren't published, so its dots show the least a solve can cost, with the line running to its limit of 1,000 rounds. Trained scores are from Davis et al., Table 3, each the best version saved during training, picked by its test score.</p>
@@ -909,7 +1075,7 @@
 
 <figure>
   <img src="figures/ouro_clock.svg" width="518" height="328" loading="lazy" alt="Schematic. Ouro's first tokens act as a clock that every other token reads. Unedited, the clock keeps moving past loop 4 into states outside its training range. With the fix, it stays within its trained range, and the answer is taken from a mix of loops weighted by Ouro's exit signal.">
-  <figcaption><strong>Figure 13. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
+  <figcaption><strong>Figure 14. Ouro's clock.</strong> A schematic, not data, of what the clock looks like across loops, with and without the fix.</figcaption>
 </figure>
 
 <div class="table-wrap">
@@ -3082,5 +3248,9 @@ answer that supports the score, copied exactly, or empty&gt;"}.
     document.querySelectorAll(".reveal").forEach(function (f) { io.observe(f); });
   })();
 </script>
+<script src="demo/maze_model.js" defer></script>
+<script src="demo/explorer.js" defer></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="document.querySelectorAll('details.math').forEach(function (e) { renderMathInElement(e, { delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }] }); });"></script>
 </body>
 </html>
