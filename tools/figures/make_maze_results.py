@@ -11,10 +11,12 @@ sys.path.insert(0, str(HERE))
 import make_figures as mf  # noqa: E402
 
 HRM_TEXT = "#11805a"
+ATT_TEXT = "#4a3bb0"      # Attractor Models (Fein-Ashley and Rashidinejad, 2026)
 ROWS = [  # kind, label, score, colour, text colour, logo
     ("bar", "Written by Claude, 19,936 weights", 100.0, mf.WRITTEN, mf.WRITTEN_TEXT, "claude"),
     ("head", "Trained on Maze-Hard"),
     ("bar", "LDT, 1.8M weights", 99.8, mf.YELLOW, mf.YELLOW_TEXT, None),
+    ("bar", "Attractor Models, 27M weights", 93.1, mf.VIOLET, ATT_TEXT, None),
     ("bar", "TRM, 7M weights", 91.9, mf.TRAINED, mf.TRAINED_TEXT, "samsung"),
     ("bar", "HRM, 27M weights", 84.6, mf.AQUA, HRM_TEXT, "sapient"),
     ("head", "Frontier LLMs, no maze training"),
@@ -81,11 +83,11 @@ def size(plt) -> None:
     fig = plt.figure(figsize=(5.6, 3.75))
     ax = fig.add_axes([0.14, 0.17, 0.82, 0.78])
     ax.set_xscale("log")
-    ax.set_xlim(8e3, 1.2e8)
+    ax.set_xlim(5e2, 1.2e8)
     ax.set_ylim(79, 103.5)
     ax.set_yticks([80, 85, 90, 95, 100])
-    ax.set_xticks([1e4, 1e5, 1e6, 1e7, 1e8])
-    ax.set_xticklabels(["10K", "100K", "1M", "10M", "100M"])
+    ax.set_xticks([1e3, 1e4, 1e5, 1e6, 1e7, 1e8])
+    ax.set_xticklabels(["1K", "10K", "100K", "1M", "10M", "100M"])
     ax.minorticks_off()
     ax.grid(axis="y", color=mf.GRID, lw=0.8)
     ax.set_axisbelow(True)
@@ -101,6 +103,7 @@ def size(plt) -> None:
         (1.8e6, 99.8, mf.YELLOW, mf.YELLOW_TEXT, "LDT, 99.8%", None, (0, 12), "center"),
         (7.0e6, 91.9, mf.TRAINED, mf.TRAINED_TEXT, "TRM, 91.9%", "samsung", (-10, 0), "right"),
         (2.7e7, 84.6, mf.AQUA, HRM_TEXT, "HRM, 84.6%", "sapient", (-10, 0), "right"),
+        (2.7e7, 93.1, mf.VIOLET, ATT_TEXT, "Attractor Models, 93.1%", None, (-10, 0), "right"),
     ]
     for x, y, col, tcol, lab, logo, off, ha in pts:
         big = lab.startswith("Written")
@@ -111,6 +114,11 @@ def size(plt) -> None:
                         color=tcol, fontweight="semibold" if big else "normal", gid="data")
         if logo:
             mf.add_logos(fig, ax, t, [logo], shift=(ha == "center"))
+    # Five more transformers Claude wrote under a cap on the number of weights (sk_exps/10_maze_size_limit).
+    capped = [928, 4359, 4380, 7682, 8876]
+    ax.scatter(capped, [100.0] * len(capped), s=58, color=mf.WRITTEN, edgecolor="white", linewidth=1.3, zorder=5, gid="data")
+    ax.annotate("written under a weight cap", (700, 100.0), xytext=(0, -9), textcoords="offset points",
+                ha="left", va="top", fontsize=fs * 0.84, color=mf.WRITTEN_TEXT, gid="data")
     # LDT trained on one path per maze.
     ax.scatter([1.8e6], [99.0], s=54, facecolor="white", edgecolor=mf.YELLOW, linewidth=1.6, zorder=5, gid="data")
     ax.annotate("one path, 99.0%", (1.8e6, 99.0), xytext=(9, -2), textcoords="offset points", ha="left",
