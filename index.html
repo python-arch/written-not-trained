@@ -421,7 +421,7 @@
       <source src="figures/maze_hero.webm" type="video/webm">
     </video>
   </div>
-  <figcaption><strong>Figure 2. The transformer at work.</strong> The transformer Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single block running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it visits the start. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
+  <figcaption><strong>Figure 2. The transformer at work.</strong> The transformer Claude wrote, solving the first test maze of Maze-Hard one loop at a time. The diagram shows its single block running again and again while a counter tracks the loops. In every loop, each cell reads its four neighbours. A wave of distances spreads out from the goal until it visits the start cell. The path then grows from the start back to the goal, one cell per loop. <a class="demo-link" href="demo/maze.html"><svg class="demo-ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="#154677"/><path d="M8 6.2v7.6l6-3.8z" fill="#fff"/></svg>Run it in your browser.</a></figcaption>
 </figure>
 <!-- TODO before publishing: Figure 3's TRM points after 4.61 h (5.5, 6.3, 7.1, 8.0 h) are placeholders up to the released 85.3%. Replace them with real checkpoints from the continued TRM run (TRM_PLACEHOLDER in make_figures.py). -->
 <figure class="reveal hero-chart" id="written-vs-trained-maze" style="--hide: 88%">
@@ -483,7 +483,7 @@
 </div></details>
 
 
-<p><strong>The path.</strong> As soon as the wave visits the start, a path grows out of it one cell per loop, following the pointers all the way to the goal. These cells form the answer.</p>
+<p><strong>The path.</strong> As soon as the wave visits the start cell, a path grows out of it one cell per loop, following the pointers all the way to the goal. These cells form the answer.</p>
 
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>The start's path flag is 1 from the embedding. A cell joins the path when a neighbour on the path points at it,</p>
@@ -502,10 +502,10 @@
 </div></details>
 
 
-<p>On the first test maze, the wave visits the start at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave visits the start, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
+<p>On the first test maze, the wave visits the start cell at loop 111. The path then takes another 111 loops to grow, so it is complete at loop 222. A maze therefore needs twice as many loops as its shortest path is long. A shortest path passes through each cell at most once, so twice the number of cells covers any maze. The transformer runs that many loops, 1,800 on a 30×30 maze, 7,200 on a 60×60 maze and 20,000 on a 100×100 maze. On the test mazes, no output changes after loop 306. When we stopped the transformer early on 50 training mazes, it drew no wrong paths. If it stops before the wave visits the start cell, it returns the maze unchanged. If it stops after that, it returns a path that has grown only part of the way from the start. The scorer counts both as unsolved. The thought bubble in Figure 2 draws the numbers held by the cells near the goal after each loop.</p>
 
 <details class="math"><summary>The math</summary><div class="mbody">
-<p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D &lt; n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
+<p>Let \(D = d(S)\) be the length of the shortest path. The wave gives the start cell a count at loop \(D\). The path then grows one cell per loop along the pointers and reaches the goal at loop \(2D\). A shortest path visits each cell at most once, so \(D &lt; n\) for a maze of \(n\) cells, and the loop count \(R = 2n\) covers every maze of that size.</p>
 </div></details>
 
 
