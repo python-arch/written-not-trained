@@ -276,8 +276,10 @@
   .xp-time input { width: 100%; margin: 0; }
   .xp-marks span { position: absolute; top: 22px; margin-left: -1px; padding-left: 6px; border-left: 2px solid var(--purple); font-size: .68rem; font-weight: 600; line-height: 1.2; color: var(--ink); white-space: nowrap; cursor: pointer; }
   .xp-marks span:nth-child(2) { top: 37px; border-left-color: var(--pink); }
-  .xp-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; font-size: .72rem; font-weight: 500; color: #555; }
-  .xp-key i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .xp-key { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-left: auto; font-size: .72rem; font-weight: 600; color: #555; }
+  .xp-key > span { display: inline-flex; align-items: center; gap: 3px; }
+  .xp-key i { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 4px; font-style: normal; font-size: .62rem; font-weight: 800; color: #2c2c2c; }
+  .xp-key > span:first-child i:last-of-type { margin-right: 3px; }
   .xp-right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .xp-now { background: #fff; border: 2px solid var(--ink); padding: 12px 14px; border-radius: 12px; min-height: 120px; }
   .xp-step { font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--purple); }
@@ -525,8 +527,8 @@
         <span class="xp-brushes"><button data-brush="wall" class="on">Walls</button><button data-brush="start">Move S</button><button data-brush="goal">Move G</button></span>
         <button id="xp-new">Random maze</button>
         <button id="xp-example">Example</button>
+        <span class="xp-key"><span><i style="background:#EEDAFF">0</i><i style="background:#F4D7C1">1</i><i style="background:#D7EBDD">2</i>count</span><span><i style="background:#D81B60"></i>path</span><span>→ pointer</span></span>
       </div>
-      <div class="xp-key"><span><i style="background:#EEDAFF"></i>count 0</span><span><i style="background:#F4D7C1"></i>count 1</span><span><i style="background:#D7EBDD"></i>count 2</span><span><i style="background:#D81B60"></i>path</span><span>→ pointer</span></div>
     </div>
     <div class="xp-right">
       <div class="xp-now"><div id="xp-step" class="xp-step"></div><p id="xp-say"></p><p id="xp-status" class="xp-status"></p></div>
