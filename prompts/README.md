@@ -23,11 +23,11 @@ These are the first messages Claude Opus 5.5 received in each experiment in the 
 
 Sudoku-Extreme, GraphWalks and every later build (`04b`, `11`, `13`) were written by headless Claude Code sessions whose permissions blocked the web and anything outside the build folder. `13b_maze_size_limit_rule_answer.txt` is the one fixed answer one of the weight-cap builders received to a question about the rules. The other transformers were written by Claude Opus 5.5 subagents under the rules in their briefs, which independent audits checked afterwards.
 
-## Claude solving mazes directly (Table 1)
+## Claude solving mazes directly (Figure 10)
 
-| File | Row of Table 1 |
+| File | Bar of Figure 10 |
 |---|---|
-| `08_maze_claude_alone_run1_paper.txt` | The paper's prompt, which the other four change. Table 1's first row is the paper's own published result. |
+| `08_maze_claude_alone_run1_paper.txt` | The paper's prompt, which the other four change. Figure 10's first bar is the paper's own published result. |
 | `08_maze_claude_alone_run2_bfs.txt` | Told how to search |
 | `08_maze_claude_alone_run3_one_cell_per_token.txt` | Told how, one cell per token |
 | `08_maze_claude_alone_run5_path_only.txt` | Told how, answer with just the path |

@@ -64,7 +64,7 @@ Each command prints the answer and checks it. [`weights/README.md`](weights/READ
 
 ## Prompts
 
-The [`prompts/`](prompts/) folder holds the first message Claude received in each experiment, word for word. That includes the task descriptions for writing each transformer, the prompts behind Table 1 of the blog post and the prompt for writing the whole maze transformer in one answer. [`prompts/README.md`](prompts/README.md) says which file belongs to which result.
+The [`prompts/`](prompts/) folder holds the first message Claude received in each experiment, word for word. That includes the task descriptions for writing each transformer, the prompts behind Figure 10 of the blog post and the prompt for writing the whole maze transformer in one answer. [`prompts/README.md`](prompts/README.md) says which file belongs to which result.
 
 ## Credits
 
