@@ -1,7 +1,7 @@
 // Interactive explorer for the maze transformer (Figure 5 of the blog post).
 // It runs the published weights (window.MAZE_MODEL, from demo/maze_model.js) in 64-bit numbers, with the same
 // arithmetic as demo/maze.html, and splits every loop into the three things the block does:
-//   1. read     the four attention heads copy 5 numbers from each neighbour into the cell's 20 scratch numbers
+//   1. read     the four attention heads copy 5 numbers from each neighbor into the cell's 20 scratch numbers
 //   2. update   46 neurons update the cell's 8 search numbers (count, pointer, path flag)
 //   3. clean up 40 neurons wipe the 20 scratch numbers
 // In the real block, steps 2 and 3 happen in the same MLP at the same time; they are shown one after the other.
@@ -30,10 +30,10 @@
   const HEAD_COL = ["#9002FF", "#9002FF", "#9002FF", "#9002FF"];      // one strong accent, as in the visual guides
   const INKC = "#2c2c2c", PURPLE = "#9002FF", LAV = "#EEDAFF", PEACH = "#F4D7C1", PINK = "#D81B60";
   const GROUPS = [
-    { name: "wave", from: 0, to: 6, col: "#9002FF", rule: "Give the cell count k+1 when it is not a wall, has no count yet, and a neighbour has count k." },
-    { name: "pointer", from: 6, to: 30, col: "#0847A6", rule: "Point at the first neighbour, in the order down, left, right, up, whose count is one less." },
+    { name: "wave", from: 0, to: 6, col: "#9002FF", rule: "Give the cell count k+1 when it is not a wall, has no count yet, and a neighbor has count k." },
+    { name: "pointer", from: 6, to: 30, col: "#0847A6", rule: "Point at the first neighbor, in the order down, left, right, up, whose count is one less." },
     { name: "pointer reset", from: 30, to: 38, col: "#7FA8E0", rule: "Erase last loop's pointer, so the pointer neurons can write it afresh." },
-    { name: "path", from: 38, to: 46, col: "#D81B60", rule: "Join the path when a neighbour already on the path points at this cell." },
+    { name: "path", from: 38, to: 46, col: "#D81B60", rule: "Join the path when a neighbor already on the path points at this cell." },
     { name: "clean-up", from: 46, to: 86, col: "#7F7F7F", rule: "Subtract each of the 20 copied numbers, which sets them back to 0." }];
 
   // ------------------------------------------------------------------ mazes
@@ -151,7 +151,7 @@
 
   // ------------------------------------------------------------------ what is on screen
   // Cursor: loop T and phase PH. PH 0 = state after loop T (after the embedding when T = 0);
-  // PH 1 = loop T+1 has read its neighbours; PH 2 = loop T+1 has updated its search numbers (scratch still full).
+  // PH 1 = loop T+1 has read its neighbors; PH 2 = loop T+1 has updated its search numbers (scratch still full).
   let T = 0, PH = 0, sel = 0, detailed = true, playing = false, editing = false, brush = "wall", hover = -1, tween = 1, tweenStart = 0;
   function view() {                                 // {H, grid state source, phase name}
     if (PH === 0) { ensure(T); return { H: frames[T], prev: T > 0 ? frames[T - 1] : null, act: T > 0 ? acts[T] : null }; }
@@ -246,7 +246,7 @@
   const SCR = ["≡0", "≡1", "≡2", "path", "⤺"];
   function buildPanel() {
     const strip = el("xp-strip"); strip.innerHTML = "";
-    const groups = [["What and where", 0, 7, "fixed"], ["Search state", 7, 15, "search"], ["Scratch, copied from the neighbours", 15, 35, "scratch"]];
+    const groups = [["What and where", 0, 7, "fixed"], ["Search state", 7, 15, "search"], ["Scratch, copied from the neighbors", 15, 35, "scratch"]];
     for (const [title, a, b, kind] of groups) {
       const g = document.createElement("div"); g.className = "xp-g xp-" + kind;
       g.innerHTML = `<div class="xp-gt">${title} <span>${b - a} numbers</span></div><div class="xp-cells"></div>`;
@@ -423,23 +423,23 @@
           const k = countOf(v.prev, nr * side + nc), on = onPath(v.prev, nr * side + nc), back = pointerOf(v.prev, nr * side + nc) === [3, 2, 1, 0][h];
           return `${ARROW[h]} ${k >= 0 ? "count " + k : "no count"}${on ? ", on the path" : ""}${back ? ", points here" : ""}`;
         });
-        say = `Each head copies five numbers from one neighbour into the scratch space. This cell reads: ${parts.join(" · ")}.`;
+        say = `Each head copies five numbers from one neighbor into the scratch space. This cell reads: ${parts.join(" · ")}.`;
       } else if (PH === 2) {
         const before = v.prev, kb = countOf(before, i), ka = countOf(H, i), pb = pointerOf(before, i), pa = pointerOf(H, i);
         const bits = [];
         if (kb < 0 && ka >= 0) {
           const from = DIRS.map((d, h) => h).filter((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; return countOf(before, nr * side + nc) === (ka + 2) % 3; });
-          bits.push(`The wave arrives. A neighbour ${from.map((h) => DIRS[h][3]).join(" and ")} has count ${(ka + 2) % 3}, so the wave neurons give this cell count ${ka}.`);
+          bits.push(`The wave arrives. A neighbor ${from.map((h) => DIRS[h][3]).join(" and ")} has count ${(ka + 2) % 3}, so the wave neurons give this cell count ${ka}.`);
         }
         if (pa >= 0 && pa !== pb) {
           const closer = DIRS.map((d, h) => h).filter((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; return rows[nr][nc] !== "#" && countOf(before, nr * side + nc) === (kb + 2) % 3; });
           bits.push(closer.length > 1
-            ? `Neighbours ${closer.map((h) => DIRS[h][3]).join(" and ")} are both one step closer. The pointer neurons pick ${DIRS[pa][2]}, the first in the order down, left, right, up.`
-            : `The neighbour ${DIRS[pa][3]} is one step closer, so the pointer neurons point ${DIRS[pa][2]}.`);
+            ? `Neighbors ${closer.map((h) => DIRS[h][3]).join(" and ")} are both one step closer. The pointer neurons pick ${DIRS[pa][2]}, the first in the order down, left, right, up.`
+            : `The neighbor ${DIRS[pa][3]} is one step closer, so the pointer neurons point ${DIRS[pa][2]}.`);
         }
         if (!onPath(before, i) && onPath(H, i)) {
           const from = DIRS.map((d, h) => h).find((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; const j = nr * side + nc; return onPath(before, j) && pointerOf(before, j) === [3, 2, 1, 0][h]; });
-          bits.push(`The neighbour ${from !== undefined ? DIRS[from][3] : ""} is on the path and points here, so this cell joins the path.`);
+          bits.push(`The neighbor ${from !== undefined ? DIRS[from][3] : ""} is on the path and points here, so this cell joins the path.`);
         }
         if (!bits.length) bits.push(ka >= 0 ? "Nothing new for this cell. Its count and pointer stay as they are." : "The wave has not visited this cell yet, so nothing changes.");
         say = bits.join(" ");

@@ -92,7 +92,7 @@
         <button id="pause" type="button" disabled>Pause</button>
       </div>
     </div>
-    <div class="board"><canvas id="grid" width="1200" height="1200" aria-label="The maze, coloured by the transformer's state after each loop."></canvas></div>
+    <div class="board"><canvas id="grid" width="1200" height="1200" aria-label="The maze, colored by the transformer's state after each loop."></canvas></div>
     <div class="legend"><span style="--sw:#dbe6f1">knows its distance from the goal</span><span style="--sw:#154677">the path the transformer writes</span><span style="--sw:#34383f">wall</span></div>
     <div class="stats">
       <div class="stat"><div class="k">Loop</div><div class="v" id="s-loop">0</div></div>
@@ -106,7 +106,7 @@
   <h2>What happens when you press Run</h2>
   <ol>
     <li>Each of the 900 cells becomes one token: its row, its column, and what is there (wall, open, start or goal).</li>
-    <li>In every loop, the same transformer block runs over all the cells. Each cell reads its four neighbours. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbour one step closer to the goal.</li>
+    <li>In every loop, the same transformer block runs over all the cells. Each cell reads its four neighbors. First, distance from the goal spreads out, one step per loop: the cells one step farther away learn how far they are from the goal. Once this reaches the start, the path grows from the start, one cell per loop, always to the neighbor one step closer to the goal.</li>
     <li>After every loop, the transformer reads off a character for every cell. The cells it marks as path are drawn in blue.</li>
     <li>When it stops, the page compares the transformer's grid with the dataset's answer, character by character.</li>
   </ol>
