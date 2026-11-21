@@ -602,10 +602,10 @@
 
 <div class="text-fig">
 <div class="text-col">
-<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt and changed one thing at a time, on the same test mazes, with one try per maze.</p>
+<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt and changed one thing at a time.</p>
 <ul class="defs">
   <li><b>Told how to search.</b> A paragraph added to the paper's prompt tells Claude to spread out from the goal one step at a time, then walk back from the start cell.</li>
-  <li><b>+ one cell per token.</b> The same prompt, with a space between cells so that each cell is a separate token.</li>
+  <li><b>+ one cell per token.</b> Claude reads text in tokens, chunks of a few characters, so in a plain grid one token can cover several cells, such as a run of walls. Here, the cells are separated by spaces, with a dot for each free cell, so that Claude reads each cell as a separate token.</li>
   <li><b>+ answer with the path only.</b> The same prompt, but Claude lists the cells of its path instead of redrawing the whole maze.</li>
   <li><b>+ path only, no grid.</b> As the previous change, with the maze given as a list of its open cells instead of a grid.</li>
 </ul>
