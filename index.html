@@ -602,12 +602,12 @@
 
 <div class="text-fig">
 <div class="text-col">
-<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt and changed one thing at a time.</p>
+<p>Perhaps Claude scores low simply because it doesn't approach the maze systematically. To test this, we started from the LDT paper's prompt, in which Claude sees the maze as 30 lines of 30 characters and answers by writing out the same grid with the cells of its path marked. We then changed one thing at a time.</p>
 <ul class="defs">
   <li><b>Told how to search.</b> A paragraph added to the paper's prompt tells Claude to spread out from the goal one step at a time, then walk back from the start cell.</li>
   <li><b>+ one cell per token.</b> Claude reads text in tokens, chunks of a few characters, so in a plain grid one token can cover several cells, such as a run of walls. Here, the cells are separated by spaces, with a dot for each free cell, so that Claude reads each cell as a separate token.</li>
-  <li><b>+ answer with the path only.</b> The same prompt, but Claude lists the cells of its path instead of redrawing the whole maze.</li>
-  <li><b>+ path only, no grid.</b> As the previous change, with the maze given as a list of its open cells instead of a grid.</li>
+  <li><b>+ answer with the path only.</b> Instead of writing out the whole grid, Claude answers with the list of cells on its path, as (row, column) coordinates from the start cell to the goal.</li>
+  <li><b>+ path only, no grid.</b> Claude answers with the path as above. The maze also comes as a list of the (row, column) coordinates of its free cells instead of a grid.</li>
 </ul>
 <p>Describing the algorithm lifts Claude from 26% to 48%, but accuracy stays at or below 50%. Tokenization does not explain the gap either, since giving Claude one token per cell made it no better (44% against 48%). These results suggest that execution errors contribute to the low accuracy. Every step along the path has to be right, yet Claude's first wrong step comes a median 35% of the way along it, even when it is told how to search.</p>
 </div>
@@ -620,7 +620,7 @@
 </figure>
 </div>
 
-<p>The setup does not explain it either. Run through Claude Code instead of the API, with no tools and the same "told how to search" prompt, Claude found the shortest path in 19 of the 50 mazes, against 24 through the API, a difference within noise (p = 0.42).</p>
+<p>Even when we ran Claude through Claude Code instead of the API, with no tools and the same "told how to search" prompt, it found the shortest path in 38% of the mazes, against 48% through the API, a difference within noise (p = 0.42).</p>
 
 <p>Writing the transformer is a different task. Claude does not run the search at all. Instead, Claude designs a single step of the search, deciding what each of a cell's 35 numbers means, which neighbour each head reads and how each number changes in one loop. It then sets the weights to do just that, leaving the loop to do the running. We suspect this helps because each design choice can be checked on its own. The design rests on a handful of ideas, such as storing the distance modulo 3, each of which can be checked separately. When Claude solves the maze directly, by contrast, it needs a long chain of steps that must all be right.</p>
 
