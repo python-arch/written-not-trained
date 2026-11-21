@@ -27,13 +27,14 @@
   const IDX = { one: 0, row: 1, col: 2, sq: 3, wall: 4, start: 5, goal: 6, m: [7, 8, 9], p: [10, 11, 12, 13], path: 14, scratch: 15 };
   const DIRS = [[1, 0, "down", "below"], [0, -1, "left", "to the left"], [0, 1, "right", "to the right"], [-1, 0, "up", "above"]];
   const ARROW = ["↓", "←", "→", "↑"];
-  const HEAD_COL = ["#2a78d6", "#1baf7a", "#d99500", "#6250d6"];
+  const HEAD_COL = ["#9002FF", "#9002FF", "#9002FF", "#9002FF"];      // one strong accent, as in the visual guides
+  const INKC = "#2c2c2c", PURPLE = "#9002FF", LAV = "#EEDAFF", PEACH = "#F4D7C1", PINK = "#D81B60";
   const GROUPS = [
-    { name: "wave", from: 0, to: 6, col: "#2a78d6", rule: "Switch on count k+1 when the cell is open, has no count yet, and a neighbour has count k." },
-    { name: "pointer", from: 6, to: 30, col: "#6250d6", rule: "Point at the first neighbour, in the order down, left, right, up, whose count is one less." },
-    { name: "pointer reset", from: 30, to: 38, col: "#8d84d9", rule: "Erase last loop's pointer, so the pointer neurons can write it afresh." },
-    { name: "path", from: 38, to: 46, col: "#eb6834", rule: "Join the path when a neighbour already on the path points at this cell." },
-    { name: "clean-up", from: 46, to: 86, col: "#7d8696", rule: "Subtract each of the 20 copied numbers, which sets them back to 0." }];
+    { name: "wave", from: 0, to: 6, col: "#9002FF", rule: "Give the cell count k+1 when it is not a wall, has no count yet, and a neighbour has count k." },
+    { name: "pointer", from: 6, to: 30, col: "#0847A6", rule: "Point at the first neighbour, in the order down, left, right, up, whose count is one less." },
+    { name: "pointer reset", from: 30, to: 38, col: "#7FA8E0", rule: "Erase last loop's pointer, so the pointer neurons can write it afresh." },
+    { name: "path", from: 38, to: 46, col: "#D81B60", rule: "Join the path when a neighbour already on the path points at this cell." },
+    { name: "clean-up", from: 46, to: 86, col: "#7F7F7F", rule: "Subtract each of the 20 copied numbers, which sets them back to 0." }];
 
   // ------------------------------------------------------------------ mazes
   const EXAMPLE = ["###########", "#G#       #", "# # ### # #", "#   # #   #", "##### # ###", "#         #",
@@ -169,7 +170,8 @@
     cv.style.width = w + "px"; cv.style.height = w + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr);
     cx.setTransform(dpr, 0, 0, dpr, 0, 0); px = w; cell = w / side; draw();
   }
-  const TINT = ["#dbe9fb", "#d3f1e3", "#fbecc4"], INK = ["#1c5cab", "#11805a", "#8a6200"];
+  const TINT = ["#EEDAFF", "#F4D7C1", "#D7EBDD"], INK = ["#7B2CBF", "#A0522D", "#2E7D4F"];
+  function rrect(x, y, w, h, r) { cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
   function arrow(x0, y0, x1, y1, col, w, head) {
     cx.strokeStyle = col; cx.fillStyle = col; cx.lineWidth = w; cx.lineCap = "round";
     cx.beginPath(); cx.moveTo(x0, y0); cx.lineTo(x1, y1); cx.stroke();
@@ -184,28 +186,28 @@
     cx.clearRect(0, 0, px, px);
     for (let i = 0; i < n; i++) {
       const r = Math.floor(i / side), c = i % side, x = c * cell, y = r * cell, ch = rows[r][c];
-      if (ch === "#") { cx.fillStyle = "#2b2f36"; cx.fillRect(x, y, cell + 0.5, cell + 0.5); continue; }
+      if (ch === "#") { cx.fillStyle = "#363636"; cx.fillRect(x, y, cell + 0.5, cell + 0.5); continue; }
       cx.fillStyle = "#ffffff"; cx.fillRect(x, y, cell, cell);
       const k = countOf(H, i), fresh = v.prev && countOf(v.prev, i) < 0 && k >= 0;
       if (onPath(H, i) && ch !== "S" && ch !== "G") {
         const newly = v.prev && !onPath(v.prev, i);
-        cx.globalAlpha = newly ? e : 1; cx.fillStyle = "#eb6834"; cx.fillRect(x + 1, y + 1, cell - 2, cell - 2); cx.globalAlpha = 1;
+        cx.globalAlpha = newly ? e : 1; cx.fillStyle = PINK; rrect(x + 2, y + 2, cell - 4, cell - 4, cell * 0.14); cx.fill(); cx.globalAlpha = 1;
       } else if (k >= 0) {
-        cx.globalAlpha = fresh ? e : 1; cx.fillStyle = TINT[k]; cx.fillRect(x + 1, y + 1, cell - 2, cell - 2); cx.globalAlpha = 1;
+        cx.globalAlpha = fresh ? e : 1; cx.fillStyle = TINT[k]; rrect(x + 2, y + 2, cell - 4, cell - 4, cell * 0.14); cx.fill(); cx.globalAlpha = 1;
       }
       if (k >= 0 && ch !== "G" && ch !== "S") {
         cx.font = `600 ${fontPx}px Inter, system-ui, sans-serif`; cx.textAlign = "left"; cx.textBaseline = "top";
         cx.fillStyle = onPath(H, i) ? "rgba(255,255,255,0.92)" : INK[k]; cx.fillText(String(k), x + cell * 0.1, y + cell * 0.08);
       }
-      if (fresh) { cx.strokeStyle = `rgba(29,29,31,${0.55 * (1 - e) + 0.25})`; cx.lineWidth = 2; cx.strokeRect(x + 2, y + 2, cell - 4, cell - 4); }
+      if (fresh) { cx.strokeStyle = `rgba(144,2,255,${0.75 * (1 - e) + 0.25})`; cx.lineWidth = 2; rrect(x + 2, y + 2, cell - 4, cell - 4, cell * 0.14); cx.stroke(); }
     }
     // grid lines, S and G
-    cx.strokeStyle = "rgba(20,33,61,0.08)"; cx.lineWidth = 1;
+    cx.strokeStyle = "#EDEDED"; cx.lineWidth = 1;
     for (let k = 1; k < side; k++) { cx.beginPath(); cx.moveTo(k * cell, 0); cx.lineTo(k * cell, px); cx.moveTo(0, k * cell); cx.lineTo(px, k * cell); cx.stroke(); }
     for (const L of ["S", "G"]) {
       const i = rows.join("").indexOf(L); if (i < 0) continue;
       const x = (i % side) * cell, y = Math.floor(i / side) * cell;
-      cx.fillStyle = "#14213d"; cx.fillRect(x + 2, y + 2, cell - 4, cell - 4);
+      cx.fillStyle = INKC; rrect(x + 2, y + 2, cell - 4, cell - 4, cell * 0.16); cx.fill();
       cx.fillStyle = "#fff"; cx.font = `700 ${Math.round(cell * 0.42)}px Inter, system-ui, sans-serif`; cx.textAlign = "center"; cx.textBaseline = "middle";
       cx.fillText(L, x + cell / 2, y + cell / 2 + 1);
       const k = countOf(H, i);
@@ -215,8 +217,8 @@
     for (let i = 0; i < n; i++) {
       const p = pointerOf(H, i); if (p < 0) continue;
       const r = Math.floor(i / side), c = i % side, x = (c + 0.5) * cell, y = (r + 0.5) * cell, [dr, dc] = DIRS[p];
-      const col = onPath(H, i) || rows[r][c] === "S" || rows[r][c] === "G" ? "rgba(255,255,255,0.95)" : "rgba(20,33,61,0.62)";
-      arrow(x - dc * cell * 0.08, y - dr * cell * 0.08, x + dc * cell * 0.3, y + dr * cell * 0.3, col, Math.max(1.4, cell * 0.045), cell * 0.16);
+      const col = onPath(H, i) || rows[r][c] === "S" || rows[r][c] === "G" ? "rgba(255,255,255,0.95)" : INKC;
+      arrow(x - dc * cell * 0.1, y - dr * cell * 0.1, x + dc * cell * 0.28, y + dr * cell * 0.28, col, Math.max(1.8, cell * 0.055), cell * 0.17);
     }
     // the selected cell, and what its heads read in step 1
     if (sel >= 0 && !editing) {
@@ -231,11 +233,11 @@
           cx.globalAlpha = 1;
         });
       }
-      cx.strokeStyle = "#14213d"; cx.lineWidth = 3; cx.strokeRect(c * cell + 1.5, r * cell + 1.5, cell - 3, cell - 3);
+      cx.strokeStyle = PURPLE; cx.lineWidth = 3.5; rrect(c * cell + 1.75, r * cell + 1.75, cell - 3.5, cell - 3.5, cell * 0.16); cx.stroke();
     }
     if (hover >= 0 && hover !== sel) {
       const r = Math.floor(hover / side), c = hover % side;
-      cx.strokeStyle = editing ? "#eb6834" : "rgba(20,33,61,0.5)"; cx.lineWidth = 2; cx.strokeRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
+      cx.strokeStyle = editing ? PINK : "rgba(144,2,255,0.45)"; cx.lineWidth = 2; rrect(c * cell + 1, r * cell + 1, cell - 2, cell - 2, cell * 0.16); cx.stroke();
     }
   }
 
@@ -282,62 +284,70 @@
   }
   function buildArch() {
     const host = el("xp-arch"); host.innerHTML = "";
-    const svg = sv("svg", { viewBox: "0 0 1200 200", class: "xp-svg", role: "img",
+    const svg = sv("svg", { viewBox: "0 0 1200 222", class: "xp-svg", role: "img",
       "aria-label": "The maze transformer. The cells are embedded as 35 numbers each, then one block runs again and again: an attention layer with four heads, each adding what it reads to the residual stream, then a layer of 86 ReLU neurons that also add to it. After the last loop, a linear readout writes one character per cell." }, host);
-    const Y = 106;                                                         // the residual stream
-    // input and embedding
-    box(svg, "xp-a-in", 6, 70, 104, 72, "Input", ["121 cells", "(row, col, char)"]);
-    svg.querySelector("#xp-a-in text.t2").id = "xp-a-n";
-    sv("line", { x1: 110, y1: Y, x2: 124, y2: Y, class: "wire" }, svg); head(svg, 128, Y, 0);
-    box(svg, "xp-a-emb", 128, 70, 132, 72, "Embedding", ["row + column + char", "→ 35 numbers"]);
-    sv("line", { x1: 260, y1: Y, x2: 278, y2: Y, class: "wire" }, svg);
-    // the block
+    const Y = 120, thick = (x1, x2, parent) => { sv("line", { x1, y1: Y, x2: x2 - 9, y2: Y, class: "wire" }, parent || svg); head(parent || svg, x2, Y, 0); };
+    const peach = (id, x, w, title, sub) => {
+      const g = sv("g", { id, class: "blk peach" }, svg);
+      sv("rect", { x, y: Y - 33, width: w, height: 66, rx: 10, class: "bx" }, g);
+      sv("text", { x: x + w / 2, y: Y - 6, class: "t1", "text-anchor": "middle" }, g, title);
+      sv("text", { x: x + w / 2, y: Y + 14, class: "t2", "text-anchor": "middle" }, g, sub);
+      return g;
+    };
+    peach("xp-a-in", 8, 112, "Input", "121 cells"); svg.querySelector("#xp-a-in text.t2").id = "xp-a-n";
+    thick(120, 150);
+    peach("xp-a-emb", 150, 140, "Embedding", "→ 35 numbers per cell");
+    thick(290, 316);
+    // the looped block: a dark container with white inner boxes
+    sv("text", { x: 318, y: 24, class: "t0" }, svg, "Looped block");
+    sv("text", { x: 432, y: 24, class: "t2 ital" }, svg, "the same weights every loop, no normalisation");
+    const lt = sv("text", { x: 990, y: 24, class: "t2", "text-anchor": "end" }, svg);
+    sv("tspan", {}, lt, "loop "); sv("tspan", { id: "xp-t", class: "num" }, lt, "0"); sv("tspan", {}, lt, " of "); sv("tspan", { id: "xp-R", class: "num" }, lt, "242");
     const F = sv("g", { id: "xp-a-block" }, svg);
-    sv("rect", { x: 280, y: 8, width: 724, height: 186, rx: 12, class: "frame" }, F);
-    sv("text", { x: 296, y: 26, class: "t3 strong" }, F, "One block, looped · the same weights every loop · a residual stream of 35 numbers per cell · no normalisation");
-    const lt = sv("text", { x: 990, y: 26, class: "t3 strong", "text-anchor": "end" }, F);
-    sv("tspan", {}, lt, "↻ loop "); sv("tspan", { id: "xp-t", class: "num" }, lt, "0"); sv("tspan", {}, lt, " of "); sv("tspan", { id: "xp-R", class: "num" }, lt, "242");
-    sv("line", { x1: 280, y1: Y, x2: 1004, y2: Y, class: "stream" }, F);
-    // skip connections and the two additions
+    sv("rect", { x: 316, y: 36, width: 676, height: 172, rx: 16, class: "dark" }, F);
+    sv("line", { x1: 316, y1: Y, x2: 992, y2: Y, class: "stream" }, F);
     const sk1 = sv("g", { id: "xp-a-skip1", class: "wireg" }, F);
-    sv("path", { d: `M300,${Y} V42 H566 V${Y - 11}`, class: "wire" }, sk1); head(sk1, 566, Y - 11, Math.PI / 2);
+    sv("path", { d: `M332,${Y} V70 H604 V${Y - 13}`, class: "skip" }, sk1); head(sk1, 604, Y - 13, Math.PI / 2, "skiph");
     const sk2 = sv("g", { id: "xp-a-skip2", class: "wireg" }, F);
-    sv("path", { d: `M584,${Y} V42 H982 V${Y - 11}`, class: "wire" }, sk2); head(sk2, 982, Y - 11, Math.PI / 2);
-    for (const [id, cx] of [["xp-a-plus1", 566], ["xp-a-plus2", 982]]) {
+    sv("path", { d: `M618,${Y} V70 H958 V${Y - 13}`, class: "skip" }, sk2); head(sk2, 958, Y - 13, Math.PI / 2, "skiph");
+    sv("text", { x: 468, y: 66, class: "t3 lite ital", "text-anchor": "middle" }, F, "skip connection");
+    sv("text", { x: 788, y: 66, class: "t3 lite ital", "text-anchor": "middle" }, F, "skip connection");
+    for (const [id, cx] of [["xp-a-plus1", 604], ["xp-a-plus2", 958]]) {
       const g = sv("g", { id, class: "plus" }, F);
-      sv("circle", { cx, cy: Y, r: 11 }, g); sv("text", { x: cx, y: Y + 5, "text-anchor": "middle", class: "t1" }, g, "+");
+      sv("circle", { cx, cy: Y, r: 12 }, g); sv("text", { x: cx, y: Y + 5.5, "text-anchor": "middle", class: "t1" }, g, "+");
     }
-    // attention, four heads
-    const A = box(F, "xp-a-attn", 318, 52, 228, 112, "Attention · 4 heads", []);
+    const A = sv("g", { id: "xp-a-attn", class: "blk inner" }, F);
+    sv("rect", { x: 346, y: 80, width: 238, height: 112, rx: 11, class: "bx" }, A);
+    sv("text", { x: 465, y: 101, class: "t1", "text-anchor": "middle" }, A, "Attention");
     ["below", "left", "right", "above"].forEach((nm, h) => {
-      const x = 326 + h * 54, g = sv("g", { class: "chip", id: "xp-a-h" + h }, A);
-      sv("rect", { x, y: 78, width: 50, height: 62, rx: 4 }, g);
-      sv("rect", { x, y: 78, width: 50, height: 4, rx: 2, fill: HEAD_COL[h] }, g);
-      sv("text", { x: x + 25, y: 98, "text-anchor": "middle", class: "t2 strong" }, g, ARROW[h] + " " + nm);
-      sv("text", { x: x + 25, y: 116, "text-anchor": "middle", class: "t3", id: "xp-a-c" + h }, g, "");
-      sv("text", { x: x + 25, y: 130, "text-anchor": "middle", class: "t3", id: "xp-a-d" + h }, g, "");
+      const x = 356 + h * 56, g = sv("g", { class: "chip", id: "xp-a-h" + h }, A);
+      sv("rect", { x, y: 110, width: 51, height: 72, rx: 7 }, g);
+      sv("text", { x: x + 25.5, y: 128, "text-anchor": "middle", class: "t2 strong" }, g, ARROW[h]);
+      sv("text", { x: x + 25.5, y: 142, "text-anchor": "middle", class: "t3 strong" }, g, nm);
+      sv("text", { x: x + 25.5, y: 160, "text-anchor": "middle", class: "t3", id: "xp-a-c" + h }, g, "");
+      sv("text", { x: x + 25.5, y: 173, "text-anchor": "middle", class: "t3", id: "xp-a-d" + h }, g, "");
     });
-    sv("text", { x: 432, y: 156, "text-anchor": "middle", class: "t3" }, A, "each head reads one neighbour");
-    // the 86 neurons
-    const Mx = 600, Mlp = box(F, "xp-a-mlp", Mx, 52, 360, 112, "MLP · 86 ReLU neurons", []);
-    const layout = [[0, 0, 6, 1], [1, 62, 12, 2], [2, 174, 8, 1], [3, 254, 8, 1]];   // group, x offset, columns, rows
+    const Mx = 626, Mlp = sv("g", { id: "xp-a-mlp", class: "blk inner" }, F);
+    sv("rect", { x: Mx, y: 80, width: 312, height: 112, rx: 11, class: "bx" }, Mlp);
+    sv("text", { x: Mx + 156, y: 101, class: "t1", "text-anchor": "middle" }, Mlp, "MLP · 86 neurons");
+    const layout = [[0, 0, 6], [1, 60, 12], [2, 168, 8], [3, 240, 8]];
     for (const [gi, dx, cols] of layout) {
-      const G = GROUPS[gi], gx = Mx + 14 + dx;
+      const G = GROUPS[gi], gx = Mx + 12 + dx;
       const g = sv("g", { class: "ngrp" }, Mlp); sv("title", {}, g, G.name + ". " + G.rule);
-      sv("text", { x: gx, y: 84, class: "t3" }, g, `${G.name} ${G.to - G.from}`);
-      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 4 + 8 * (k % cols), cy: 94 + 8 * Math.floor(k / cols), r: 3.1, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); }
+      sv("text", { x: gx, y: 120, class: "t3 strong" }, g, `${G.name}`);
+      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 4 + 8 * (k % cols), cy: 130 + 8 * Math.floor(k / cols), r: 3.2, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); }
     }
-    { const G = GROUPS[4], gx = Mx + 14, g = sv("g", { class: "ngrp" }, Mlp); sv("title", {}, g, G.name + ". " + G.rule);
-      sv("text", { x: gx, y: 128, class: "t3" }, g, `${G.name} ${G.to - G.from}`);
-      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 70 + 8 * (k % 20), cy: 125 + 8 * Math.floor(k / 20), r: 3.1, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); } }
-    sv("text", { x: Mx + 14, y: 156, class: "t3" }, Mlp, "update: count, pointer, path · clean-up: wipe the scratch");
+    { const G = GROUPS[4], gx = Mx + 12, g = sv("g", { class: "ngrp" }, Mlp); sv("title", {}, g, G.name + ". " + G.rule);
+      sv("text", { x: gx, y: 168, class: "t3 strong" }, g, G.name);
+      for (let u = G.from; u < G.to; u++) { const k = u - G.from; sv("circle", { cx: gx + 64 + 8 * (k % 20), cy: 165 + 8 * Math.floor(k / 20), r: 3.2, class: "dot", id: "xp-u" + u, style: `--nc:${G.col}` }, g); } }
     // the loop back into the same block
-    const lp = sv("g", { id: "xp-a-loop", class: "wireg" }, F);
-    sv("path", { d: `M994,${Y} V182 H290 V${Y + 12}`, class: "wire loopwire" }, lp); head(lp, 290, Y + 12, -Math.PI / 2);
-    sv("text", { x: 642, y: 178, "text-anchor": "middle", class: "t3" }, lp, "back into the same block, R = 2 × cells times");
+    const lp = sv("g", { id: "xp-a-loop", class: "wireg loopg" }, F);
+    sv("path", { d: `M972,${Y + 12} V200 H330 V${Y + 14}`, class: "loopwire" }, lp); head(lp, 330, Y + 14, -Math.PI / 2, "looph");
+    sv("rect", { x: 560, y: 192, width: 180, height: 16, rx: 8, class: "looptag" }, lp);
+    sv("text", { x: 650, y: 204, "text-anchor": "middle", class: "t3 lite strong" }, lp, "back into the same block");
     // readout
-    sv("line", { x1: 1004, y1: Y, x2: 1020, y2: Y, class: "wire" }, svg); head(svg, 1024, Y, 0);
-    box(svg, "xp-a-out", 1024, 70, 170, 72, "Readout", ["linear, 35 → 5, argmax", "# · S G o per cell"]);
+    thick(992, 1028);
+    peach("xp-a-out", 1028, 166, "Readout", "35 → 5 characters per cell");
   }
   function archState() {
     const set = (id, on) => { const e = el(id); if (e) e.classList.toggle("on", !!on); };
@@ -405,7 +415,7 @@
     else if (PH === 2) step = `Loop ${loopNo}, step 2 of 3, update`;
     else step = `Loop ${loopNo}, step 3 of 3, clean up`;
     if (!(PH === 0 && T === 0)) {
-      if (ch === "#") say = "This is a wall. Walls never get a count, so the wave flows around them.";
+      if (ch === "#") say = "This is a wall. Walls do not get a count, so the wave goes around them.";
       else if (PH === 1) {
         const parts = DIRS.map(([dr, dc, , where], h) => {
           const nr = r + dr, nc = c + dc;
@@ -419,7 +429,7 @@
         const bits = [];
         if (kb < 0 && ka >= 0) {
           const from = DIRS.map((d, h) => h).filter((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; return countOf(before, nr * side + nc) === (ka + 2) % 3; });
-          bits.push(`The wave arrives. A neighbour ${from.map((h) => DIRS[h][3]).join(" and ")} has count ${(ka + 2) % 3}, so the wave neurons switch on count ${ka}.`);
+          bits.push(`The wave arrives. A neighbour ${from.map((h) => DIRS[h][3]).join(" and ")} has count ${(ka + 2) % 3}, so the wave neurons give this cell count ${ka}.`);
         }
         if (pa >= 0 && pa !== pb) {
           const closer = DIRS.map((d, h) => h).filter((h) => { const nr = r + DIRS[h][0], nc = c + DIRS[h][1]; return rows[nr][nc] !== "#" && countOf(before, nr * side + nc) === (kb + 2) % 3; });
@@ -440,7 +450,7 @@
     el("xp-step").textContent = step;
     el("xp-say").textContent = say;
     let status;
-    if (Dsg < 0) status = "S cannot reach G here, so the wave never reaches S and the transformer leaves the maze unchanged.";
+    if (Dsg < 0) status = "S cannot reach G here, so the wave does not reach S and the transformer leaves the maze unchanged.";
     else if (T < Dsg) status = `${reachedNow} cells reached. The wave reaches S at loop ${Dsg}.`;
     else if (T < 2 * Dsg) status = `The wave reached S at loop ${Dsg}. The path grows one cell per loop and is complete at loop ${2 * Dsg}.`;
     else status = `Solved at loop ${2 * Dsg}. Every later loop leaves all the numbers as they are.`;
