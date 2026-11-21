@@ -527,7 +527,7 @@
   "title": "Claude wrote a network that solves every maze.\nTrained by gradient descent, it solves none.",
   "xlabel": "Hours",
   "label_claude": "Written by Claude, 100%",
-  "label_claude_sub": "no training",
+  "label_claude_sub": "no gradient training",
   "label_trm": "TRM, best 77.4%",
   "label_trm_released": "TRM as released, 85.3%",
   "label_trm_tall": "TRM, best 77.4%",

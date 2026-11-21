@@ -1235,7 +1235,7 @@ TRM_PLACEHOLDER = [(5.5, 79.6), (6.3, 82.1), (7.1, 83.4), (8.0, 85.3)]
 
 def _maze_training(plt, d, tall: bool) -> None:
     """Test mazes solved against hours. The left of the chart (light orange, "Written weights") holds Claude's
-    transformer as one big star at 39 minutes (its final weights) and 100%, with no training. The right (light grey, "Gradient-based methods")
+    transformer as one big star at 39 minutes (its final weights) and 100%, with no gradient training. The right (light grey, "Gradient-based methods")
     holds the training runs: TRM, a standard transformer, and the same architecture trained by gradient descent at 0%.
     A legend below the chart names the four series."""
     from matplotlib.lines import Line2D
@@ -1305,14 +1305,14 @@ def _maze_training(plt, d, tall: bool) -> None:
                Line2D([0], [0], color=TRAINED, lw=2.0, marker="o", ms=6, mfc=TRAINED, mec="white", mew=1.2),
                Line2D([0], [0], color=STD_INK, lw=2.0, marker="o", ms=6, mfc="white", mec=STD_INK, mew=1.5),
                Line2D([0], [0], color=GD_INK, lw=2.4, dashes=(3.0, 2.2))]
-    labels = ["Written by Claude, no training", "TRM", "Standard transformer",
+    labels = ["Written by Claude, no gradient training", "TRM", "Standard transformer",
               "Same architecture, gradient descent"]
     if tall:
         fig.legend(handles, labels, loc="upper left", bbox_to_anchor=(0.04, 0.27), ncol=1, frameon=False,
                    fontsize=small, handlelength=2.4, labelspacing=0.55, handletextpad=0.7)
     else:
-        fig.legend([handles[i] for i in (0, 2, 1, 3)], [labels[i] for i in (0, 2, 1, 3)], loc="upper center",
-                   bbox_to_anchor=(0.53, 0.175), ncol=2, frameon=False, fontsize=small, handlelength=2.2,
+        fig.legend([handles[i] for i in (0, 3, 1, 2)], [labels[i] for i in (0, 3, 1, 2)], loc="upper center",
+                   bbox_to_anchor=(0.5, 0.175), ncol=2, frameon=False, fontsize=small, handlelength=2.2,
                    columnspacing=1.4, labelspacing=0.6, handletextpad=0.6)
 
     name = "maze_training_tall" if tall else "maze_training"
