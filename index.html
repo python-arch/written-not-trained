@@ -685,12 +685,6 @@
 
 <p>Our runs used far less compute than the models built for Maze-Hard. Each of our first runs inside the transformer Claude wrote took about 5 PFLOPs, whereas training HRM, TRM and LDT took between 1,024 and 46,944 PFLOPs. So gradient descent did not find these weights under any of the training settings tested, which does not prove the weights unlearnable. The architecture holds a solution that scores 100% with only 922 nonzero weights, yet training on the same data got nowhere near it.</p>
 
-<details>
-  <summary>How we trained the transformer Claude wrote</summary>
-  <p>We fixed the plan before any training. Every run used the same tokenizer as the transformer Claude wrote and 1,800 loops, AdamW, 3 learning rates × 2 seeds, and 40 minutes per run. A run counts as training if its loss stays finite and it beats copying the input on mazes it didn't train on.</p>
-  <p>With RMSNorm, the six runs got 87.2–87.4% of cells right, against 87.4% for copying the input. Each run took about 14,400 steps.</p>
-</details>
-
 <details id="maze-gd-details">
   <summary>Every run in Figure 3, and why we didn't train them longer</summary>
   <p>The six versions in Figure 3 are the transformer Claude wrote at its original size (with 3 learning rates), with twice the loops, with 2 or 4 blocks per loop, and at 4 or 16 times the width, each with normalisation added. Since the runs shared one GPU, Figure 3 places each one at its number of updates times its time per update with the GPU to itself.</p>
@@ -3243,6 +3237,13 @@ answer that supports the score, copied exactly, or empty&gt;"}.
 <p>Claude had also written the task description it worked from. That description suggested a first design with two waves, one from each end. The waves used the position tables to find each cell's neighbours and marked every cell lying on some shortest path. The training answers revealed that the dataset expects one particular path. So the Claude writing the weights kept the neighbour lookups but rebuilt everything else, replacing it with one wave from the goal with distances modulo 3, pointers with a tie-break, and a chain from the start cell.</p>
 
 <p>In the single-answer tries, the instructions did say how many loops our transformer runs.</p>
+
+
+<h3 id="gd-setup">G. How we trained the transformer Claude wrote</h3>
+
+<p>We fixed the plan before any training. Every run used the same tokenizer as the transformer Claude wrote and 1,800 loops, AdamW, 3 learning rates × 2 seeds, and 40 minutes per run. A run counts as training if its loss stays finite and it beats copying the input on mazes it didn't train on.</p>
+
+<p>With RMSNorm, the six runs got 87.2–87.4% of cells right, against 87.4% for copying the input. Each run took about 14,400 steps.</p>
 
 </main>
 <script>
