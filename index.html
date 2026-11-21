@@ -474,7 +474,7 @@
 </div></details>
 
 
-<p><strong>Pointers.</strong> Once a cell is reached, it points to a neighbour one step closer to the goal, namely the one just behind it in the count. When several neighbours qualify, it picks the first in the fixed order down, left, right, up. Claude chose this order from 96 candidate rules because it was the only one that reproduced 100% of the answers on the training mazes, whereas the next best matched 95.6%.</p>
+<p><strong>Pointers.</strong> Each cell also has four binary numbers, one for each direction, down, left, right and up. Once a cell is reached, it sets the number for the direction of a neighbour one step closer to the goal to 1 and keeps the other three at 0. We say the cell points to that neighbour. A neighbour is one step closer when its remainder is one less than the cell's, with 2 counting as one less than 0. When several neighbours qualify, it picks the first in the fixed order down, left, right, up. Claude chose this order from 96 candidate rules because it was the only one that reproduced 100% of the answers on the training mazes, whereas the next best matched 95.6%.</p>
 
 <details class="math"><summary>The math</summary><div class="mbody">
 <p>Each cell has four binary pointer numbers \(p_\delta(c)\), one per direction, taken in the order \(\delta_1, \dots, \delta_4\) = down, left, right, up. They are rewritten in every loop. Eight reset neurons, two per direction, cancel the old value, since \(p - \mathrm{ReLU}(p) + \mathrm{ReLU}(-p) = 0\). At the same time, 24 pointer neurons compute</p>
