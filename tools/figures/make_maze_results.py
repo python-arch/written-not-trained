@@ -123,10 +123,10 @@ def size(plt) -> None:
     ax.scatter([1.8e6], [99.0], s=54, facecolor="white", edgecolor=mf.YELLOW, linewidth=1.6, zorder=5, gid="data")
     ax.annotate("one path, 99.0%", (1.8e6, 99.0), xytext=(9, -2), textcoords="offset points", ha="left",
                 va="top", fontsize=fs * 0.86, color=mf.YELLOW_TEXT, gid="data")
-    # How much smaller the written transformer is.
-    ax.annotate("", xy=(1.8e6, 95.4), xytext=(19936, 95.4),
+    # How much smaller the smallest written transformer (928 weights, under a weight cap) is than LDT.
+    ax.annotate("", xy=(1.8e6, 95.4), xytext=(928, 95.4),
                 arrowprops=dict(arrowstyle="<->", color=mf.INK, lw=1.4, shrinkA=0, shrinkB=0), gid="data")
-    ax.text((19936 * 1.8e6) ** 0.5, 96.0, "90× fewer weights than LDT", fontsize=fs * 1.22, color=mf.INK,
+    ax.text((928 * 1.8e6) ** 0.5, 96.0, "1,900× fewer weights than LDT", fontsize=fs * 1.22, color=mf.INK,
             fontweight="semibold", ha="center", va="bottom", gid="data")
     mf.save(fig, "maze_size", "Accuracy against size")
     plt.close(fig)

@@ -579,8 +579,8 @@
 </figure>
 <figure class="reveal" style="--hide: 85%">
   <div class="layers">
-  <img class="data" src="figures/maze_size_data.svg?v=20261121" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
-  <img src="figures/maze_size_base.svg?v=20261121" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%, and five more that Claude wrote under a weight cap solve 100% with 928 to 8,876 weights. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. Attractor Models has 27M and solves 93.1%, TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the written transformer has 90× fewer weights than LDT.">
+  <img class="data" src="figures/maze_size_data.svg?v=20261121b" width="538" height="346" loading="lazy" alt="" aria-hidden="true">
+  <img src="figures/maze_size_base.svg?v=20261121b" width="538" height="346" loading="lazy" alt="Test mazes solved against number of weights, on a log scale. The transformer Claude wrote has 19,936 weights and solves 100%, and five more that Claude wrote under a weight cap solve 100% with 928 to 8,876 weights. LDT has 1.8M weights and solves 99.8%, or 99.0% trained on one path per maze. Attractor Models has 27M and solves 93.1%, TRM has 7M and solves 91.9%, and HRM has 27M and solves 84.6%. An arrow marks that the smallest written transformer, with 928 weights, has about 1,900× fewer weights than LDT.">
   </div>
   <figcaption><strong>Figure 9. Accuracy against size.</strong> The y-axis starts at 80%. The small orange dots are five more transformers that Claude wrote under a cap on the number of weights, with 928 to 8,876 weights. LDT appears twice, trained on 512 shortest paths per maze and trained on one. The Attractor Models score is from its paper (<a href="https://arxiv.org/abs/2605.12466">Fein-Ashley and Rashidinejad, 2026</a>). LLM sizes aren't public, so they are left out.</figcaption>
 </figure>
