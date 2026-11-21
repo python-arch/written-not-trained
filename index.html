@@ -588,7 +588,7 @@
 
 <p>The written transformer tops the chart. Frontier LLMs trail far behind, with none of the three that <a href="https://arxiv.org/abs/2605.08605">Davis et al.</a> tested solving more than 26%. In earlier tests in the LDT paper, in April 2026, Claude Opus 4.6, DeepSeek V4-Pro and GPT-5.4 solved 0% of the test mazes. The trained looped models do much better, with LDT coming within 0.2 points at 99.8%. Yet LDT needs 90 times as many weights, whereas the written transformer needed no gradient training.</p>
 
-<p>The 19,936 weights are not a minimum. We gave five fresh Claude Code sessions only the task and a cap on the number of weights, of 1,000, 5,000, 10,000, 20,000 or 40,000. All five transformers solved all 1,000 test mazes, with 928, 4,359, 4,380, 7,682 and 8,876 weights. The smallest, 21 times smaller than the transformer in this post, works out each cell's position in its first 945 loops instead of reading it from a table. Figure 9 shows the five as small orange dots on the 100% line.</p>
+<p>The 19,936 weights are not a minimum. We gave five fresh Claude Code sessions only the task and a cap on the number of weights, of 1,000, 5,000, 10,000, 20,000 or 40,000. All five kept the accuracy at 100%. The smallest needs only 928 weights, 1,900 times fewer than LDT 🤯</p>
 
 
 <h2 id="maze-claude"><span class="qn">3.</span> Why Claude can write the transformer but can't solve the maze</h2>
