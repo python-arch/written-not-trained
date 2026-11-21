@@ -492,7 +492,7 @@
 \[ \ell_{\#} = \mathrm{wall}, \quad \ell_{\text{space}} = 1 - \mathrm{wall} - \mathrm{start} - \mathrm{goal}, \quad \ell_{S} = 3\,\mathrm{start}, \quad \ell_{G} = 3\,\mathrm{goal}, \quad \ell_{o} = 2\,\mathrm{on}, \]
 <p>and writes the highest. A path cell becomes o, while the start and the goal keep their letters, because \(3 > 2\).</p>
 </div></details>
-<details class="math"><summary>The math: why every number stays 0 or 1</summary><div class="mbody">
+<details class="math"><summary>Why every number stays 0 or 1</summary><div class="mbody">
 <p>Every binary number is written through \(\tau(z) = \mathrm{ReLU}(z) - \mathrm{ReLU}(z - 1)\), which is flat at 0 for \(z \le 0\) and flat at 1 for \(z \ge 1\). The arguments above land at \(1.5\) or below \(-0.5\), so an error below \(0.5\) in an argument leaves the output unchanged. The softmax leak of about \(e^{-100}\) per cell sits far inside that margin. Forty clean-up neurons, two per scratch number, then erase what the heads copied,</p>
 \[ s \;\leftarrow\; s - \mathrm{ReLU}(s) + \mathrm{ReLU}(-s) \;=\; 0. \]
 </div></details>
